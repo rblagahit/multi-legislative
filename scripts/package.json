@@ -1,0 +1,10 @@
+{
+  "name": "sb-argao-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "One-time admin bootstrap scripts. Run from inside this directory.",
+  "dependencies": {
+    "firebase-admin": "^12.0.0"
+  }
+}

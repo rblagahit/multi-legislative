@@ -1,0 +1,3060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Official Legislative Information System of the Sangguniang Bayan of Argao, Cebu. Browse, search, and request certified copies of ordinances, resolutions, and legislative documents.">
+  <meta name="keywords" content="Sangguniang Bayan, Argao, Cebu, LGU Argao, legislative documents, ordinances, resolutions, government transparency, RA 7160, local government">
+  <meta name="author" content="Sangguniang Bayan of Argao">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  <meta name="geo.region" content="PH-CEB">
+  <meta name="geo.placename" content="Argao, Cebu, Philippines">
+  <meta property="og:title" content="Sangguniang Bayan of Argao · Legislative Information System">
+  <meta property="og:description" content="Browse all ordinances and resolutions of the Sangguniang Bayan of Argao, Cebu. Transparent access to local legislative documents under RA 7160.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sb-argao.web.app">
+  <meta property="og:image" content="https://sb-argao.web.app/argao-seal.png">
+  <meta property="og:locale" content="en_PH">
+  <meta property="og:site_name" content="Sangguniang Bayan of Argao">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sangguniang Bayan of Argao · Legislative Information System">
+  <meta name="twitter:description" content="Browse all ordinances and resolutions passed by the Sangguniang Bayan of Argao, Cebu.">
+  <meta name="twitter:image" content="https://sb-argao.web.app/argao-seal.png">
+  <link rel="canonical" href="https://sb-argao.web.app">
+  <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+  <link id="dynamicFavicon" rel="icon" href="./argao-seal.png">
+  <title>Sangguniang Bayan of Argao · Legislative Information System</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+
+    @keyframes float   { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes slide-in{ from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes shimmer { 0%{background-position:-1000px 0} 100%{background-position:1000px 0} }
+    @keyframes spin    { to{transform:rotate(360deg)} }
+    @keyframes fadein  { from{bottom:0;opacity:0;transform:translateX(-50%) scale(.9)} to{bottom:30px;opacity:1;transform:translateX(-50%) scale(1)} }
+    @keyframes fadeout { from{bottom:30px;opacity:1;transform:translateX(-50%) scale(1)} to{bottom:0;opacity:0;transform:translateX(-50%) scale(.9)} }
+
+    .animate-float { animation:float 3s ease-in-out infinite }
+    .doc-card { animation:slide-in .45s ease-out forwards; transition:all .3s cubic-bezier(.4,0,.2,1) }
+    .doc-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px -10px rgba(0,0,0,.18) }
+    .glass-effect { background:rgba(255,255,255,.93); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px) }
+    .gradient-border { border-radius:1.5rem; background:linear-gradient(60deg,#f79533,#f37055,#ef4e7b,#a166ab,#5073b8,#1098ad,#07b39b,#6fba82); padding:2px }
+    .gradient-border-content { background:white; border-radius:1.4rem }
+    .shimmer { background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%); background-size:1000px 100%; animation:shimmer 2s infinite }
+    .hero-search { background:white; border-radius:1.1rem; box-shadow:0 8px 40px rgba(0,0,0,.12); display:flex; align-items:center; overflow:hidden }
+    .member-hero-card { transition:transform .2s ease,box-shadow .2s ease }
+    .member-hero-card:hover { transform:translateY(-3px); box-shadow:0 8px 20px -4px rgba(0,0,0,.12) }
+    .stat-pill { transition:transform .25s ease }
+    .stat-pill:hover { transform:translateY(-4px) }
+    .modal-overlay { background:rgba(0,0,0,.55); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px) }
+    .no-scrollbar::-webkit-scrollbar { display:none }
+    ::-webkit-scrollbar { width:6px; height:6px }
+    ::-webkit-scrollbar-track { background:#f1f5f9 }
+    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px }
+    ::-webkit-scrollbar-thumb:hover { background:#94a3b8 }
+    .tag-chip { display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; font-size:10px; font-weight:700; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:.05em }
+    .view-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; color:#94a3b8 }
+
+    #toast {
+      visibility:hidden; min-width:300px; background:#1e293b; color:white;
+      text-align:center; border-radius:100px; padding:14px 22px;
+      position:fixed; z-index:9999; left:50%; bottom:30px;
+      transform:translateX(-50%); font-weight:500; font-size:.875rem;
+      box-shadow:0 20px 40px -10px rgba(0,0,0,.5);
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      border:1px solid rgba(255,255,255,.1);
+    }
+    #toast.show    { visibility:visible; animation:fadein .3s, fadeout .3s 2.7s }
+    #toast.success { background:#059669 }
+    #toast.error   { background:#dc2626 }
+    #toast.info    { background:#2563eb }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-white">
+
+  <div id="toast"><i class="fas fa-info-circle"></i><span>Message</span></div>
+
+  <!-- ─── NAV ─── -->
+  <nav class="glass-effect sticky top-0 z-50 border-b border-slate-100 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-20">
+
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="window.navigateTo('public')">
+          <img id="navSealImg" src="./argao-seal.png"
+               alt="Organization Seal"
+               class="w-11 h-11 object-contain group-hover:scale-110 transition-transform duration-300">
+          <div>
+            <h1 id="navOrgName" class="font-black text-base sm:text-lg leading-tight text-slate-900">Sangguniang Bayan of Argao</h1>
+            <p class="text-[10px] font-semibold text-blue-600 tracking-widest uppercase flex items-center gap-1">
+              <span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse inline-block"></span>
+              Legislative Information System
+            </p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-500">
+          <a onclick="window.navigateTo('public')" href="#" class="hover:text-blue-600 transition-colors">Home</a>
+          <a href="#documents" class="hover:text-blue-600 transition-colors">Documents</a>
+          <a href="#members-section" class="hover:text-blue-600 transition-colors">Members</a>
+          <a onclick="window.navigateTo('contact')" href="#" class="hover:text-blue-600 transition-colors">Contact</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Admin panel link — shown only when logged in -->
+          <button id="adminPanelBtn" onclick="window.navigateTo('admin')"
+                  class="hidden px-4 py-2 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl font-bold text-sm hover:bg-blue-100 transition-all items-center gap-2">
+            <i class="fas fa-cog text-xs"></i>
+            <span class="hidden sm:inline">Admin Panel</span>
+          </button>
+          <button id="navBtn" onclick="window.handleNavAction()"
+                  class="relative group overflow-hidden px-5 py-2.5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-xl font-semibold text-sm hover:shadow-lg transition-all duration-300 flex items-center gap-2">
+            <span class="relative z-10 flex items-center gap-2">
+              <i class="fas fa-lock text-xs"></i>
+              <span class="hidden sm:inline">Admin</span>
+            </span>
+            <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="mainContent" class="flex-1">
+
+    <!-- ═══ PUBLIC VIEW ═══ -->
+    <section id="view-public" class="view-section">
+
+      <!-- HERO -->
+      <div class="bg-gradient-to-br from-white via-blue-50/40 to-amber-50/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 w-full">
+          <div class="max-w-4xl mx-auto text-center">
+            <div>
+              <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-bold mb-8">
+                <i class="fas fa-landmark text-xs"></i>
+                <span id="heroCityProvince">Argao, Cebu</span> · Official Legislative Portal
+              </div>
+              <h1 class="text-5xl lg:text-[3.6rem] font-black text-slate-900 leading-[1.08] mb-5">
+                Find Legislative <span class="text-blue-600">Documents</span><br>
+                in Seconds
+              </h1>
+              <p id="heroDescription" class="text-slate-500 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
+                Browse all ordinances and resolutions passed by the Sangguniang Bayan of Argao, Cebu.
+              </p>
+
+              <!-- SEARCH BAR -->
+              <div class="hero-search mb-10 max-w-4xl mx-auto">
+                <div class="flex-1 flex items-center gap-3 pl-6">
+                  <i class="fas fa-search text-slate-400 text-xl flex-shrink-0"></i>
+                  <input type="text" id="searchInput"
+                         placeholder="Search by title, ID, or tag…"
+                         class="flex-1 py-5 bg-transparent outline-none font-medium text-slate-800 placeholder-slate-400 text-lg min-w-0">
+                </div>
+                <select id="typeFilter"
+                        class="hidden sm:block shrink-0 bg-blue-50 border-l border-slate-100 px-6 py-5 text-sm font-bold text-blue-700 outline-none cursor-pointer">
+                  <option value="All">📋 All Types</option>
+                  <option value="Ordinance">📜 Ordinances</option>
+                  <option value="Resolution">📄 Resolutions</option>
+                </select>
+                <button onclick="renderDocs(true)"
+                        class="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-9 py-5 font-black text-sm tracking-wide transition-all flex items-center gap-2">
+                  <i class="fas fa-search text-xs"></i> Search
+                </button>
+              </div>
+
+              <!-- STATS -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="stat-pill bg-red-50 border border-red-100 rounded-2xl p-4">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Docs</p>
+                  <p class="text-2xl font-black text-slate-900" id="totalDocs">0</p>
+                </div>
+                <div class="stat-pill bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ordinances</p>
+                  <p class="text-2xl font-black text-slate-900" id="ordinanceCount">0</p>
+                </div>
+                <div class="stat-pill bg-green-50 border border-green-100 rounded-2xl p-4">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Resolutions</p>
+                  <p class="text-2xl font-black text-slate-900" id="resolutionCount">0</p>
+                </div>
+                <div class="stat-pill bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Views</p>
+                  <p class="text-2xl font-black text-slate-900" id="totalViews">0</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div id="documents" class="bg-slate-50 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12">
+            <div>
+              <p class="text-xs font-black uppercase text-blue-600 tracking-widest mb-2 flex items-center gap-2">
+                <i class="fas fa-layer-group"></i> Document Library
+              </p>
+              <h2 class="text-3xl font-black text-slate-900">All Documents</h2>
+              <p class="text-slate-500 mt-1">Ordinances and resolutions from the Sangguniang Bayan of Argao</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <select id="typeFilterMobile"
+                      class="sm:hidden bg-white px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold outline-none shadow-sm cursor-pointer">
+                <option value="All">📋 All Types</option>
+                <option value="Ordinance">📜 Ordinances</option>
+                <option value="Resolution">📄 Resolutions</option>
+              </select>
+              <button onclick="window.clearFilters()"
+                      class="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-red-500 transition-colors bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm">
+                <i class="fas fa-times"></i> Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Loading skeleton -->
+          <div id="documentsLoading" class="hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div class="bg-white rounded-3xl overflow-hidden shadow-sm h-64 p-8 space-y-4"><div class="shimmer h-6 w-24 rounded-full"></div><div class="shimmer h-7 w-full rounded-lg"></div><div class="shimmer h-7 w-3/4 rounded-lg"></div><div class="shimmer h-14 w-full rounded-2xl mt-4"></div></div>
+              <div class="bg-white rounded-3xl overflow-hidden shadow-sm h-64 p-8 space-y-4"><div class="shimmer h-6 w-24 rounded-full"></div><div class="shimmer h-7 w-full rounded-lg"></div><div class="shimmer h-7 w-3/4 rounded-lg"></div><div class="shimmer h-14 w-full rounded-2xl mt-4"></div></div>
+              <div class="bg-white rounded-3xl overflow-hidden shadow-sm h-64 p-8 space-y-4"><div class="shimmer h-6 w-24 rounded-full"></div><div class="shimmer h-7 w-full rounded-lg"></div><div class="shimmer h-7 w-3/4 rounded-lg"></div><div class="shimmer h-14 w-full rounded-2xl mt-4"></div></div>
+            </div>
+          </div>
+
+          <div id="documentGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+
+          <div id="emptyState" class="hidden text-center py-24">
+            <div class="w-28 h-28 bg-white rounded-full flex items-center justify-center mx-auto mb-6 animate-float shadow-md">
+              <i class="fas fa-search text-4xl text-slate-300"></i>
+            </div>
+            <h3 class="text-2xl font-black text-slate-900 mb-3">No documents found</h3>
+            <p class="text-slate-500 max-w-md mx-auto">Try adjusting your search or filter.</p>
+            <button onclick="window.clearFilters()"
+                    class="mt-8 px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all inline-flex items-center gap-3 shadow-lg">
+              <i class="fas fa-times"></i> Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div id="members-section" class="bg-white py-16 border-t border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="mb-12">
+            <p class="text-xs font-black uppercase text-blue-600 tracking-widest mb-2 flex items-center gap-2">
+              <i class="fas fa-users"></i> Legislative Officers
+            </p>
+            <h2 class="text-3xl font-black text-slate-900">Meet the Members</h2>
+            <p id="membersSubtitle" class="text-slate-500 mt-1">Sangguniang Bayan of Argao, Cebu</p>
+          </div>
+          <div class="mb-8">
+            <div class="hero-search max-w-2xl">
+              <div class="flex-1 flex items-center gap-3 pl-5">
+                <i class="fas fa-search text-slate-400 text-base flex-shrink-0"></i>
+                <input type="text" id="memberSearchInput"
+                       placeholder="Search by name, role, or committee…"
+                       class="flex-1 py-4 bg-transparent outline-none font-medium text-slate-800 placeholder-slate-400 text-base min-w-0">
+              </div>
+            </div>
+          </div>
+          <div id="memberPublicGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ═══ LOGIN VIEW ═══ -->
+    <section id="view-login" class="view-section hidden min-h-[80vh] flex items-center justify-center px-4 relative overflow-hidden">
+      <div class="absolute top-20 left-10 w-64 h-64 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-float"></div>
+      <div class="absolute bottom-20 right-10 w-64 h-64 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-50 animate-float" style="animation-delay:1s"></div>
+      <div class="w-full max-w-md relative">
+        <div class="gradient-border">
+          <div class="gradient-border-content p-10">
+            <div class="text-center mb-8">
+              <div class="w-18 h-18 bg-gradient-to-br from-blue-600 to-purple-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-5 text-2xl shadow-lg w-20 h-20">
+                <i class="fas fa-shield-alt"></i>
+              </div>
+              <h3 class="text-2xl font-black text-slate-900 mb-1">Admin Portal</h3>
+              <p class="text-slate-500 text-sm">Sign in to manage documents &amp; members</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+              <div class="relative group">
+                <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors"></i>
+                <input type="email" id="loginEmail" placeholder="Admin Email" required
+                       class="w-full pl-14 pr-6 py-4 bg-slate-50 rounded-2xl outline-none border border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+              </div>
+              <div class="relative group">
+                <i class="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors"></i>
+                <input type="password" id="loginPass" placeholder="Password" required
+                       class="w-full pl-14 pr-6 py-4 bg-slate-50 rounded-2xl outline-none border border-slate-200 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+              </div>
+              <button type="submit" id="loginBtn"
+                      class="w-full py-5 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl font-black shadow-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 uppercase tracking-widest text-xs flex items-center justify-center gap-3">
+                <span>Access Dashboard</span><i class="fas fa-arrow-right"></i>
+              </button>
+              <button type="button" onclick="window.navigateTo('public')"
+                      class="w-full py-3 text-slate-400 font-bold hover:text-blue-600 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-2">
+                <i class="fas fa-arrow-left"></i> Back to Public View
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ ADMIN VIEW ═══ -->
+    <section id="view-admin" class="view-section hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+      <!-- No-role warning banner (hidden by default; shown when logged in but userRole is null) -->
+      <div id="noRoleBanner" class="hidden mb-6 flex items-start gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl px-5 py-4 text-sm">
+        <i class="fas fa-exclamation-triangle mt-0.5 flex-shrink-0"></i>
+        <div>
+          <strong>Session has no role claim.</strong>
+          Your account hasn't been assigned a role yet, or your session is using a stale token.
+          <button onclick="window.forceSignOut()" class="ml-2 underline font-semibold hover:text-amber-900">Sign out and back in</button>
+          to apply the latest permissions.
+        </div>
+      </div>
+
+      <!-- Admin Header -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+        <div class="flex items-center gap-4">
+          <button onclick="window.navigateTo('public')"
+                  class="w-10 h-10 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center justify-center text-slate-500 hover:text-slate-800 transition-all">
+            <i class="fas fa-arrow-left text-sm"></i>
+          </button>
+          <div>
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center text-white">
+                <i class="fas fa-crown"></i>
+              </div>
+              <h2 class="text-2xl font-black text-slate-900">Management Panel</h2>
+              <span id="roleChip" class="hidden px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"></span>
+            </div>
+            <p class="text-slate-500 text-sm mt-1 ml-13">Manage members and legislative documents</p>
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <div class="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 text-center">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Members</p>
+            <p class="text-2xl font-black text-slate-900" id="adminMemberCount">0</p>
+          </div>
+          <div class="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 text-center">
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Documents</p>
+            <p class="text-2xl font-black text-slate-900" id="adminDocCount">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-8 border-b border-slate-200">
+        <button onclick="window.switchAdminTab('docs')" id="tab-docs"
+                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-all">
+          <i class="fas fa-file-alt mr-2"></i>Documents
+        </button>
+        <button onclick="window.switchAdminTab('members')" id="tab-members"
+                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+          <i class="fas fa-users mr-2"></i>Members
+        </button>
+        <button onclick="window.switchAdminTab('settings')" id="tab-settings"
+                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+          <i class="fas fa-sliders mr-2"></i>Settings
+        </button>
+        <button onclick="window.switchAdminTab('profile')" id="tab-profile"
+                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+          <i class="fas fa-user-circle mr-2"></i>My Profile
+        </button>
+      </div>
+
+      <!-- DOCS TAB -->
+      <div id="admin-tab-docs">
+
+        <!-- Tab header row -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-xl font-black text-slate-900">Documents</h3>
+            <p class="text-sm text-slate-500">Manage legislative documents</p>
+          </div>
+          <button type="button" onclick="window.toggleAddDocPanel()"
+                  id="addDocToggleBtn"
+                  class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
+            <i class="fas fa-plus text-xs" id="addDocToggleIcon"></i>
+            <span id="addDocToggleLabel">Add Document</span>
+          </button>
+        </div>
+
+        <!-- Collapsible upload panel (hidden by default) -->
+        <div id="addDocPanel" class="hidden bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100 mb-8">
+
+          <!-- Tabs for single/batch upload -->
+          <div class="flex gap-2 mb-8 border-b border-slate-200">
+            <button type="button" onclick="window.switchUploadType('single')" id="tab-upload-single"
+                    class="upload-tab px-4 py-2 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-all">
+              <i class="fas fa-file mr-1"></i>Single Document
+            </button>
+            <button type="button" onclick="window.switchUploadType('batch')" id="tab-upload-batch"
+                    class="upload-tab px-4 py-2 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              <i class="fas fa-file-csv mr-1"></i>Batch Upload (CSV)
+            </button>
+          </div>
+
+          <!-- Single Document Form -->
+          <div id="upload-type-single">
+          <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Title -->
+            <div class="md:col-span-2">
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-heading mr-1"></i>Title</label>
+              <input type="text" id="newTitle" required
+                     placeholder="e.g., An Ordinance Establishing the Digital Transformation Program"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <!-- Doc ID -->
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-hashtag mr-1"></i>Document ID</label>
+              <input type="text" id="newDocId" required placeholder="ORD-2024-001"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <!-- Type -->
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-tag mr-1"></i>Document Type</label>
+              <select id="newType"
+                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all"
+                      onchange="document.getElementById('customTypeWrap').classList.toggle('hidden', this.value !== '__custom__')">
+                <option value="Ordinance">📜 Ordinance</option>
+                <option value="Resolution">📄 Resolution</option>
+                <option value="Motion">📋 Motion</option>
+                <option value="Proclamation">🏛️ Proclamation</option>
+                <option value="Committee Report">📑 Committee Report</option>
+                <option value="__custom__">✏️ Custom type…</option>
+              </select>
+              <div id="customTypeWrap" class="hidden mt-2">
+                <input type="text" id="customType" placeholder="Enter custom document type"
+                       class="w-full p-3 bg-slate-50 rounded-xl border border-slate-200 outline-none focus:border-blue-400 text-sm transition-all">
+              </div>
+            </div>
+            <!-- Primary Sponsor -->
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user-tie mr-1"></i>Primary Sponsor</label>
+              <select id="newAuthor" required
+                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                <option value="">Select sponsor…</option>
+              </select>
+            </div>
+            <!-- PDF URL -->
+            <div class="md:col-span-2">
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-link mr-1"></i>PDF URL</label>
+              <input type="url" id="newLink" required placeholder="https://…"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+
+            <!-- Optional fields toggle -->
+            <div class="md:col-span-2">
+              <button type="button" onclick="window.toggleOptionalFields()"
+                      class="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-blue-600 transition-colors group">
+                <i class="fas fa-chevron-right text-xs transition-transform duration-200" id="optFieldsIcon"></i>
+                <span>Optional fields</span>
+                <span class="text-xs font-normal text-slate-400 group-hover:text-blue-400">co-sponsors · tags · notes</span>
+              </button>
+            </div>
+
+            <!-- Optional fields panel -->
+            <div id="optionalFieldsPanel" class="md:col-span-2 hidden">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
+                <!-- Co-Sponsors -->
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-users mr-1"></i>Co-Sponsors</label>
+                  <input type="text" id="newCoSponsors" placeholder="e.g., Hon. Santos, Hon. Reyes"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate names with commas</p>
+                </div>
+                <!-- Tags -->
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-tags mr-1"></i>Tags</label>
+                  <input type="text" id="newTags" placeholder="e.g., health, infrastructure, budget"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate tags with commas</p>
+                </div>
+                <!-- More Information -->
+                <div class="md:col-span-2">
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-info-circle mr-1"></i>More Information</label>
+                  <textarea id="newMoreInfo" rows="3" maxlength="400"
+                            placeholder="Additional details about this document visible to the public…"
+                            oninput="document.getElementById('newMoreInfoCount').textContent=this.value.length"
+                            class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
+                  <p class="text-[10px] text-slate-400 mt-1 ml-1"><span id="newMoreInfoCount">0</span>/400 characters</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <div class="md:col-span-2 flex gap-3">
+              <button type="button" onclick="window.toggleAddDocPanel()"
+                      class="px-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all">
+                Cancel
+              </button>
+              <button type="submit" id="submitBtn"
+                      class="flex-1 py-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg hover:from-blue-600 hover:to-purple-600 transition-all duration-300 flex items-center justify-center gap-3 group">
+                <span>Publish Document</span>
+                <i class="fas fa-paper-plane group-hover:translate-x-1 transition-transform"></i>
+              </button>
+            </div>
+          </form>
+          </div>
+
+          <!-- Batch Upload Form -->
+          <div id="upload-type-batch" class="hidden">
+            <div class="bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 p-8 mb-6">
+              <div class="text-center">
+                <i class="fas fa-cloud-upload-alt text-4xl text-slate-300 mb-3"></i>
+                <p class="text-sm font-bold text-slate-600 mb-2">Upload Excel File</p>
+                <input type="file" id="batchUploadFile" accept=".xlsx,.xls,.csv" 
+                       class="hidden" onchange="window.handleBatchFileSelect(event)">
+                <button type="button" onclick="document.getElementById('batchUploadFile').click()"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all text-sm">
+                  <i class="fas fa-folder-open mr-1"></i>Select Excel File
+                </button>
+                <p class="text-[11px] text-slate-400 mt-3">Supported: .xlsx, .xls, .csv</p>
+              </div>
+            </div>
+            <div id="batchExcelPreview" class="hidden mb-6">
+              <p class="text-sm font-bold text-slate-700 mb-3">Preview (first 5 rows)</p>
+              <div id="batchExcelTable" class="overflow-x-auto bg-slate-50 rounded-2xl p-4 border border-slate-200"></div>
+            </div>
+            <div id="batchUploadStatus" class="hidden mb-4 p-4 rounded-2xl text-sm font-bold"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button type="button" id="batchCancelBtn" onclick="window.cancelBatchUpload()" class="hidden py-3 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+                Cancel
+              </button>
+              <button type="button" id="batchSubmitBtn" onclick="window.submitBatchUpload()" disabled
+                      class="py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                <i class="fas fa-upload mr-1"></i>Import Documents
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+              <strong>CSV Format:</strong> Columns should be: Title, Document ID, Type, Sponsor ID, PDF URL, Tags (semicolon-separated), Co-Sponsors (semicolon-separated), More Information (optional, max 400 chars)
+            </p>
+          </div>
+        </div>
+
+        <!-- Document Management List -->
+        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+          <div class="mb-5">
+            <input type="text" id="docSearchInput" placeholder="Search by title or document ID…"
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all"
+                   onkeyup="window.renderDocumentManagementList()">
+          </div>
+          <div id="documentManagementList" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"></div>
+        </div>
+      </div>
+
+      <!-- MEMBERS TAB -->
+      <div id="admin-tab-members" class="hidden">
+
+        <!-- Tab header row -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-xl font-black text-slate-900">Members</h3>
+            <p class="text-sm text-slate-500">Legislative officers and profiles</p>
+          </div>
+          <button type="button" onclick="window.toggleAddMemberPanel()"
+                  id="addMemberToggleBtn"
+                  class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl font-bold text-sm hover:from-green-700 hover:to-teal-700 transition-all shadow-md">
+            <i class="fas fa-user-plus text-xs" id="addMemberToggleIcon"></i>
+            <span id="addMemberToggleLabel">Add Member</span>
+          </button>
+        </div>
+
+        <!-- Collapsible member form panel (hidden by default) -->
+        <div id="addMemberPanel" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-slate-100 mb-6">
+          <form id="memberForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <input type="hidden" id="memberEditId">
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user mr-1"></i>Full Name</label>
+              <input type="text" id="memberName" required placeholder="e.g., Hon. Juan dela Cruz"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-id-badge mr-1"></i>Position / Role</label>
+              <input type="text" id="memberRole" required placeholder="e.g., Vice Mayor, Councilor"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
+              <input type="url" id="memberImage" placeholder="https://… (optional)"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+              <p class="text-[10px] text-slate-400 mt-1 ml-1">Leave blank to use initials avatar</p>
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-sitemap mr-1"></i>Committees</label>
+              <input type="text" id="memberCommittees" placeholder="e.g., health, budget, education"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+              <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate with commas</p>
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-calendar-day mr-1"></i>Term Start</label>
+              <input type="date" id="memberTermStart"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-calendar-check mr-1"></i>Term End</label>
+              <input type="date" id="memberTermEnd"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-align-left mr-1"></i>Biography</label>
+              <textarea id="memberBio" rows="3" placeholder="Brief background and committee assignments…"
+                        class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
+            </div>
+            <div class="md:col-span-2 flex gap-3">
+              <button type="button" id="memberCancelBtn" onclick="window.cancelMemberEdit()"
+                      class="px-6 py-4 bg-slate-100 text-slate-700 rounded-2xl font-bold text-sm hover:bg-slate-200 transition-all hidden">
+                Cancel
+              </button>
+              <button type="submit" id="memberSubmitBtn"
+                      class="flex-1 py-4 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-lg hover:from-green-700 hover:to-teal-700 transition-all flex items-center justify-center gap-3">
+                <i class="fas fa-plus"></i> Add Member
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Member List (full width, always visible) -->
+        <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+          <div class="flex items-center justify-between mb-5">
+            <p class="text-xs font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
+              <i class="fas fa-users text-blue-600"></i> Current Members
+            </p>
+            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full" id="memberCount">0</span>
+          </div>
+          <div id="adminMemberGrid" class="space-y-3 max-h-[600px] overflow-y-auto pr-2"></div>
+        </div>
+
+      </div>
+
+      <!-- SETTINGS TAB -->
+      <div id="admin-tab-settings" class="hidden">
+        <h3 class="text-xl font-black text-slate-900 mb-2">Settings</h3>
+        <p class="text-sm text-slate-500 mb-6">Click a section to expand and edit</p>
+
+        <div class="space-y-3">
+
+          <!-- ── Accordion: Branding (open by default) ── -->
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <button type="button" onclick="window.toggleSettingsSection('branding')"
+                    class="w-full flex items-center justify-between px-7 py-5 text-left hover:bg-slate-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white text-sm shadow-sm">
+                  <i class="fas fa-building-columns"></i>
+                </div>
+                <div>
+                  <p class="font-black text-slate-900 text-sm">Organization Branding</p>
+                  <p class="text-xs text-slate-400">Name, location, seal, contact numbers</p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-down text-slate-400 text-xs transition-transform duration-200" id="icon-branding"></i>
+            </button>
+            <div id="section-branding" class="px-7 pb-7 border-t border-slate-100">
+              <div class="space-y-5 mt-6">
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-landmark mr-1"></i>Organization Name</label>
+                  <input type="text" id="brandingOrgName" placeholder="e.g., Sangguniang Bayan of Argao"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  <p class="text-[10px] text-slate-400 mt-1 ml-1">Appears in the navigation bar and footer</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map-marker-alt mr-1"></i>Municipality</label>
+                    <input type="text" id="brandingMunicipality" placeholder="e.g., Argao"
+                           class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  </div>
+                  <div>
+                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map mr-1"></i>Province</label>
+                    <input type="text" id="brandingProvince" placeholder="e.g., Cebu"
+                           class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Organization Seal / Logo URL</label>
+                  <input type="url" id="brandingSealUrl" placeholder="https://… (direct image link)"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  <p class="text-[10px] text-slate-400 mt-1 ml-1">Updates seal in nav, footer, and browser tab icon</p>
+                </div>
+                <div id="sealPreviewWrap" class="hidden flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                  <img id="sealPreviewImg" src="" alt="Seal preview" class="w-14 h-14 object-contain rounded-xl border border-slate-200 bg-white">
+                  <p class="text-xs text-slate-500 font-semibold">Seal preview</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-phone mr-1"></i>Contact Number 1</label>
+                    <input type="tel" id="brandingContactPhone1" placeholder="e.g., (032) 123-4567"
+                           class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  </div>
+                  <div>
+                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-mobile-alt mr-1"></i>Contact Number 2</label>
+                    <input type="tel" id="brandingContactPhone2" placeholder="e.g., +63 9xx xxx xxxx"
+                           class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  </div>
+                </div>
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-at mr-1"></i>Public Contact Email</label>
+                  <input type="email" id="brandingContactEmail" placeholder="e.g., sbargao@lgu.gov.ph"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                  <p class="text-[10px] text-slate-400 mt-1 ml-1">Displayed on the Contact page. Separate from document-request email in Admin Profile.</p>
+                </div>
+              </div>
+              <button type="button" id="saveBrandingBtn" onclick="window.saveBrandingSettings()"
+                      class="mt-6 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:from-emerald-600 hover:to-teal-700 transition-all flex items-center gap-2">
+                <i class="fas fa-save"></i> Save Branding
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Accordion: Document Notice (collapsed by default) ── -->
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <button type="button" onclick="window.toggleSettingsSection('notice')"
+                    class="w-full flex items-center justify-between px-7 py-5 text-left hover:bg-slate-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center text-white text-sm shadow-sm">
+                  <i class="fas fa-gavel"></i>
+                </div>
+                <div>
+                  <p class="font-black text-slate-900 text-sm">Document Download Notice</p>
+                  <p class="text-xs text-slate-400">Text shown before users open a document</p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-right text-slate-400 text-xs transition-transform duration-200" id="icon-notice"></i>
+            </button>
+            <div id="section-notice" class="hidden px-7 pb-7 border-t border-slate-100">
+              <div class="mt-6">
+                <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-file-contract mr-1"></i>Notice Text</label>
+                <textarea id="noticeTextInput" rows="6"
+                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-y"></textarea>
+                <p class="text-[11px] text-slate-400 mt-2">Appears in the confirmation popup before PDF redirect.</p>
+              </div>
+              <button type="button" id="saveNoticeBtn" onclick="window.saveNoticeSettings()"
+                      class="mt-6 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:from-indigo-700 hover:to-blue-700 transition-all flex items-center gap-2">
+                <i class="fas fa-save"></i> Save Notice
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Accordion: Social Media (collapsed by default) ── -->
+          <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+            <button type="button" onclick="window.toggleSettingsSection('social')"
+                    class="w-full flex items-center justify-between px-7 py-5 text-left hover:bg-slate-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-pink-600 to-rose-600 rounded-xl flex items-center justify-center text-white text-sm shadow-sm">
+                  <i class="fas fa-share-alt"></i>
+                </div>
+                <div>
+                  <p class="font-black text-slate-900 text-sm">Social Media Links</p>
+                  <p class="text-xs text-slate-400">Facebook, Twitter/X, contact email — shown in footer</p>
+                </div>
+              </div>
+              <i class="fas fa-chevron-right text-slate-400 text-xs transition-transform duration-200" id="icon-social"></i>
+            </button>
+            <div id="section-social" class="hidden px-7 pb-7 border-t border-slate-100">
+              <div class="space-y-5 mt-6">
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fab fa-facebook mr-1"></i>Facebook URL</label>
+                  <input type="url" id="socialFacebookUrl" placeholder="https://facebook.com/…"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                </div>
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fab fa-twitter mr-1"></i>Twitter / X URL</label>
+                  <input type="url" id="socialTwitterUrl" placeholder="https://twitter.com/…"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                </div>
+                <div>
+                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-envelope mr-1"></i>Email Contact</label>
+                  <input type="email" id="socialEmailUrl" placeholder="contact@example.com"
+                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                </div>
+              </div>
+              <button type="button" id="saveSocialBtn" onclick="window.saveSocialMediaSettings()"
+                      class="mt-6 px-6 py-3 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:from-pink-700 hover:to-rose-700 transition-all flex items-center gap-2">
+                <i class="fas fa-save"></i> Save Social Media
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ADMIN PROFILE TAB -->
+      <div id="admin-tab-profile" class="hidden">
+        <div class="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100">
+          <div class="flex items-center gap-3 mb-7">
+            <div class="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg">
+              <i class="fas fa-user-circle"></i>
+            </div>
+            <div>
+              <h3 class="text-xl font-black text-slate-900">Your Admin Profile</h3>
+              <p class="text-sm text-slate-500">Only <strong>Contact Email</strong> is required — used for document copy requests</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user mr-1"></i>Full Name</label>
+              <input type="text" id="adminName" placeholder="Your full name"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-id-badge mr-1"></i>Position / Role</label>
+              <input type="text" id="adminRole" placeholder="e.g., Mayor, Vice Mayor"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div class="lg:col-span-2">
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-envelope mr-1"></i>Contact Email</label>
+              <input type="email" id="adminEmail" placeholder="admin@example.com" required
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+              <p class="text-[10px] text-slate-400 mt-1 ml-1">This email will receive all document requests</p>
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
+              <input type="url" id="adminImage" placeholder="https://… (optional)"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div class="lg:col-span-2">
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-align-left mr-1"></i>Biography</label>
+              <textarea id="adminBio" rows="3" placeholder="Your background and qualifications…"
+                        class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mt-8">
+            <button type="button" id="saveAdminProfileBtn" onclick="window.saveAdminProfile()"
+                    class="flex-1 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-bold hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-save"></i> Save Profile
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profileModal"
+       class="fixed inset-0 z-[100] modal-overlay hidden flex items-center justify-center p-6"
+       onclick="if(event.target===this) window.closeModal('profileModal')">
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative">
+      <button onclick="window.closeModal('profileModal')"
+              class="absolute top-5 right-5 w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-all">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+      <div id="profileContent" class="p-8"></div>
+    </div>
+  </div>
+
+  <!-- Document Notice Modal -->
+  <div id="docNoticeModal"
+       class="fixed inset-0 z-[140] modal-overlay hidden flex items-center justify-center p-6"
+       onclick="if(event.target===this) window.closeModal('docNoticeModal')">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative">
+      <button onclick="window.closeModal('docNoticeModal')"
+              class="absolute top-5 right-5 w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-all">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+      <div class="p-8">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center">
+            <i class="fas fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black uppercase tracking-widest text-amber-600">Notice Before Viewing</p>
+            <h3 class="text-xl font-black text-slate-900">Document Disclaimer</h3>
+          </div>
+        </div>
+        <p id="docNoticeText" class="text-sm text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-2xl p-5"></p>
+        <label class="mt-5 flex items-start gap-3 p-4 rounded-2xl border border-slate-200 cursor-pointer">
+          <input id="docNoticeAgree" type="checkbox" class="mt-1 w-4 h-4 accent-blue-600">
+          <span class="text-sm font-semibold text-slate-700">I understand this notice and wish to continue.</span>
+        </label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+          <button onclick="window.closeModal('docNoticeModal')"
+                  class="w-full py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+            Cancel
+          </button>
+          <button id="docNoticeContinueBtn" onclick="window.confirmDocumentNotice()" disabled
+                  class="w-full py-3.5 bg-blue-600 text-white rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-all">
+            Continue to Document
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Document Modal -->
+  <div id="editDocumentModal"
+       class="fixed inset-0 z-[110] modal-overlay hidden flex items-center justify-center p-6 overflow-y-auto"
+       onclick="if(event.target===this) window.closeEditDocumentModal()">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative my-8">
+      <button onclick="window.closeEditDocumentModal()"
+              class="absolute top-5 right-5 w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-all">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+      <div class="p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
+            <i class="fas fa-file-edit"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black uppercase tracking-widest text-blue-600">Edit Document</p>
+            <h3 class="text-xl font-black text-slate-900">Update Document Details</h3>
+          </div>
+        </div>
+        
+        <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Title</label>
+            <input type="text" id="editDocTitle" required placeholder="Document title"
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Document ID</label>
+              <input type="text" id="editDocId" required placeholder="ORD-2024-001"
+                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            </div>
+            <div>
+              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Type</label>
+              <select id="editDocType"
+                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                <option value="Ordinance">Ordinance</option>
+                <option value="Resolution">Resolution</option>
+                <option value="Motion">Motion</option>
+                <option value="Proclamation">Proclamation</option>
+                <option value="Committee Report">Committee Report</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Primary Sponsor</label>
+            <select id="editDocAuthor" required
+                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+              <option value="">Select sponsor…</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">PDF URL</label>
+            <input type="url" id="editDocLink" required placeholder="https://…"
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Tags</label>
+            <input type="text" id="editDocTags" placeholder="e.g., health, infrastructure"
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate tags with commas</p>
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Co-Sponsors</label>
+            <input type="text" id="editDocCoSponsors" placeholder="e.g., Hon. Santos, Hon. Reyes"
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+            <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate names with commas</p>
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">More Information <span class="normal-case font-normal text-slate-300">(optional)</span></label>
+            <textarea id="editDocMoreInfo" rows="3" maxlength="400"
+                      placeholder="Additional details visible to the public…"
+                      oninput="document.getElementById('editMoreInfoCount').textContent=this.value.length"
+                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
+            <p class="text-[10px] text-slate-400 mt-1 ml-1"><span id="editMoreInfoCount">0</span>/400 characters</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+          <button type="button" onclick="window.closeEditDocumentModal()"
+                  class="w-full py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+            Cancel
+          </button>
+          <button type="button" id="updateDocBtn" onclick="window.updateDocument()"
+                  class="w-full py-3.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-save"></i> Update Document
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Document Details Modal -->
+  <div id="documentDetailsModal"
+       class="fixed inset-0 z-[110] modal-overlay hidden flex items-center justify-center p-6 overflow-y-auto"
+       onclick="if(event.target===this) window.closeModal('documentDetailsModal')">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden relative my-8">
+      <button onclick="window.closeModal('documentDetailsModal')"
+              class="absolute top-5 right-5 w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-all">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+      <div id="documentDetailsContent" class="p-8 max-h-[600px] overflow-y-auto"></div>
+    </div>
+  </div>
+
+  <!-- Document Request Copy Modal -->
+  <div id="documentRequestModal"
+       class="fixed inset-0 z-[110] modal-overlay hidden flex items-center justify-center p-6 overflow-y-auto"
+       onclick="if(event.target===this) window.closeModal('documentRequestModal')">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden relative my-8">
+      <button onclick="window.closeModal('documentRequestModal')"
+              class="absolute top-5 right-5 w-9 h-9 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-all">
+        <i class="fas fa-times text-sm"></i>
+      </button>
+      <div class="p-8">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
+            <i class="fas fa-file-download"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black uppercase tracking-widest text-blue-600">Request Certified Copy</p>
+            <h3 class="text-lg font-black text-slate-900">Document Copy Request</h3>
+          </div>
+        </div>
+        
+        <div id="requestDocumentTitle" class="text-sm font-bold text-slate-700 bg-blue-50 p-3 rounded-2xl mb-5 border border-blue-200"></div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Your Email</label>
+            <input type="email" id="requestEmail" placeholder="your@email.com" required
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Contact Number</label>
+            <input type="tel" id="requestPhone" placeholder="+63 9xxxxxxxxx" required
+                   class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Expected Delivery Time</label>
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3">
+              <i class="fas fa-calendar text-blue-600"></i>
+              <div>
+                <p class="font-bold text-slate-900">Within 5 calendar days</p>
+                <p class="text-xs text-slate-500">From date of request</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Special Requests (Optional)</label>
+            <textarea id="requestNotes" placeholder="e.g., sealed copy for court proceedings" rows="2"
+                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+          <button type="button" onclick="window.closeModal('documentRequestModal')"
+                  class="w-full py-3.5 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all">
+            Cancel
+          </button>
+          <button type="button" id="sendRequestBtn" onclick="window.submitDocumentRequest()"
+                  class="w-full py-3.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-envelope"></i> Open Email Client
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ FIREBASE + APP LOGIC ═══ -->
+  <script type="module">
+    import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import { getAuth, signInWithEmailAndPassword,
+             onAuthStateChanged, signOut }            from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+    import { getFirestore, collection, onSnapshot,
+             addDoc, updateDoc, setDoc, doc, increment, deleteDoc, getDoc, getDocs,
+             serverTimestamp, query,
+             orderBy, limit }                         from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey:            "%VITE_FIREBASE_API_KEY%",
+      authDomain:        "%VITE_FIREBASE_AUTH_DOMAIN%",
+      projectId:         "%VITE_FIREBASE_PROJECT_ID%",
+      messagingSenderId: "%VITE_FIREBASE_MESSAGING_SENDER_ID%",
+      appId:             "%VITE_FIREBASE_APP_ID%",
+    };
+
+    const app   = initializeApp(firebaseConfig);
+    const auth  = getAuth(app);
+    const db    = getFirestore(app);
+    const lguId = '%VITE_LGU_ID%';
+
+    let user = null, userRole = null, userLguId = null;
+    let localDocs = [], localMembers = [];
+    let memberSearchTerm = '';
+    let unsubDocs, unsubMembers, unsubSettings;
+    let pendingDocUrl = '', pendingDocId = '';
+
+    const DEFAULT_DOWNLOAD_NOTICE = 'Downloaded documents are for reference only. Under RA 7160, they are not official or binding unless authenticated by the Office of the Secretary to the Sangguniang Bayan with official seal and signature. Certified True Copies must be requested from the SB Secretary’s Office.';
+    let settingsState = {
+      downloadNotice: DEFAULT_DOWNLOAD_NOTICE,
+      socialFacebook: '',
+      socialTwitter: '',
+      socialEmail: '',
+      orgName: '',
+      municipality: '',
+      province: '',
+      sealUrl: '',
+      contactPhone1: '',
+      contactPhone2: '',
+      contactEmail: ''
+    };
+
+    const MEMBER_REF   = collection(db,'lgus',lguId,'members');
+    const DOC_REF      = collection(db,'lgus',lguId,'legislations');
+    const SETTINGS_DOC = doc(db,'lgus',lguId,'settings','general');
+
+    const escapeHtml = (str='') => str
+      .replaceAll('&','&amp;')
+      .replaceAll('<','&lt;')
+      .replaceAll('>','&gt;')
+      .replaceAll('"','&quot;')
+      .replaceAll("'",'&#39;');
+
+    const parseTags = (raw='') => raw.split(',').map(s=>s.trim()).filter(Boolean);
+    const normalizeText = (val='') => val.toLowerCase().trim();
+    const normalizeName = (name='') => normalizeText(name.replace(/^hon\.?\s+/i,''));
+    const normalizeTag = (tag='') => normalizeText(tag);
+    const formatDate = (dateStr='') => {
+      if (!dateStr) return '';
+      const dt = new Date(dateStr);
+      return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+    };
+    const isTermExpired = (member={}) => {
+      if (!member.termEnd) return false;
+      const end = new Date(member.termEnd);
+      if (Number.isNaN(end.getTime())) return false;
+      end.setHours(23,59,59,999);
+      return end.getTime() < Date.now();
+    };
+
+    function getMemberRelatedDocuments(member) {
+      const memberNameNorm = normalizeName(member.name||'');
+      const committeeTags = (member.committees||[]).map(normalizeTag).filter(Boolean);
+      return localDocs.filter(docData => {
+        const authorNameNorm = normalizeName(docData.authorName||'');
+        const coSponsorsNorm = (docData.coSponsors||[]).map(normalizeName);
+        const docTags = (docData.tags||[]).map(normalizeTag);
+
+        const isAuthor = docData.authorId === member.id || (!!memberNameNorm && authorNameNorm === memberNameNorm);
+        const isCoSponsor = !!memberNameNorm && coSponsorsNorm.includes(memberNameNorm);
+        const isCommittee = committeeTags.length > 0 && committeeTags.some(c => docTags.includes(c));
+        return isAuthor || isCoSponsor || isCommittee;
+      });
+    }
+
+    function resetMemberForm() {
+      const form = document.getElementById('memberForm');
+      if (form) form.reset();
+      document.getElementById('memberEditId').value = '';
+      document.getElementById('memberSubmitBtn').innerHTML = '<i class="fas fa-plus"></i> Add Member';
+      // Hide the panel and reset the toggle button
+      const panel = document.getElementById('addMemberPanel');
+      const icon  = document.getElementById('addMemberToggleIcon');
+      const label = document.getElementById('addMemberToggleLabel');
+      if (panel) panel.classList.add('hidden');
+      if (icon)  icon.className = 'fas fa-user-plus text-xs';
+      if (label) label.textContent = 'Add Member';
+    }
+
+    function syncNoticeUi() {
+      const noticeText = settingsState.downloadNotice || DEFAULT_DOWNLOAD_NOTICE;
+      const noticeLabel = document.getElementById('docNoticeText');
+      const noticeInput = document.getElementById('noticeTextInput');
+      if (noticeLabel) noticeLabel.textContent = noticeText;
+      if (noticeInput && document.activeElement !== noticeInput) noticeInput.value = noticeText;
+    }
+
+    /* ── Toast ── */
+    function showToast(msg, type='info') {
+      const t    = document.getElementById('toast');
+      const icon = t.querySelector('i');
+      const span = t.querySelector('span');
+      icon.className = 'fas ' + (type==='success'?'fa-check-circle':type==='error'?'fa-exclamation-circle':'fa-info-circle');
+      span.textContent = msg;
+      t.className = `show ${type}`;
+      setTimeout(()=>{ t.className=''; }, 3000);
+    }
+
+    /* ── Loading ── */
+    function setLoading(on) {
+      const loader = document.getElementById('documentsLoading');
+      const grid   = document.getElementById('documentGrid');
+      const empty  = document.getElementById('emptyState');
+      if (!loader||!grid||!empty) return;
+      loader.classList.toggle('hidden',!on);
+      grid.classList.toggle('hidden',on);
+      if (on) empty.classList.add('hidden');
+    }
+
+    /* ── Navigation ── */
+    window.navigateTo = (view) => {
+      document.querySelectorAll('.view-section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById(`view-${view}`).classList.remove('hidden');
+      window.scrollTo({top:0, behavior:'smooth'});
+    };
+
+    window.clearFilters = () => {
+      document.getElementById('searchInput').value = '';
+      ['typeFilter','typeFilterMobile'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 'All';
+      });
+      renderDocs();
+    };
+
+    window.handleNavAction = () => {
+      if (user) {
+        signOut(auth)
+          .then(()=>{ showToast("Logged out",'success'); window.navigateTo('public'); })
+          .catch(()=> showToast("Error logging out",'error'));
+      } else {
+        window.navigateTo('login');
+      }
+    };
+
+    /* ── Admin Profile Completion ── */
+    window.checkAdminProfileComplete = async () => {
+      if (!user) return;
+      try {
+        const adminProfileRef = doc(db,'users',user.uid);
+        const snap = await getDoc(adminProfileRef);
+        if (!snap.exists() || !snap.data().isComplete) {
+          document.getElementById('adminProfileModal').classList.remove('hidden');
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    };
+
+    window.completeAdminProfile = async () => {
+      if (!user) { showToast('Not logged in','error'); return; }
+      const name = document.getElementById('adminProfileName').value.trim();
+      const role = document.getElementById('adminProfileRole').value.trim();
+      const email = document.getElementById('adminProfileEmail').value.trim();
+      const image = document.getElementById('adminProfileImage').value.trim();
+      const committees = (document.getElementById('adminProfileCommittees').value || '').split(',').map(c=>c.trim()).filter(Boolean);
+      const bio = document.getElementById('adminProfileBio').value.trim();
+      const document_ = document.getElementById('adminProfileDocument').value.trim();
+      const additional = document.getElementById('adminProfileAdditional').value.trim();
+      
+      if (!email) { showToast('Contact Email is required','error'); return; }
+
+      const btn = document.getElementById('completeProfileBtn');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      btn.disabled = true;
+
+      try {
+        // Save admin profile
+        const adminProfileRef = doc(db,'users',user.uid);
+        await setDoc(adminProfileRef, {
+          uid: user.uid,
+          email,
+          contactEmail: email,
+          isComplete: true,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+
+        // Create admin as first legislative member only if name is provided
+        if (name) {
+          const memberPayload = {
+            name,
+            role,
+            image: image || '',
+            committees,
+            bio: bio || '',
+            additionalInfo: additional || '',
+            document: document_ || '',
+            isAdmin: true,
+            isArchived: false,
+            timestamp: serverTimestamp()
+          };
+
+          const memberId = await (async () => {
+            const col = collection(db,'lgus',lguId,'members');
+            const snapshot = await getDocs(col);
+            const adminMember = snapshot.docs.find(d => d.data().isAdmin);
+            if (adminMember) {
+              await updateDoc(doc(db,'lgus',lguId,'members',adminMember.id), memberPayload);
+              return adminMember.id;
+            } else {
+              const docRef = await addDoc(col, memberPayload);
+              return docRef.id;
+            }
+          })();
+
+          if (memberId) {
+            await setDoc(adminProfileRef, { memberId }, { merge: true });
+          }
+        }
+
+        showToast('Profile completed successfully!','success');
+        document.getElementById('adminProfileModal').classList.add('hidden');
+      } catch(e) {
+        console.error(e);
+        showToast('Error completing profile','error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    /* ── Document Details Modal ── */
+    window.openDocumentDetails = (docId) => {
+      const doc = localDocs.find(d => d.id === docId);
+      if (!doc) return;
+      
+      const linkedAuthor = localMembers.find(m => m.id === doc.authorId);
+      const author = linkedAuthor || {
+        name: doc.authorName || 'SB Argao',
+        image: doc.authorImage || 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Ph_seal_cebu_argao.png'
+      };
+      
+      const date = doc.timestamp?.toDate
+        ? new Date(doc.timestamp.toDate()).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
+        : 'N/A';
+      
+      const tags = (doc.tags||[]).map(t=>`<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
+      const coSponsors = (doc.coSponsors||[]).filter(Boolean).join(', ');
+      const views = doc.views || 0;
+      const moreInfo = (doc.moreInfo || '').trim();
+      
+      const typeColors = {
+        'Ordinance':'from-blue-600 to-blue-700',
+        'Resolution':'from-purple-600 to-purple-700',
+        'Motion':'from-amber-500 to-amber-600',
+        'Proclamation':'from-rose-500 to-rose-600',
+        'Committee Report':'from-teal-600 to-teal-700'
+      };
+      const typeBg = typeColors[doc.type] || 'from-slate-700 to-slate-800';
+      const imgFb = `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=2563eb&color=fff&bold=true`;
+
+      const content = `
+        <div class="space-y-6">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest bg-gradient-to-r ${typeBg} text-white shadow-sm">
+                <i class="fas fa-file-alt text-xs"></i>${escapeHtml(doc.type)}
+              </span>
+              <span class="view-badge"><i class="fas fa-eye"></i>${views}</span>
+            </div>
+            <h2 class="text-2xl font-black text-slate-900 leading-snug mb-3">${escapeHtml(doc.title||'Untitled')}</h2>
+            <p class="text-sm text-slate-600 mb-3"><strong>Document ID:</strong> ${escapeHtml(doc.docId||'N/A')}</p>
+            <p class="text-sm text-slate-600"><strong>Date:</strong> ${date}</p>
+          </div>
+          
+          <div class="border-t border-slate-200 pt-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Primary Sponsor</h3>
+            <div class="flex items-center gap-3">
+              <img src="${author.image}"
+                   class="w-12 h-12 rounded-xl object-cover bg-slate-100 ring-2 ring-white shadow-sm"
+                   onerror="this.src='${imgFb}'">
+              <div>
+                <p class="text-sm font-black text-slate-900">${escapeHtml(author.name)}</p>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">${escapeHtml(author.role||'SB Member')}</p>
+                ${coSponsors ? `<p class="text-xs text-slate-600 mt-1"><strong>Co-Sponsors:</strong> ${escapeHtml(coSponsors)}</p>` : ''}
+              </div>
+            </div>
+          </div>
+          
+          ${tags ? `<div class="border-t border-slate-200 pt-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Categories</h3>
+            <div class="flex flex-wrap gap-2">${tags}</div>
+          </div>` : ''}
+
+          ${moreInfo ? `<div class="border-t border-slate-200 pt-6">
+            <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">More Information</h3>
+            <p class="text-sm text-slate-600 leading-relaxed bg-slate-50 border border-slate-200 rounded-2xl p-4">${escapeHtml(moreInfo)}</p>
+          </div>` : ''}
+
+          <div class="border-t border-slate-200 pt-6 space-y-3">
+            <button type="button"
+                   onclick="window.openDocumentNotice('${encodeURIComponent(doc.link||'')}', '${doc.id}')"
+                   class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase text-sm hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
+              <i class="far fa-file-pdf"></i> View Full Document
+            </button>
+            <button type="button"
+                   onclick="window.openDocumentRequest('${doc.id}')"
+                   class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold uppercase text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
+              <i class="fas fa-file-download"></i> Request Copy of Document
+            </button>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('documentDetailsContent').innerHTML = content;
+      document.getElementById('documentDetailsModal').classList.remove('hidden');
+    };
+
+    /* ── Document Request Modal ── */
+    let requestingDocId = '';
+    window.openDocumentRequest = (docId) => {
+      const doc = localDocs.find(d => d.id === docId);
+      if (!doc) return;
+      requestingDocId = docId;
+      document.getElementById('requestDocumentTitle').textContent = `📄 ${escapeHtml(doc.title||'Document')}`;
+      document.getElementById('requestEmail').value = '';
+      document.getElementById('requestPhone').value = '';
+      document.getElementById('requestNotes').value = '';
+      document.getElementById('documentRequestModal').classList.remove('hidden');
+    };
+
+    window.submitDocumentRequest = async () => {
+      const email = document.getElementById('requestEmail').value.trim();
+      const phone = document.getElementById('requestPhone').value.trim();
+      const notes = document.getElementById('requestNotes').value.trim();
+      const docData = localDocs.find(d => d.id === requestingDocId);
+
+      if (!email || !phone) { showToast('Please fill in all required fields','error'); return; }
+      if (!docData) { showToast('Document not found','error'); return; }
+
+      const btn = document.getElementById('sendRequestBtn');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Opening...';
+      btn.disabled = true;
+
+      try {
+        // Fetch admin contact email
+        let adminEmail = '';
+        try {
+          const adminSnap = await getDoc(doc(db,'users',user.uid));
+          if (adminSnap.exists()) adminEmail = adminSnap.data().contactEmail || '';
+        } catch(e) { console.error(e); }
+
+        const subject = `Document Copy Request: ${docData.title} (${docData.docId || ''})`;
+        const body =
+`Dear Sangguniang Bayan of Argao,
+
+I would like to request a certified copy of the following document:
+
+Document Title : ${docData.title}
+Document ID    : ${docData.docId || 'N/A'}
+
+Requester Information:
+  Email          : ${email}
+  Contact Number : ${phone}${notes ? `
+  Special Requests: ${notes}` : ''}
+
+Expected Delivery: Within 5 calendar days from date of request.
+
+Thank you.`;
+
+        const mailto = `mailto:${adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = mailto;
+        showToast(adminEmail ? 'Your email client is opening…' : 'Opening email client — please add the office email address in the To field.','success');
+        window.closeModal('documentRequestModal');
+
+      } catch(e) {
+        console.error(e);
+        showToast('Error preparing request','error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    /* ── Admin tab switch ── */
+    /* ── Add Document panel toggle ── */
+    window.toggleAddDocPanel = () => {
+      const panel  = document.getElementById('addDocPanel');
+      const icon   = document.getElementById('addDocToggleIcon');
+      const label  = document.getElementById('addDocToggleLabel');
+      const isOpen = !panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', isOpen);
+      if (isOpen) {
+        icon.className  = 'fas fa-plus text-xs';
+        label.textContent = 'Add Document';
+      } else {
+        icon.className  = 'fas fa-times text-xs';
+        label.textContent = 'Cancel';
+        document.getElementById('uploadForm')?.reset();
+        document.getElementById('newMoreInfoCount').textContent = '0';
+        document.getElementById('customTypeWrap').classList.add('hidden');
+        document.getElementById('optionalFieldsPanel').classList.add('hidden');
+        document.getElementById('optFieldsIcon').style.transform = '';
+      }
+    };
+
+    /* ── Optional fields toggle in upload form ── */
+    window.toggleOptionalFields = () => {
+      const panel = document.getElementById('optionalFieldsPanel');
+      const icon  = document.getElementById('optFieldsIcon');
+      const isOpen = !panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', isOpen);
+      icon.style.transform = isOpen ? '' : 'rotate(90deg)';
+    };
+
+    /* ── Add Member panel toggle ── */
+    window.toggleAddMemberPanel = () => {
+      const panel  = document.getElementById('addMemberPanel');
+      const icon   = document.getElementById('addMemberToggleIcon');
+      const label  = document.getElementById('addMemberToggleLabel');
+      const isOpen = !panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', isOpen);
+      if (isOpen) {
+        icon.className    = 'fas fa-user-plus text-xs';
+        label.textContent = 'Add Member';
+        resetMemberForm();
+      } else {
+        icon.className    = 'fas fa-times text-xs';
+        label.textContent = 'Cancel';
+        document.getElementById('memberName').focus();
+      }
+    };
+
+    /* ── Settings accordion ── */
+    window.toggleSettingsSection = (id) => {
+      const sections = ['branding','notice','social'];
+      sections.forEach(s => {
+        const body = document.getElementById(`section-${s}`);
+        const icon = document.getElementById(`icon-${s}`);
+        if (s === id) {
+          const isOpen = !body.classList.contains('hidden');
+          body.classList.toggle('hidden', isOpen);
+          icon.className = isOpen
+            ? 'fas fa-chevron-right text-slate-400 text-xs transition-transform duration-200'
+            : 'fas fa-chevron-down text-blue-600 text-xs transition-transform duration-200';
+        } else {
+          body.classList.add('hidden');
+          icon.className = 'fas fa-chevron-right text-slate-400 text-xs transition-transform duration-200';
+        }
+      });
+    };
+
+    window.switchAdminTab = (tab) => {
+      document.getElementById('admin-tab-docs').classList.toggle('hidden', tab!=='docs');
+      document.getElementById('admin-tab-members').classList.toggle('hidden', tab!=='members');
+      document.getElementById('admin-tab-settings').classList.toggle('hidden', tab!=='settings');
+      document.getElementById('admin-tab-profile').classList.toggle('hidden', tab!=='profile');
+      document.getElementById('tab-docs').className    = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='docs'    ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+      document.getElementById('tab-members').className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='members' ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+      document.getElementById('tab-settings').className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='settings' ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+      document.getElementById('tab-profile').className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='profile' ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+      if (tab === 'profile') {
+        window.loadAdminProfile();
+      }
+    };
+
+    /* ── Upload Type Switcher ── */
+    window.switchUploadType = (type) => {
+      document.getElementById('upload-type-single').classList.toggle('hidden', type !== 'single');
+      document.getElementById('upload-type-batch').classList.toggle('hidden', type !== 'batch');
+      document.getElementById('tab-upload-single').className = `upload-tab px-4 py-2 font-bold text-sm border-b-2 transition-all ${type === 'single' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`;
+      document.getElementById('tab-upload-batch').className = `upload-tab px-4 py-2 font-bold text-sm border-b-2 transition-all ${type === 'batch' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`;
+    };
+
+    let batchFileData = [];
+
+    window.handleBatchFileSelect = async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const fileName = file.name.toLowerCase();
+      try {
+        if (fileName.endsWith('.csv')) {
+          const text = await file.text();
+          batchFileData = window.parseCSV(text);
+        } else {
+          showToast('Please upload a .csv file. Excel import coming soon.', 'info');
+          return;
+        }
+        if (batchFileData.length === 0) {
+          showToast('No valid records found in the file', 'error');
+          return;
+        }
+        window.showBatchPreview();
+        document.getElementById('batchSubmitBtn').disabled = false;
+      } catch (e) {
+        console.error(e);
+        showToast('Error reading file: ' + e.message, 'error');
+      }
+    };
+
+    window.parseCSV = (text) => {
+      const lines = text.trim().split('\n');
+      const records = [];
+      for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const cells = lines[i].split(',').map(c => c.trim());
+        if (cells.length < 5) continue;
+        records.push({
+          title: cells[0] || '',
+          docId: cells[1] || '',
+          type: cells[2] || 'Ordinance',
+          sponsorId: cells[3] || '',
+          link: cells[4] || '',
+          tags: cells[5] ? cells[5].split(';').map(t => t.trim()) : [],
+          coSponsors: cells[6] ? cells[6].split(';').map(s => s.trim()) : [],
+          moreInfo: cells[7] ? cells[7].slice(0, 400) : ''
+        });
+      }
+      return records;
+    };
+
+    window.showBatchPreview = () => {
+      const preview = document.getElementById('batchExcelPreview');
+      const table = document.getElementById('batchExcelTable');
+      const rows = batchFileData.slice(0, 5);
+      const html = `
+        <table class="w-full text-sm">
+          <thead><tr class="border-b border-slate-300 text-left">
+            <th class="p-2 font-bold">Title</th>
+            <th class="p-2 font-bold">Doc ID</th>
+            <th class="p-2 font-bold">Type</th>
+            <th class="p-2 font-bold">Sponsor</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r => `<tr class="border-b border-slate-200"><td class="p-2 text-xs">${escapeHtml(r.title)}</td><td class="p-2 text-xs">${escapeHtml(r.docId)}</td><td class="p-2 text-xs">${escapeHtml(r.type)}</td><td class="p-2 text-xs">${escapeHtml(r.sponsorId)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+      table.innerHTML = html;
+      preview.classList.remove('hidden');
+      document.getElementById('batchCancelBtn').classList.remove('hidden');
+    };
+
+    window.submitBatchUpload = async () => {
+      if (!user) { showToast('Admin login required', 'error'); return; }
+      const btn = document.getElementById('batchSubmitBtn');
+      const status = document.getElementById('batchUploadStatus');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+      btn.disabled = true;
+      status.className = 'hidden';
+      let imported = 0, failed = 0;
+      for (const row of batchFileData) {
+        try {
+          if (!row.title || !row.docId || !row.type || !row.sponsorId || !row.link) {
+            failed++;
+            continue;
+          }
+          const sponsor = localMembers.find(m => m.id === row.sponsorId);
+          await addDoc(DOC_REF, {
+            title: row.title,
+            docId: row.docId,
+            type: row.type,
+            authorId: row.sponsorId,
+            authorName: sponsor?.name || '',
+            authorImage: sponsor?.image || '',
+            authorRole: sponsor?.role || '',
+            link: row.link,
+            tags: row.tags || [],
+            coSponsors: row.coSponsors || [],
+            moreInfo: row.moreInfo || '',
+            views: 0,
+            timestamp: serverTimestamp()
+          });
+          imported++;
+        } catch (e) {
+          console.error(e);
+          failed++;
+        }
+      }
+      status.innerHTML = `<span class="text-green-700 bg-green-50 border border-green-200">✓ Imported ${imported} documents${failed > 0 ? ` (${failed} failed)` : ''}</span>`;
+      status.classList.remove('hidden');
+      btn.innerHTML = original;
+      btn.disabled = false;
+      if (imported > 0) {
+        setTimeout(() => window.cancelBatchUpload(), 2000);
+      }
+    };
+
+    window.cancelBatchUpload = () => {
+      batchFileData = [];
+      document.getElementById('batchUploadFile').value = '';
+      document.getElementById('batchExcelPreview').classList.add('hidden');
+      document.getElementById('batchUploadStatus').classList.add('hidden');
+      document.getElementById('batchSubmitBtn').disabled = true;
+      document.getElementById('batchCancelBtn').classList.add('hidden');
+    };
+
+    /* ── Sync ── */
+    const startSync = () => {
+      if (unsubDocs)    unsubDocs();
+      if (unsubMembers) unsubMembers();
+      if (unsubSettings) unsubSettings();
+      setLoading(true);
+
+      unsubMembers = onSnapshot(
+        query(MEMBER_REF, orderBy('name'), limit(50)),
+        snap => { localMembers = snap.docs.map(d=>({id:d.id,...d.data()})); renderUI(); },
+        err  => { console.error(err); showToast("Error loading members",'error'); }
+      );
+
+      unsubDocs = onSnapshot(
+        query(DOC_REF, orderBy('timestamp','desc'), limit(200)),
+        snap => { localDocs = snap.docs.map(d=>({id:d.id,...d.data()})); setLoading(false); renderUI(); updateStats(); },
+        err  => { console.error(err); setLoading(false); showToast("Error loading documents",'error'); }
+      );
+
+      unsubSettings = onSnapshot(
+        SETTINGS_DOC,
+        snap => {
+          const incoming = snap.exists() ? snap.data() : {};
+          settingsState = {
+            ...settingsState,
+            downloadNotice: incoming.downloadNotice || DEFAULT_DOWNLOAD_NOTICE,
+            socialFacebook: incoming.socialFacebook || '',
+            socialTwitter: incoming.socialTwitter || '',
+            socialEmail: incoming.socialEmail || '',
+            orgName: incoming.orgName || '',
+            municipality: incoming.municipality || '',
+            province: incoming.province || '',
+            sealUrl: incoming.sealUrl || '',
+            contactPhone1: incoming.contactPhone1 || '',
+            contactPhone2: incoming.contactPhone2 || '',
+            contactEmail: incoming.contactEmail || ''
+          };
+          syncNoticeUi();
+          syncSocialMediaUi();
+          syncBrandingUi();
+        },
+        err => {
+          console.error(err);
+          settingsState.downloadNotice = DEFAULT_DOWNLOAD_NOTICE;
+          syncNoticeUi();
+          syncSocialMediaUi();
+          syncBrandingUi();
+        }
+      );
+    };
+
+    /* ── Stats ── */
+    function updateStats() {
+      const set = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+      set('totalDocs',      localDocs.length);
+      set('ordinanceCount', localDocs.filter(d=>d.type==='Ordinance').length);
+      set('resolutionCount',localDocs.filter(d=>d.type==='Resolution').length);
+      set('adminDocCount',  localDocs.length);
+      const totalViews = localDocs.reduce((sum, d) => sum + (d.views || 0), 0);
+      set('totalViews', totalViews);
+    }
+
+    /* ── Render ── */
+    function renderUI() {
+      renderPublicMembers();
+      renderAuthorSelect();
+      renderDocs();
+      renderAdminMembers();
+      renderDocumentManagementList();
+    }
+
+    /* ── Public Members Section ── */
+    function renderPublicMembers() {
+      const grid = document.getElementById('memberPublicGrid');
+      if (!grid) return;
+
+      const sorted = [...localMembers].sort((a,b) => {
+        const aVM = (a.role||'').toLowerCase().includes('vice mayor');
+        const bVM = (b.role||'').toLowerCase().includes('vice mayor');
+        return aVM&&!bVM ? -1 : !aVM&&bVM ? 1 : 0;
+      }).filter(m => {
+        if (m.isArchived) return false;
+        const hay = `${m.name||''} ${m.role||''} ${(m.committees||[]).join(' ')}`.toLowerCase();
+        return !memberSearchTerm || hay.includes(memberSearchTerm);
+      });
+
+      if (!sorted.length) {
+        grid.innerHTML = `
+          <div class="col-span-full text-center py-16">
+            <div class="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <i class="fas fa-user-tie text-slate-400 text-3xl"></i>
+            </div>
+            <p class="text-lg font-bold text-slate-500">No officers listed yet</p>
+            <p class="text-sm text-slate-400 mt-1">Check back later or contact the office.</p>
+          </div>`;
+        return;
+      }
+
+      grid.innerHTML = sorted.map(m => {
+        const isVM  = (m.role||'').toLowerCase().includes('vice mayor');
+        const expired = isTermExpired(m);
+        const init  = m.name.replace('Hon.','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+        const fbUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(init)}&background=1e40af&color=fff&bold=true&size=256`;
+        const bio   = m.bio || 'Legislative officer of the Sangguniang Bayan of Argao, Cebu.';
+        const committees = (m.committees||[]).map(c=>`<span class="tag-chip">${escapeHtml(c)}</span>`).join('');
+        const termStart = formatDate(m.termStart);
+        const termEnd = formatDate(m.termEnd);
+
+        return `
+          <div class="group bg-white rounded-3xl overflow-hidden shadow-sm border ${isVM?'border-blue-200 ring-2 ring-blue-100':'border-slate-100'} ${expired?'opacity-60 grayscale':''} hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div class="bg-gradient-to-br ${isVM?'from-blue-100 to-blue-50':'from-slate-100 to-slate-50'} pt-10 pb-4 px-6 flex flex-col items-center relative">
+              ${isVM?`<span class="absolute top-4 right-4 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-full"><i class="fas fa-star text-[8px]"></i>Presiding</span>`:''}
+              ${expired?`<span class="absolute top-4 left-4 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-700 bg-slate-200 border border-slate-300 px-3 py-1.5 rounded-full"><i class="fas fa-hourglass-end text-[8px]"></i>Term Ended</span>`:''}
+              <img src="${m.image||fbUrl}" alt="${m.name}"
+                   class="w-32 h-32 rounded-2xl object-cover shadow-xl border-4 border-white"
+                   onerror="this.onerror=null;this.src='${fbUrl}'">
+            </div>
+            <div class="p-6">
+              <span class="inline-block text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full mb-3 ${isVM?'bg-blue-600 text-white':'bg-slate-100 text-slate-600'}">${m.role||'SB Member'}</span>
+              <h3 class="text-lg font-black text-slate-900 leading-tight mb-3">${m.name}</h3>
+              <p class="text-sm text-slate-500 leading-relaxed line-clamp-3 mb-5">${bio}</p>
+              ${(termStart || termEnd) ? `<p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Term: ${escapeHtml(termStart||'N/A')} ${termEnd?`- ${escapeHtml(termEnd)}`:''}</p>` : ''}
+              ${committees ? `<div class="flex flex-wrap gap-1 mb-5">${committees}</div>` : ''}
+              <button onclick="window.viewMember('${m.id}')"
+                      class="w-full py-3 bg-slate-900 hover:bg-blue-600 text-white rounded-2xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 group-hover:bg-blue-600">
+                <i class="fas fa-user text-xs"></i> View Profile
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    /* ── Author select ── */
+    function renderAuthorSelect() {
+      const sel = document.getElementById('newAuthor');
+      const editSel = document.getElementById('editDocAuthor');
+      const options = '<option value="">Select sponsor…</option>' +
+        localMembers
+          .filter(m=>!m.isArchived)
+          .map(m=>`<option value="${m.id}">${m.name}</option>`)
+          .join('');
+      if (sel) sel.innerHTML = options;
+      if (editSel) editSel.innerHTML = options;
+    }
+
+    /* ── Admin member list ── */
+    function renderAdminMembers() {
+      const grid    = document.getElementById('adminMemberGrid');
+      const countEl = document.getElementById('memberCount');
+      const adminEl = document.getElementById('adminMemberCount');
+
+      if (grid) {
+        grid.innerHTML = !localMembers.length
+          ? `<div class="bg-slate-50 p-6 rounded-2xl text-center border-2 border-dashed border-slate-200">
+               <i class="fas fa-users-slash text-2xl text-slate-400 mb-3"></i>
+               <p class="text-sm font-bold text-slate-500">No members yet</p>
+             </div>`
+          : localMembers.map(m => {
+              const expired = isTermExpired(m);
+              const init  = m.name.replace('Hon.','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+              const fbUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(init)}&background=1e40af&color=fff&bold=true&size=80`;
+              const committees = (m.committees||[]).slice(0,2).join(', ');
+              return `
+                <div class="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all">
+                  <div class="flex items-center gap-3">
+                    <img src="${m.image||fbUrl}" class="w-12 h-12 rounded-xl object-cover border-2 border-white shadow-sm flex-shrink-0"
+                         onerror="this.onerror=null;this.src='${fbUrl}'">
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="window.viewMember('${m.id}')">
+                      <p class="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors truncate">${m.name}</p>
+                      <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate">${m.role||'SB Member'}${expired?' · Term Ended':''}${m.isArchived?' · Archived':''}</p>
+                      ${committees ? `<p class="text-[10px] text-slate-400 truncate">Committee: ${escapeHtml(committees)}</p>` : ''}
+                    </div>
+                    <button onclick="window.editMember('${m.id}')"
+                            class="flex-shrink-0 w-8 h-8 bg-blue-50 hover:bg-blue-600 text-blue-500 hover:text-white rounded-xl flex items-center justify-center transition-all"
+                            title="Edit member">
+                      <i class="fas fa-pen text-[10px]"></i>
+                    </button>
+                    <button onclick="window.toggleArchiveMember('${m.id}', ${m.isArchived ? 'false' : 'true'})"
+                            class="flex-shrink-0 w-8 h-8 ${m.isArchived?'bg-emerald-50 hover:bg-emerald-600 text-emerald-500 hover:text-white':'bg-amber-50 hover:bg-amber-600 text-amber-500 hover:text-white'} rounded-xl flex items-center justify-center transition-all"
+                            title="${m.isArchived?'Unarchive member':'Archive member'}">
+                      <i class="fas ${m.isArchived?'fa-box-open':'fa-box-archive'} text-[10px]"></i>
+                    </button>
+                    <button onclick="window.reactivateMember('${m.id}')"
+                            class="flex-shrink-0 w-8 h-8 bg-purple-50 hover:bg-purple-600 text-purple-500 hover:text-white rounded-xl flex items-center justify-center transition-all ${expired?'':'opacity-40'}"
+                            title="Reactivate term"
+                            ${expired?'':'disabled'}>
+                      <i class="fas fa-rotate-right text-[10px]"></i>
+                    </button>
+                  </div>
+                </div>`;
+            }).join('');
+      }
+
+      if (countEl) countEl.textContent = localMembers.length;
+      if (adminEl) adminEl.textContent = localMembers.length;
+    }
+
+    /* ── Archive / Reactivate member ── */
+    window.toggleArchiveMember = async (id, archive) => {
+      if (!user) { showToast("Admin login required",'error'); return; }
+      const member = localMembers.find(m=>m.id===id);
+      if (!member) return;
+      if (!confirm(`${archive ? 'Archive' : 'Unarchive'} "${member.name}"?`)) return;
+      try {
+        await updateDoc(doc(db,'lgus',lguId,'members',id), {
+          isArchived: !!archive,
+          updatedAt: serverTimestamp()
+        });
+        showToast(archive ? 'Member archived and hidden from public list.' : 'Member unarchived.', 'success');
+      } catch(e) {
+        console.error(e);
+        showToast("Error updating archive state",'error');
+      }
+    };
+
+    window.reactivateMember = async (id) => {
+      if (!user) { showToast("Admin login required",'error'); return; }
+      const member = localMembers.find(m=>m.id===id);
+      if (!member) return;
+      if (!confirm(`Reactivate "${member.name}" for a new term?`)) return;
+      const today = new Date().toISOString().slice(0,10);
+      try {
+        await updateDoc(doc(db,'lgus',lguId,'members',id), {
+          isArchived: false,
+          termStart: today,
+          termEnd: '',
+          updatedAt: serverTimestamp()
+        });
+        showToast('Member reactivated. Update profile if needed.', 'success');
+      } catch(e) {
+        console.error(e);
+        showToast('Error reactivating member', 'error');
+      }
+    };
+
+    /* ── Hit counter ── */
+    window.incrementView = async (docId) => {
+      try {
+        await updateDoc(doc(db,'lgus',lguId,'legislations',docId), {
+          views: increment(1)
+        });
+      } catch(e) { /* silent */ }
+    };
+
+    /* ── Document grid ── */
+    window.renderDocs = function renderDocs(scrollToResults=false) {
+      const grid  = document.getElementById('documentGrid');
+      const empty = document.getElementById('emptyState');
+      if (!grid) return;
+
+      const term    = (document.getElementById('searchInput')?.value||'').toLowerCase().trim();
+      const tfMain  = document.getElementById('typeFilter');
+      const tfMob   = document.getElementById('typeFilterMobile');
+      const typeVal = tfMain?.value !== 'All' ? tfMain?.value : tfMob?.value ?? 'All';
+
+      const filtered = localDocs.filter(d => {
+        const inTitle  = d.title?.toLowerCase().includes(term);
+        const inId     = d.docId?.toLowerCase().includes(term);
+        const inTags   = d.tags?.some(t=>t.toLowerCase().includes(term));
+        const inType   = d.type?.toLowerCase().includes(term);
+        const matchSearch = !term || inTitle || inId || inTags || inType;
+        const matchType   = typeVal === 'All' || d.type === typeVal;
+        return matchSearch && matchType;
+      });
+
+      if (!filtered.length) {
+        grid.innerHTML = '';
+        empty?.classList.remove('hidden');
+        if (scrollToResults) document.getElementById('documents')?.scrollIntoView({behavior:'smooth', block:'start'});
+        return;
+      }
+      empty?.classList.add('hidden');
+
+      const typeColors = {
+        Ordinance:'bg-gradient-to-r from-blue-600 to-blue-700',
+        Resolution:'bg-gradient-to-r from-purple-600 to-purple-700',
+        Motion:'bg-gradient-to-r from-amber-500 to-amber-600',
+        Proclamation:'bg-gradient-to-r from-rose-500 to-rose-600',
+        'Committee Report':'bg-gradient-to-r from-teal-600 to-teal-700'
+      };
+
+      if (scrollToResults) document.getElementById('documents')?.scrollIntoView({behavior:'smooth', block:'start'});
+      grid.innerHTML = filtered.map((docData, i) => {
+        const linkedAuthor = localMembers.find(m=>m.id===docData.authorId);
+        const author = linkedAuthor || {
+          name: docData.authorName || 'SB Argao',
+          image: docData.authorImage || 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Ph_seal_cebu_argao.png'
+        };
+        const date = docData.timestamp?.toDate
+          ? new Date(docData.timestamp.toDate()).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
+          : '';
+        const tags = (docData.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('');
+        const coS  = (docData.coSponsors||[]).filter(Boolean).join(', ');
+        const views= docData.views || 0;
+        const typeBg = typeColors[docData.type] || 'bg-gradient-to-r from-slate-700 to-slate-800';
+        const imgFb  = `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=2563eb&color=fff&bold=true`;
+
+        return `
+          <div class="doc-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100"
+               style="animation-delay:${i*0.04}s">
+            <div class="p-7 border-b border-slate-100">
+              <div class="flex items-center justify-between mb-4">
+                <span class="inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${typeBg} text-white shadow-sm">
+                  <i class="fas fa-file-alt text-xs"></i>${docData.type}
+                </span>
+                <span class="view-badge"><i class="fas fa-eye"></i>${views}</span>
+              </div>
+              <h3 class="text-lg font-extrabold text-slate-900 mb-3 leading-snug line-clamp-3 cursor-pointer hover:text-blue-600 transition-colors" onclick="window.openDocumentDetails('${docData.id}')">${docData.title}</h3>
+              ${tags ? `<div class="flex flex-wrap gap-1 mb-4">${tags}</div>` : ''}
+              <div class="flex items-center gap-3">
+                <img src="${author.image}"
+                     class="w-11 h-11 rounded-xl object-cover bg-slate-100 ring-2 ring-white shadow-sm"
+                     onerror="this.src='${imgFb}'">
+                <div>
+                  <p class="text-sm font-black text-slate-900">${author.name}</p>
+                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Primary Sponsor ${date?'· '+date:''}</p>
+                  ${coS ? `<p class="text-[9px] text-slate-400 mt-0.5">Co: ${coS}</p>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="p-6 bg-gradient-to-b from-white to-slate-50">
+              <button type="button"
+                 onclick="window.openDocumentDetails('${docData.id}')"
+                 class="group w-full bg-slate-900 text-white flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black uppercase text-xs hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-xl">
+                <span>View Details</span>
+                <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    };
+
+    /* ── Modals ── */
+    window.closeModal = id => document.getElementById(id).classList.add('hidden');
+
+    window.viewMember = (id) => {
+      const m = localMembers.find(x=>x.id===id);
+      if (!m) return;
+      const expired = isTermExpired(m);
+      const init  = m.name.replace('Hon.','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+      const fbUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(init)}&background=1e40af&color=fff&bold=true&size=128`;
+      const committees = (m.committees||[]).map(c=>`<span class="tag-chip">${escapeHtml(c)}</span>`).join('');
+      const termStart = formatDate(m.termStart);
+      const termEnd = formatDate(m.termEnd);
+      const relatedDocs = getMemberRelatedDocuments(m);
+      const relatedHtml = relatedDocs.length
+        ? relatedDocs.map(d => {
+            const type = escapeHtml(d.type||'Document');
+            const title = escapeHtml(d.title||'Untitled');
+            const coSponsored = (d.coSponsors||[]).map(normalizeName).includes(normalizeName(m.name||''));
+            const committeeMatch = (m.committees||[]).map(normalizeTag).some(c => (d.tags||[]).map(normalizeTag).includes(c));
+            const labels = [
+              (d.authorId === m.id || normalizeName(d.authorName||'')===normalizeName(m.name||'')) ? 'Primary Sponsor' : '',
+              coSponsored ? 'Co-Sponsor' : '',
+              committeeMatch ? 'Committee' : ''
+            ].filter(Boolean).map(l=>`<span class="tag-chip">${l}</span>`).join('');
+            return `<button type="button" onclick="window.openDocumentNotice('${encodeURIComponent(d.link||'')}', '${d.id}')" class="w-full text-left block p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"><p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">${type}</p><p class="text-sm font-bold text-slate-800 leading-snug mb-2">${title}</p>${labels?`<div class="flex flex-wrap gap-1">${labels}</div>`:''}</button>`;
+          }).join('')
+        : '<p class="text-slate-500 text-sm">No related documents found.</p>';
+
+      document.getElementById('profileContent').innerHTML = `
+        <div class="text-center">
+          <div class="relative inline-block mb-5">
+            <img src="${m.image||fbUrl}" alt="${m.name}"
+                 class="w-28 h-28 rounded-2xl mx-auto object-cover border-4 border-white shadow-xl"
+                 onerror="this.onerror=null;this.src='${fbUrl}'">
+          </div>
+          <h2 class="text-xl font-black mb-1">${m.name}</h2>
+          <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-5">${m.role||'SB Member'}</p>
+          ${(termStart||termEnd) ? `<p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Term: ${escapeHtml(termStart||'N/A')} ${termEnd?`- ${escapeHtml(termEnd)}`:''}</p>` : ''}
+          ${expired ? '<p class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4">Term has ended. You may update this profile in Admin to extend or archive the record.</p>' : ''}
+          ${committees ? `<div class="flex flex-wrap justify-center gap-1 mb-5">${committees}</div>` : ''}
+          <div class="bg-slate-50 rounded-2xl p-5 text-left">
+            <p class="text-slate-600 leading-relaxed text-sm">${m.bio||'No biography available.'}</p>
+          </div>
+          <div class="mt-5 text-left">
+            <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Related Documents</p>
+            <div class="space-y-2 max-h-60 overflow-y-auto pr-1">${relatedHtml}</div>
+          </div>
+        </div>`;
+      document.getElementById('profileModal').classList.remove('hidden');
+    };
+
+    window.editMember = (id) => {
+      const member = localMembers.find(m => m.id === id);
+      if (!member) return;
+      document.getElementById('memberEditId').value = member.id;
+      document.getElementById('memberName').value = member.name || '';
+      document.getElementById('memberRole').value = member.role || '';
+      document.getElementById('memberImage').value = member.image || '';
+      document.getElementById('memberTermStart').value = member.termStart || '';
+      document.getElementById('memberTermEnd').value = member.termEnd || '';
+      document.getElementById('memberCommittees').value = (member.committees||[]).join(', ');
+      document.getElementById('memberBio').value = member.bio || '';
+      document.getElementById('memberSubmitBtn').innerHTML = '<i class="fas fa-save"></i> Update Member';
+      // Show the panel and update toggle button to show Cancel state
+      const panel = document.getElementById('addMemberPanel');
+      const icon  = document.getElementById('addMemberToggleIcon');
+      const label = document.getElementById('addMemberToggleLabel');
+      if (panel) panel.classList.remove('hidden');
+      if (icon)  icon.className = 'fas fa-times text-xs';
+      if (label) label.textContent = 'Cancel';
+      document.getElementById('memberName').focus();
+    };
+
+    window.cancelMemberEdit = () => {
+      resetMemberForm();
+    };
+
+    window.openDocumentNotice = (encodedUrl, docId='') => {
+      const url = decodeURIComponent(encodedUrl || '');
+      if (!url) return;
+      pendingDocUrl = url;
+      pendingDocId = docId || '';
+      const agree = document.getElementById('docNoticeAgree');
+      const btn = document.getElementById('docNoticeContinueBtn');
+      if (agree) agree.checked = false;
+      if (btn) btn.disabled = true;
+      syncNoticeUi();
+      document.getElementById('docNoticeModal').classList.remove('hidden');
+    };
+
+    window.confirmDocumentNotice = () => {
+      if (!pendingDocUrl) return;
+      if (pendingDocId) window.incrementView(pendingDocId);
+      window.open(pendingDocUrl, '_blank', 'noopener,noreferrer');
+      pendingDocUrl = '';
+      pendingDocId = '';
+      window.closeModal('docNoticeModal');
+    };
+
+    window.saveNoticeSettings = async () => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const btn = document.getElementById('saveNoticeBtn');
+      const input = document.getElementById('noticeTextInput');
+      const noticeText = input?.value.trim() || DEFAULT_DOWNLOAD_NOTICE;
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      btn.disabled = true;
+      try {
+        await setDoc(SETTINGS_DOC, {
+          downloadNotice: noticeText,
+          updatedAt: serverTimestamp(),
+          updatedBy: user.email || user.uid || ''
+        }, { merge: true });
+        settingsState.downloadNotice = noticeText;
+        syncNoticeUi();
+        showToast('Notice text updated', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Error saving notice', 'error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    /* ── Sync Social Media UI ── */
+    function syncSocialMediaUi() {
+      const fbInput = document.getElementById('socialFacebookUrl');
+      const twInput = document.getElementById('socialTwitterUrl');
+      const emlInput = document.getElementById('socialEmailUrl');
+      if (fbInput && document.activeElement !== fbInput) fbInput.value = settingsState.socialFacebook || '';
+      if (twInput && document.activeElement !== twInput) twInput.value = settingsState.socialTwitter || '';
+      if (emlInput && document.activeElement !== emlInput) emlInput.value = settingsState.socialEmail || '';
+
+      // Update footer social links
+      const footerFb  = document.getElementById('footerFacebookLink');
+      const footerTw  = document.getElementById('footerTwitterLink');
+      const footerEml = document.getElementById('footerEmailLink');
+      if (footerFb)  { footerFb.href  = settingsState.socialFacebook || '#'; footerFb.target  = settingsState.socialFacebook ? '_blank' : ''; }
+      if (footerTw)  { footerTw.href  = settingsState.socialTwitter  || '#'; footerTw.target  = settingsState.socialTwitter  ? '_blank' : ''; }
+      if (footerEml) { footerEml.href = settingsState.socialEmail ? `mailto:${settingsState.socialEmail}` : '#'; }
+    }
+
+    /* ── Save Social Media Settings ── */
+    window.saveSocialMediaSettings = async () => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const btn = document.getElementById('saveSocialBtn');
+      const fbUrl = document.getElementById('socialFacebookUrl').value.trim();
+      const twUrl = document.getElementById('socialTwitterUrl').value.trim();
+      const emlUrl = document.getElementById('socialEmailUrl').value.trim();
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      btn.disabled = true;
+      try {
+        await setDoc(SETTINGS_DOC, {
+          socialFacebook: fbUrl,
+          socialTwitter: twUrl,
+          socialEmail: emlUrl,
+          updatedAt: serverTimestamp(),
+          updatedBy: user.email || user.uid || ''
+        }, { merge: true });
+        settingsState.socialFacebook = fbUrl;
+        settingsState.socialTwitter = twUrl;
+        settingsState.socialEmail = emlUrl;
+        syncSocialMediaUi();
+        showToast('Social media links updated', 'success');
+      } catch (e) {
+        console.error(e);
+        showToast('Error saving social media links', 'error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    /* ── Sync Branding UI ── */
+    function syncBrandingUi() {
+      const orgName     = settingsState.orgName     || 'Sangguniang Bayan of Argao';
+      const municipality = settingsState.municipality || 'Argao';
+      const province    = settingsState.province    || 'Cebu';
+      const sealUrl     = settingsState.sealUrl     || './argao-seal.png';
+      const cityProv    = `${municipality}, ${province}`;
+
+      // Nav
+      const navSeal = document.getElementById('navSealImg');
+      const navName = document.getElementById('navOrgName');
+      if (navSeal) navSeal.src = sealUrl;
+      if (navName) navName.textContent = orgName;
+
+      // Hero
+      const heroCityProv = document.getElementById('heroCityProvince');
+      const heroDesc     = document.getElementById('heroDescription');
+      if (heroCityProv) heroCityProv.textContent = cityProv;
+      if (heroDesc)     heroDesc.textContent = `Browse all ordinances and resolutions passed by the ${orgName}, ${province}.`;
+
+      // Members subtitle
+      const membersSub = document.getElementById('membersSubtitle');
+      if (membersSub) membersSub.textContent = `${orgName}, ${province}`;
+
+      // Footer
+      const footerSeal  = document.getElementById('footerSealImg');
+      const footerName  = document.getElementById('footerOrgName');
+      const footerCity  = document.getElementById('footerCityProvince');
+      const footerDesc  = document.getElementById('footerDescription');
+      if (footerSeal) footerSeal.src = sealUrl;
+      if (footerName) footerName.textContent = orgName;
+      if (footerCity) footerCity.textContent = cityProv;
+      if (footerDesc) footerDesc.innerHTML = `Official Legislative Information System providing transparent access to ordinances and resolutions of the ${escapeHtml(orgName)}, ${escapeHtml(province)}. <strong>2026</strong>`;
+
+      // Favicon
+      const favicon = document.getElementById('dynamicFavicon');
+      if (favicon) favicon.href = sealUrl;
+
+      // Admin form inputs (don't overwrite if user is actively editing)
+      const inpOrg    = document.getElementById('brandingOrgName');
+      const inpMun    = document.getElementById('brandingMunicipality');
+      const inpProv   = document.getElementById('brandingProvince');
+      const inpSeal   = document.getElementById('brandingSealUrl');
+      const inpPhone1 = document.getElementById('brandingContactPhone1');
+      const inpPhone2 = document.getElementById('brandingContactPhone2');
+      const inpCEmail = document.getElementById('brandingContactEmail');
+      if (inpOrg    && document.activeElement !== inpOrg)    inpOrg.value    = settingsState.orgName      || '';
+      if (inpMun    && document.activeElement !== inpMun)    inpMun.value    = settingsState.municipality || '';
+      if (inpProv   && document.activeElement !== inpProv)   inpProv.value   = settingsState.province     || '';
+      if (inpSeal   && document.activeElement !== inpSeal)   inpSeal.value   = settingsState.sealUrl      || '';
+      if (inpPhone1 && document.activeElement !== inpPhone1) inpPhone1.value = settingsState.contactPhone1 || '';
+      if (inpPhone2 && document.activeElement !== inpPhone2) inpPhone2.value = settingsState.contactPhone2 || '';
+      if (inpCEmail && document.activeElement !== inpCEmail) inpCEmail.value = settingsState.contactEmail  || '';
+
+      // Seal preview
+      if (inpSeal) updateSealPreview(inpSeal.value);
+
+      // Contact page elements
+      const cpSeal = document.getElementById('contactPageSealImg');
+      const cpName = document.getElementById('contactPageOrgName');
+      const cpCity = document.getElementById('contactPageCityProv');
+      if (cpSeal) cpSeal.src = sealUrl;
+      if (cpName) cpName.textContent = orgName;
+      if (cpCity) cpCity.textContent = cityProv;
+
+      const setContactItem = (wrapId, textId, value, href) => {
+        const wrap = document.getElementById(wrapId);
+        const el   = document.getElementById(textId);
+        if (!wrap || !el) return;
+        if (value) { wrap.classList.remove('hidden'); el.textContent = value; if (href) el.href = href; }
+        else        { wrap.classList.add('hidden'); }
+      };
+      setContactItem('cpPhone1Wrap','cpPhone1', settingsState.contactPhone1, `tel:${settingsState.contactPhone1}`);
+      setContactItem('cpPhone2Wrap','cpPhone2', settingsState.contactPhone2, `tel:${settingsState.contactPhone2}`);
+      setContactItem('cpEmailWrap', 'cpEmail',  settingsState.contactEmail,  `mailto:${settingsState.contactEmail}`);
+      setContactItem('cpSocialEmailWrap','cpSocialEmail', settingsState.socialEmail, `mailto:${settingsState.socialEmail}`);
+      const hasPhone = settingsState.contactPhone1 || settingsState.contactPhone2;
+      const hasEmail = settingsState.contactEmail  || settingsState.socialEmail;
+      const hasSocial = settingsState.socialFacebook || settingsState.socialTwitter;
+      const cpNoPhone  = document.getElementById('cpNoPhoneMsg');
+      const cpNoEmail  = document.getElementById('cpNoEmailMsg');
+      const cpNoSocial = document.getElementById('cpNoSocialMsg');
+      if (cpNoPhone)  cpNoPhone.classList.toggle('hidden', !!hasPhone);
+      if (cpNoEmail)  cpNoEmail.classList.toggle('hidden', !!hasEmail);
+      if (cpNoSocial) cpNoSocial.classList.toggle('hidden', !!hasSocial);
+
+      const cpFb = document.getElementById('cpFbLink');
+      const cpTw = document.getElementById('cpTwLink');
+      if (cpFb) { cpFb.href = settingsState.socialFacebook || '#'; cpFb.classList.toggle('hidden', !settingsState.socialFacebook); }
+      if (cpTw) { cpTw.href = settingsState.socialTwitter  || '#'; cpTw.classList.toggle('hidden', !settingsState.socialTwitter); }
+    }
+
+    function updateSealPreview(url) {
+      const wrap = document.getElementById('sealPreviewWrap');
+      const img  = document.getElementById('sealPreviewImg');
+      if (!wrap || !img) return;
+      if (url && url.startsWith('http')) {
+        img.src = url;
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
+      }
+    }
+
+    /* ── Save Branding Settings ── */
+    window.saveBrandingSettings = async () => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const orgName       = document.getElementById('brandingOrgName').value.trim();
+      const municipality  = document.getElementById('brandingMunicipality').value.trim();
+      const province      = document.getElementById('brandingProvince').value.trim();
+      const sealUrl       = document.getElementById('brandingSealUrl').value.trim();
+      const contactPhone1 = document.getElementById('brandingContactPhone1').value.trim();
+      const contactPhone2 = document.getElementById('brandingContactPhone2').value.trim();
+      const contactEmail  = document.getElementById('brandingContactEmail').value.trim();
+      const btn = document.getElementById('saveBrandingBtn');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      btn.disabled = true;
+      try {
+        await setDoc(SETTINGS_DOC, {
+          orgName, municipality, province, sealUrl,
+          contactPhone1, contactPhone2, contactEmail,
+          updatedAt: serverTimestamp(),
+          updatedBy: user.email || user.uid || ''
+        }, { merge: true });
+        settingsState.orgName       = orgName;
+        settingsState.municipality  = municipality;
+        settingsState.province      = province;
+        settingsState.sealUrl       = sealUrl;
+        settingsState.contactPhone1 = contactPhone1;
+        settingsState.contactPhone2 = contactPhone2;
+        settingsState.contactEmail  = contactEmail;
+        syncBrandingUi();
+        showToast('Branding updated', 'success');
+      } catch(e) {
+        console.error(e);
+        showToast('Error saving branding', 'error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    /* ── Email Service Toggle ── */
+    /* ── Load Admin Profile ── */
+    window.loadAdminProfile = async () => {
+      if (!user) return;
+      try {
+        const adminProfileRef = doc(db,'users',user.uid);
+        const snap = await getDoc(adminProfileRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          document.getElementById('adminName').value  = data.name  || '';
+          document.getElementById('adminRole').value  = data.role  || '';
+          document.getElementById('adminEmail').value = data.contactEmail || '';
+          document.getElementById('adminImage').value = data.image || '';
+          document.getElementById('adminBio').value   = data.bio   || '';
+        }
+      } catch(e) {
+        console.error(e);
+      }
+    };
+
+    /* ── Save Admin Profile ── */
+    window.saveAdminProfile = async () => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const name  = document.getElementById('adminName').value.trim();
+      const role  = document.getElementById('adminRole').value.trim();
+      const email = document.getElementById('adminEmail').value.trim();
+      const image = document.getElementById('adminImage').value.trim();
+      const bio   = document.getElementById('adminBio').value.trim();
+
+      if (!email) { showToast('Contact Email is required','error'); return; }
+
+      const btn = document.getElementById('saveAdminProfileBtn');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+      btn.disabled = true;
+
+      try {
+        const adminProfileRef = doc(db,'users',user.uid);
+        await setDoc(adminProfileRef, {
+          uid: user.uid,
+          name, role, contactEmail: email, image, bio,
+          isComplete: true,
+          updatedAt: serverTimestamp(),
+          updatedBy: user.email || user.uid || ''
+        }, { merge: true });
+
+        // Update admin member profile if exists
+        try {
+          const col = collection(db,'lgus',lguId,'members');
+          const snapshot = await getDocs(col);
+          const adminMember = snapshot.docs.find(d => d.data().isAdmin);
+          if (adminMember) {
+            await updateDoc(doc(db,'lgus',lguId,'members',adminMember.id), {
+              name, role, image: image || '', bio, updatedAt: serverTimestamp()
+            });
+          }
+        } catch(e) { console.error('Error updating admin member:', e); }
+
+        showToast('Profile saved successfully!','success');
+      } catch(e) {
+        console.error(e);
+        showToast(`Error saving profile: ${e.code || e.message}`,'error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    /* ── Document Management List ── */
+    window.renderDocumentManagementList = () => {
+      const container = document.getElementById('documentManagementList');
+      if (!container) return;
+      const searchTerm = (document.getElementById('docSearchInput')?.value || '').toLowerCase().trim();
+      const filtered = localDocs.filter(doc => {
+        const inTitle = (doc.title||'').toLowerCase().includes(searchTerm);
+        const inId = (doc.docId||'').toLowerCase().includes(searchTerm);
+        return !searchTerm || inTitle || inId;
+      });
+      if (!filtered.length) {
+        container.innerHTML = `
+          <div class="bg-slate-50 p-6 rounded-2xl text-center border-2 border-dashed border-slate-200">
+            <i class="fas fa-file-slash text-2xl text-slate-400 mb-3"></i>
+            <p class="text-sm font-bold text-slate-500">No documents found</p>
+          </div>`;
+        return;
+      }
+      container.innerHTML = filtered.map(doc => {
+        const typeColors = {
+          'Ordinance': 'bg-blue-100 text-blue-700',
+          'Resolution': 'bg-purple-100 text-purple-700',
+          'Motion': 'bg-amber-100 text-amber-700',
+          'Proclamation': 'bg-rose-100 text-rose-700',
+          'Committee Report': 'bg-teal-100 text-teal-700'
+        };
+        const typeBg = typeColors[doc.type] || 'bg-slate-100 text-slate-700';
+        const views = doc.views || 0;
+        return `
+          <div class="group bg-white p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[10px] font-bold px-2 py-1 rounded-full ${typeBg}">${escapeHtml(doc.type||'Document')}</span>
+                  <span class="text-[10px] font-semibold text-slate-500"><i class="fas fa-eye mr-1"></i>${views}</span>
+                </div>
+                <p class="font-bold text-slate-900 text-sm line-clamp-1">${escapeHtml(doc.title||'Untitled')}</p>
+                <p class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">${escapeHtml(doc.docId||'N/A')}</p>
+                <p class="text-[10px] text-slate-400 mt-1">Author: ${escapeHtml(doc.authorName||'Unknown')}</p>
+              </div>
+              <div class="flex gap-2 flex-shrink-0">
+                <button onclick="window.openEditDocumentModal('${doc.id}')"
+                        class="w-8 h-8 bg-blue-50 hover:bg-blue-600 text-blue-500 hover:text-white rounded-xl flex items-center justify-center transition-all"
+                        title="Edit document">
+                  <i class="fas fa-pen text-[10px]"></i>
+                </button>
+                <button onclick="window.deleteDocument('${doc.id}')"
+                        class="w-8 h-8 bg-red-50 hover:bg-red-600 text-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all"
+                        title="Delete document">
+                  <i class="fas fa-trash text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    };
+
+    /* ── Delete Document ── */
+    window.deleteDocument = async (docId) => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const docData = localDocs.find(d => d.id === docId);
+      if (!docData) return;
+      if (!confirm(`Delete document "${docData.title}"?\n\nThis action cannot be undone.`)) return;
+      try {
+        await deleteDoc(doc(db,'lgus',lguId,'legislations',docId));
+        showToast('Document deleted successfully', 'success');
+        window.renderDocumentManagementList();
+      } catch(e) {
+        console.error(e);
+        showToast('Error deleting document', 'error');
+      }
+    };
+
+    /* ── Edit Document Modal ── */
+    let editingDocId = '';
+    window.openEditDocumentModal = (docId) => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const doc = localDocs.find(d => d.id === docId);
+      if (!doc) return;
+      editingDocId = docId;
+      document.getElementById('editDocTitle').value = doc.title || '';
+      document.getElementById('editDocId').value = doc.docId || '';
+      document.getElementById('editDocType').value = doc.type || 'Ordinance';
+      document.getElementById('editDocAuthor').value = doc.authorId || '';
+      document.getElementById('editDocLink').value = doc.link || '';
+      document.getElementById('editDocTags').value = (doc.tags || []).join(', ');
+      document.getElementById('editDocCoSponsors').value = (doc.coSponsors || []).join(', ');
+      document.getElementById('editDocMoreInfo').value = doc.moreInfo || '';
+      document.getElementById('editMoreInfoCount').textContent = (doc.moreInfo || '').length;
+      document.getElementById('editDocumentModal').classList.remove('hidden');
+    };
+
+    /* ── Update Document ── */
+    window.updateDocument = async () => {
+      if (!user || !editingDocId) { showToast('Admin login required','error'); return; }
+      const title = document.getElementById('editDocTitle').value.trim();
+      const docId = document.getElementById('editDocId').value.trim();
+      const type = document.getElementById('editDocType').value;
+      const authorId = document.getElementById('editDocAuthor').value;
+      const link = document.getElementById('editDocLink').value.trim();
+      const tagsRaw = document.getElementById('editDocTags').value;
+      const coSponRaw = document.getElementById('editDocCoSponsors').value;
+      const moreInfo = document.getElementById('editDocMoreInfo').value.trim();
+
+      if (!title || !docId || !type || !authorId || !link) { showToast('Please fill in all required fields','error'); return; }
+      try { new URL(link); } catch { showToast('Please enter a valid URL','error'); return; }
+
+      const tags = tagsRaw.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
+      const coSponsors = coSponRaw.split(',').map(s=>s.trim()).filter(Boolean);
+      const selectedAuthor = localMembers.find(m=>m.id===authorId);
+
+      const btn = document.getElementById('updateDocBtn');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+      btn.disabled = true;
+      try {
+        await updateDoc(doc(db,'lgus',lguId,'legislations',editingDocId), {
+          title,
+          docId,
+          type,
+          authorId,
+          authorName: selectedAuthor?.name || '',
+          authorImage: selectedAuthor?.image || '',
+          authorRole: selectedAuthor?.role || '',
+          link,
+          tags,
+          coSponsors,
+          moreInfo: moreInfo || '',
+          updatedAt: serverTimestamp()
+        });
+        showToast('Document updated successfully', 'success');
+        window.closeEditDocumentModal();
+        window.renderDocumentManagementList();
+      } catch(e) {
+        console.error(e);
+        showToast('Error updating document', 'error');
+      } finally {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }
+    };
+
+    window.closeEditDocumentModal = () => {
+      editingDocId = '';
+      document.getElementById('editDocumentModal').classList.add('hidden');
+    };
+
+    /* ── Add Member Form ── */
+    document.getElementById('memberForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!user) { showToast("Admin login required",'error'); return; }
+      const name  = document.getElementById('memberName').value.trim();
+      const role  = document.getElementById('memberRole').value.trim();
+      const image = document.getElementById('memberImage').value.trim();
+      const termStart = document.getElementById('memberTermStart').value;
+      const termEnd = document.getElementById('memberTermEnd').value;
+      const committees = parseTags(document.getElementById('memberCommittees').value);
+      const bio   = document.getElementById('memberBio').value.trim();
+      const editId = document.getElementById('memberEditId').value;
+      if (!name || !role) { showToast("Name and role are required",'error'); return; }
+      if (termStart && termEnd && new Date(termStart) > new Date(termEnd)) {
+        showToast("Term end must be after term start",'error');
+        return;
+      }
+      const btn = document.getElementById('memberSubmitBtn');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+      btn.disabled  = true;
+      try {
+        const payload = {
+          name,
+          role,
+          image: image||'',
+          termStart: termStart || '',
+          termEnd: termEnd || '',
+          committees,
+          bio: bio||''
+        };
+        if (editId) {
+          await updateDoc(doc(db,'lgus',lguId,'members',editId), {
+            ...payload,
+            updatedAt: serverTimestamp()
+          });
+          showToast("Member updated successfully",'success');
+        } else {
+          await addDoc(MEMBER_REF, { ...payload, isArchived: false, timestamp: serverTimestamp() });
+          showToast("Member added successfully",'success');
+        }
+        resetMemberForm();
+      } catch(err) {
+        console.error(err);
+        showToast("Error saving member",'error');
+      } finally {
+        const isEditing = !!document.getElementById('memberEditId').value;
+        btn.innerHTML = isEditing ? '<i class="fas fa-save"></i> Update Member' : '<i class="fas fa-plus"></i> Add Member';
+        btn.disabled  = false;
+      }
+    });
+
+    /* ── Upload Form ── */
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!user) { showToast("Session expired. Please re-login.",'error'); window.navigateTo('login'); return; }
+
+      const title     = document.getElementById('newTitle').value.trim();
+      const docId     = document.getElementById('newDocId').value.trim();
+      const typeRaw   = document.getElementById('newType').value;
+      const type      = typeRaw === '__custom__'
+                          ? (document.getElementById('customType').value.trim() || 'Custom')
+                          : typeRaw;
+      const authorId  = document.getElementById('newAuthor').value;
+      const selectedAuthor = localMembers.find(m=>m.id===authorId);
+      const link      = document.getElementById('newLink').value.trim();
+      const tagsRaw   = document.getElementById('newTags').value;
+      const coSponRaw = document.getElementById('newCoSponsors').value;
+      const moreInfo  = document.getElementById('newMoreInfo').value.trim();
+
+      if (!title||!docId||!type||!authorId||!link) { showToast("Please fill in all required fields",'error'); return; }
+      try { new URL(link); } catch { showToast("Please enter a valid URL",'error'); return; }
+
+      const tags      = tagsRaw.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
+      const coSponsors= coSponRaw.split(',').map(s=>s.trim()).filter(Boolean);
+
+      const btn = document.getElementById('submitBtn');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<span>Publishing…</span> <i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled  = true;
+      try {
+        await addDoc(DOC_REF, {
+          title,
+          docId,
+          type,
+          authorId,
+          authorName: selectedAuthor?.name || '',
+          authorImage: selectedAuthor?.image || '',
+          authorRole: selectedAuthor?.role || '',
+          link,
+          tags,
+          coSponsors,
+          moreInfo: moreInfo || '',
+          views: 0,
+          timestamp: serverTimestamp()
+        });
+        showToast("Document published successfully",'success');
+        e.target.reset();
+        document.getElementById('newMoreInfoCount').textContent = '0';
+        document.getElementById('customTypeWrap').classList.add('hidden');
+        document.getElementById('optionalFieldsPanel').classList.add('hidden');
+        document.getElementById('optFieldsIcon').style.transform = '';
+        // Collapse the add panel after successful publish
+        const addDocPanel = document.getElementById('addDocPanel');
+        if (addDocPanel) addDocPanel.classList.add('hidden');
+        const addDocIcon  = document.getElementById('addDocToggleIcon');
+        const addDocLabel = document.getElementById('addDocToggleLabel');
+        if (addDocIcon)  addDocIcon.className  = 'fas fa-plus text-xs';
+        if (addDocLabel) addDocLabel.textContent = 'Add Document';
+      } catch(err) {
+        console.error(err);
+        showToast("Publish error. Check permissions.",'error');
+      } finally {
+        btn.innerHTML = orig;
+        btn.disabled  = false;
+      }
+    });
+
+    /* ── Login Form ── */
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass  = document.getElementById('loginPass').value;
+      const btn   = document.getElementById('loginBtn');
+      const orig  = btn.innerHTML;
+      if (!email||!pass) { showToast("Please enter both email and password",'error'); return; }
+      btn.innerHTML = '<span>Logging in…</span> <i class="fas fa-spinner fa-spin"></i>';
+      btn.disabled  = true;
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        showToast("Welcome, Admin",'success');
+        window.navigateTo('admin');
+      } catch(err) {
+        const msgs = {
+          'auth/invalid-email':'Invalid email format.',
+          'auth/user-not-found':'Invalid email or password.',
+          'auth/wrong-password':'Invalid email or password.',
+          'auth/invalid-credential':'Invalid email or password.',
+          'auth/too-many-requests':'Too many attempts. Try later.'
+        };
+        showToast("Login failed. "+(msgs[err.code]||"Check your credentials."),'error');
+      } finally {
+        btn.innerHTML = orig;
+        btn.disabled  = false;
+      }
+    });
+
+    /* ── Auth state ── */
+    onAuthStateChanged(auth, async u => {
+      user = u;
+
+      // Read Custom Claims from the JWT (Phase 1+).
+      // userRole and userLguId are used for tab gating in Phase 2.
+      if (u) {
+        try {
+          // forceRefresh: true — always fetch the latest JWT from Firebase so
+          // Custom Claims set by the bootstrap script are picked up immediately
+          // on the next login, without waiting for the token to naturally expire.
+          const token = await u.getIdTokenResult(true);
+          userRole  = token.claims.role  || null;
+          userLguId = token.claims.lguId || null;
+        } catch (e) {
+          userRole  = null;
+          userLguId = null;
+        }
+      } else {
+        userRole  = null;
+        userLguId = null;
+      }
+
+      // Update role chip and no-role warning banner
+      const roleChip    = document.getElementById('roleChip');
+      const noRoleBanner= document.getElementById('noRoleBanner');
+      if (u && userRole) {
+        const chipColors = {
+          superadmin: 'bg-purple-100 text-purple-700',
+          admin:      'bg-blue-100 text-blue-700',
+          editor:     'bg-green-100 text-green-700',
+          viewer:     'bg-slate-100 text-slate-500',
+        };
+        roleChip.textContent = userRole;
+        roleChip.className   = `px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${chipColors[userRole] || 'bg-slate-100 text-slate-500'}`;
+        roleChip.classList.remove('hidden');
+        noRoleBanner?.classList.add('hidden');
+      } else if (u && !userRole) {
+        roleChip?.classList.add('hidden');
+        noRoleBanner?.classList.remove('hidden');
+      } else {
+        roleChip?.classList.add('hidden');
+        noRoleBanner?.classList.add('hidden');
+      }
+
+      const navBtn       = document.getElementById('navBtn');
+      const adminPanelBtn= document.getElementById('adminPanelBtn');
+      if (u) {
+        navBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i><span class="hidden sm:inline ml-1">Logout</span>';
+        adminPanelBtn.classList.remove('hidden');
+        adminPanelBtn.classList.add('flex');
+        window.checkAdminProfileComplete();
+      } else {
+        navBtn.innerHTML = '<span class="relative z-10 flex items-center gap-2"><i class="fas fa-lock text-xs"></i><span class="hidden sm:inline">Admin</span></span><div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>';
+        adminPanelBtn.classList.add('hidden');
+        adminPanelBtn.classList.remove('flex');
+      }
+      if (u && !document.getElementById('view-login').classList.contains('hidden')) {
+        window.navigateTo('admin');
+      }
+    });
+
+    window.forceSignOut = () => signOut(auth).then(() => window.navigateTo('login'));
+
+    /* ── Init ── */
+    startSync();
+    syncNoticeUi();
+    syncBrandingUi();
+
+    // Live seal preview on URL input
+    document.getElementById('brandingSealUrl')?.addEventListener('input', (e) => {
+      updateSealPreview(e.target.value.trim());
+    });
+
+    // Character counter for admin profile additional info
+    const additionalField = document.getElementById('adminProfileAdditional');
+    if (additionalField) {
+      additionalField.addEventListener('input', (e) => {
+        document.getElementById('charCount').textContent = e.target.value.length;
+      });
+    }
+
+    document.getElementById('typeFilterMobile')?.addEventListener('change', e => {
+      const tf = document.getElementById('typeFilter');
+      if (tf) tf.value = e.target.value;
+      renderDocs(true);
+    });
+
+    let st;
+    document.getElementById('searchInput').addEventListener('input', () => {
+      clearTimeout(st);
+      st = setTimeout(() => window.renderDocs(true), 280);
+    });
+    document.getElementById('typeFilter').addEventListener('change', () => window.renderDocs(true));
+
+    document.getElementById('memberSearchInput')?.addEventListener('input', (e) => {
+      memberSearchTerm = (e.target.value||'').toLowerCase().trim();
+      renderPublicMembers();
+    });
+
+    document.getElementById('docNoticeAgree')?.addEventListener('change', (e) => {
+      const btn = document.getElementById('docNoticeContinueBtn');
+      if (btn) btn.disabled = !e.target.checked;
+    });
+  </script>
+
+  <!-- ═══ CONTACT VIEW ═══ -->
+  <section id="view-contact" class="view-section hidden">
+
+    <!-- Hero -->
+    <div class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white py-20 px-4 text-center relative overflow-hidden">
+      <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 30% 50%,#3b82f6 0%,transparent 60%),radial-gradient(circle at 70% 50%,#8b5cf6 0%,transparent 60%)"></div>
+      <div class="relative max-w-2xl mx-auto">
+        <img id="contactPageSealImg" src="./argao-seal.png" alt="Organization Seal"
+             class="w-20 h-20 mx-auto mb-5 object-contain drop-shadow-lg">
+        <h1 id="contactPageOrgName"
+            class="text-3xl md:text-4xl font-black mb-2 leading-tight">Sangguniang Bayan of Argao</h1>
+        <p id="contactPageCityProv"
+           class="text-blue-300 font-semibold text-lg mb-1">Argao, Cebu</p>
+        <p class="text-slate-400 text-sm">Get in touch with our office</p>
+      </div>
+    </div>
+
+    <!-- Contact Content -->
+    <div class="bg-slate-50 min-h-[60vh] py-16 px-4">
+      <div class="max-w-4xl mx-auto">
+
+        <!-- Back button -->
+        <button onclick="window.navigateTo('public')"
+                class="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors mb-10">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </button>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <!-- Contact Numbers -->
+          <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+              <i class="fas fa-phone text-blue-500"></i> Contact Numbers
+            </h2>
+            <div id="cpPhone1Wrap" class="hidden flex items-center gap-4 mb-4 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-phone text-blue-600 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-0.5">Telephone</p>
+                <a id="cpPhone1" href="#" class="font-bold text-slate-800 hover:text-blue-600 transition-colors"></a>
+              </div>
+            </div>
+            <div id="cpPhone2Wrap" class="hidden flex items-center gap-4 mb-4 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-mobile-alt text-blue-600 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-0.5">Mobile</p>
+                <a id="cpPhone2" href="#" class="font-bold text-slate-800 hover:text-blue-600 transition-colors"></a>
+              </div>
+            </div>
+            <p class="text-sm text-slate-400 italic" id="cpNoPhoneMsg">Contact numbers not yet configured.</p>
+          </div>
+
+          <!-- Email Addresses -->
+          <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+              <i class="fas fa-envelope text-purple-500"></i> Email Addresses
+            </h2>
+            <div id="cpEmailWrap" class="hidden flex items-center gap-4 mb-4 p-4 bg-purple-50 rounded-2xl border border-purple-100">
+              <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-at text-purple-600 text-sm"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-0.5">General Inquiries</p>
+                <a id="cpEmail" href="#" class="font-bold text-slate-800 hover:text-purple-600 transition-colors break-all text-sm"></a>
+              </div>
+            </div>
+            <div id="cpSocialEmailWrap" class="hidden flex items-center gap-4 mb-4 p-4 bg-purple-50 rounded-2xl border border-purple-100">
+              <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-envelope text-purple-600 text-sm"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-0.5">Official Email</p>
+                <a id="cpSocialEmail" href="#" class="font-bold text-slate-800 hover:text-purple-600 transition-colors break-all text-sm"></a>
+              </div>
+            </div>
+            <p class="text-sm text-slate-400 italic" id="cpNoEmailMsg">Email address not yet configured.</p>
+          </div>
+
+          <!-- Social Media -->
+          <div class="bg-white rounded-3xl shadow-sm border border-slate-100 p-8">
+            <h2 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+              <i class="fas fa-share-nodes text-pink-500"></i> Social Media
+            </h2>
+            <div class="flex flex-col gap-3">
+              <a id="cpFbLink" href="#" target="_blank"
+                 class="hidden items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100 hover:bg-blue-100 transition-colors">
+                <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <i class="fab fa-facebook text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-slate-800 text-sm">Follow us on Facebook</span>
+              </a>
+              <a id="cpTwLink" href="#" target="_blank"
+                 class="hidden items-center gap-3 p-4 bg-sky-50 rounded-2xl border border-sky-100 hover:bg-sky-100 transition-colors">
+                <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <i class="fab fa-twitter text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-slate-800 text-sm">Follow us on Twitter / X</span>
+              </a>
+              <p class="text-sm text-slate-400 italic" id="cpNoSocialMsg">Social media not yet configured.</p>
+            </div>
+          </div>
+
+          <!-- Document Request CTA -->
+          <div class="bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 text-white">
+            <div class="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center mb-5">
+              <i class="fas fa-file-lines text-xl"></i>
+            </div>
+            <h2 class="font-black text-lg mb-2">Request a Document</h2>
+            <p class="text-blue-100 text-sm mb-5 leading-relaxed">Need a certified copy of an ordinance or resolution? Browse our document library and submit a request directly.</p>
+            <button onclick="window.navigateTo('public')"
+                    class="bg-white text-blue-700 font-black text-sm px-5 py-3 rounded-2xl hover:bg-blue-50 transition-colors flex items-center gap-2">
+              <i class="fas fa-search"></i> Browse Documents
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Office Note -->
+        <div class="mt-8 bg-amber-50 border border-amber-200 rounded-2xl p-6 flex items-start gap-4">
+          <i class="fas fa-circle-info text-amber-500 mt-0.5 flex-shrink-0"></i>
+          <p class="text-sm text-amber-800 leading-relaxed">
+            For official certified copies of legislative documents, please visit our office in person or send a written request. Processing time is within <strong>5 calendar days</strong> from receipt of request, in accordance with RA 7160.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ FOOTER ═══ -->
+  <footer class="bg-slate-900 text-slate-100 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      
+      <!-- Main Footer Content -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+        
+        <!-- Organization Info -->
+        <div>
+          <div class="flex items-center gap-2 mb-4">
+            <img id="footerSealImg" src="./argao-seal.png" alt="Organization Seal" class="w-10 h-10 object-contain">
+            <div>
+              <h4 id="footerOrgName" class="font-black text-sm">Sangguniang Bayan of Argao</h4>
+              <p id="footerCityProvince" class="text-[11px] text-slate-400">Argao, Cebu</p>
+            </div>
+          </div>
+          <p id="footerDescription" class="text-sm text-slate-400 leading-relaxed mb-4">
+            Official Legislative Information System providing transparent access to ordinances and resolutions of the Sangguniang Bayan of Argao, Cebu. <strong>2026</strong>
+          </p>
+          <div class="flex gap-3">
+            <a id="footerFacebookLink" href="#" title="Facebook" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all">
+              <i class="fab fa-facebook text-sm"></i>
+            </a>
+            <a id="footerTwitterLink" href="#" title="Twitter" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-blue-400 flex items-center justify-center transition-all">
+              <i class="fab fa-twitter text-sm"></i>
+            </a>
+            <a id="footerEmailLink" href="#" title="Email" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-blue-500 flex items-center justify-center transition-all">
+              <i class="fas fa-envelope text-sm"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div>
+          <h5 class="font-black text-sm text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-map text-blue-500"></i> Navigation
+          </h5>
+          <ul class="space-y-2 text-sm">
+            <li><a onclick="window.navigateTo('public')" href="#" class="text-slate-400 hover:text-white transition-colors">Home</a></li>
+            <li><a href="#documents" class="text-slate-400 hover:text-white transition-colors">Documents</a></li>
+            <li><a href="#members-section" class="text-slate-400 hover:text-white transition-colors">Members</a></li>
+            <li><a onclick="window.navigateTo('contact')" href="#" class="text-slate-400 hover:text-white transition-colors">Contact Us</a></li>
+            <li><a onclick="window.navigateTo('login')" href="#" class="text-slate-400 hover:text-white transition-colors">Admin Portal</a></li>
+          </ul>
+        </div>
+
+        <!-- Document Categories -->
+        <div>
+          <h5 class="font-black text-sm text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-layer-group text-blue-500"></i> Categories
+          </h5>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#documents" class="text-slate-400 hover:text-white transition-colors">Ordinances</a></li>
+            <li><a href="#documents" class="text-slate-400 hover:text-white transition-colors">Resolutions</a></li>
+            <li><a href="#documents" class="text-slate-400 hover:text-white transition-colors">Motions</a></li>
+            <li><a href="#documents" class="text-slate-400 hover:text-white transition-colors">Proclamations</a></li>
+          </ul>
+        </div>
+
+        <!-- Support & Legal -->
+        <div>
+          <h5 class="font-black text-sm text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-shield text-blue-500"></i> Legal
+          </h5>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors" title="Republic Act 7160 - Local Government Code">RA 7160</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors" title="Data Privacy Act">Privacy</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors" title="Terms of Use">Terms</a></li>
+            <li><a href="#" class="text-slate-400 hover:text-white transition-colors" title="Accessibility">Accessibility</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Developer Contact Section -->
+      <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-2xl p-6 mb-12">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p class="text-sm font-bold text-slate-300 mb-1">Technical Support & Maintenance</p>
+            <p class="text-xs text-slate-500">Have questions or found a bug? Contact the developer</p>
+          </div>
+          <a href="mailto:rlagahit@icloud.com" 
+             class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl flex items-center gap-2 whitespace-nowrap">
+            <i class="fas fa-envelope"></i> Contact Developer
+          </a>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="border-t border-slate-800 pt-8">
+        
+        <!-- Sitemap -->
+        <div class="mb-8">
+          <h6 class="text-xs font-black uppercase text-slate-400 tracking-widest mb-4">Sitemap</h6>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-[11px]">
+            <a href="/" class="text-slate-500 hover:text-blue-400 transition-colors">Home</a>
+            <a href="#documents" class="text-slate-500 hover:text-blue-400 transition-colors">Documents</a>
+            <a href="#members-section" class="text-slate-500 hover:text-blue-400 transition-colors">Members</a>
+            <a href="#" class="text-slate-500 hover:text-blue-400 transition-colors">Search</a>
+            <a href="#" class="text-slate-500 hover:text-blue-400 transition-colors">About</a>
+            <a href="#" class="text-slate-500 hover:text-blue-400 transition-colors">Contact</a>
+          </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-800">
+          <p class="text-xs text-slate-500 text-center sm:text-left">
+            &copy; 2026 Sangguniang Bayan of Argao. All rights reserved. | Republic Act 7160 (Local Government Code)
+          </p>
+          <p class="text-xs text-slate-600 flex items-center gap-1">
+            Built with <i class="fas fa-heart text-red-500"></i> for transparent government
+          </p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- JSON-LD Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "GovernmentOrganization",
+    "name": "Sangguniang Bayan of Argao",
+    "description": "Official Legislative Information System of the Sangguniang Bayan of Argao, Cebu",
+    "url": "https://sb-argao.web.app",
+    "image": "https://sb-argao.web.app/argao-seal.png",
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": "Argao",
+      "addressRegion": "Cebu",
+      "addressCountry": "PH"
+    },
+    "sameAs": []
+  }
+  </script>
+
+</body>
+</html>

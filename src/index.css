@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  * {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom thin scrollbar */
+  ::-webkit-scrollbar       { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+}
+
+/* ─── Keyframes ─────────────────────────────────────────────────────────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+
+/* ─── Component classes ─────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* Frosted-glass navbar background */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.93);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* Pill-shaped search bar with shadow */
+  .hero-search {
+    background: white;
+    border-radius: 1.1rem;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* Document card — slide-in entry animation + hover lift */
+  .doc-card {
+    animation: slide-in 0.45s ease-out forwards;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .doc-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.18);
+  }
+
+  /* Stat pill — hover lift */
+  .stat-pill {
+    transition: transform 0.25s ease;
+  }
+  .stat-pill:hover {
+    transform: translateY(-4px);
+  }
+
+  /* Tag chip — small blue uppercase label */
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* View count badge */
+  .view-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #94a3b8;
+  }
+
+  /* Float animation utility */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Gradient rainbow border (login card) */
+  .gradient-border {
+    border-radius: 1.5rem;
+    background: linear-gradient(
+      60deg,
+      #f79533, #f37055, #ef4e7b, #a166ab,
+      #5073b8, #1098ad, #07b39b, #6fba82
+    );
+    padding: 2px;
+  }
+  .gradient-border-content {
+    background: white;
+    border-radius: 1.4rem;
+  }
+
+  /* Member card hover */
+  .member-hero-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .member-hero-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.12);
+  }
+
+  /* Shimmer skeleton loader */
+  .shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Hide scrollbar visually but keep scroll behaviour */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}

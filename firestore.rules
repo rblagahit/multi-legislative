@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    // Phase 1: role enforced via Firebase Custom Claims in the JWT.
+    // isAdmin() now takes lguId so a municipal admin can only write their LGU.
+    // Phase 2 adds editor/viewer distinction and barangay-scoped rules.
+
+    function isAdmin(lguId) {
+      return request.auth != null
+          && request.auth.token.email_verified == true
+          && request.auth.token.role in ['admin', 'superadmin']
+          && (request.auth.token.role == 'superadmin'
+              || request.auth.token.lguId == lguId);
+    }
+
+    function isSuperAdmin() {
+      return request.auth != null
+          && request.auth.token.role == 'superadmin';
+    }
+
+    // ── Users collection ─────────────────────────────────────────────────────
+    // Users can read their own document; only Super Admin can write.
+    match /users/{uid} {
+      allow read:  if request.auth != null && request.auth.uid == uid;
+      allow write: if isSuperAdmin();
+    }
+
+    // ── Municipal data ────────────────────────────────────────────────────────
+    // Public read. Admin write scoped to their lguId claim.
+    match /lgus/{lguId}/legislations/{docId} {
+      allow read:  if true;
+      allow write: if isAdmin(lguId);
+    }
+
+    match /lgus/{lguId}/members/{docId} {
+      allow read:  if true;
+      allow write: if isAdmin(lguId);
+    }
+
+    match /lgus/{lguId}/settings/{docId} {
+      allow read:  if true;
+      allow write: if isAdmin(lguId);
+    }
+
+    // ── Barangay data ─────────────────────────────────────────────────────────
+    // Phase 2 will add barangayId claim scoping for barangay-level admins.
+    // For now, the municipal admin (lguId match) can manage all barangay paths.
+    match /lgus/{lguId}/barangays/{barangayId}/{document=**} {
+      allow read:  if true;
+      allow write: if isAdmin(lguId);
+    }
+
+  }
+}

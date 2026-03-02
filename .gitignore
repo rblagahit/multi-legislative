@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Firebase service account key — NEVER commit
+serviceAccountKey.json
+scripts/serviceAccountKey.json
+
+# OS & editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Vite
+*.local

@@ -1,0 +1,22 @@
+# Robots.txt for Sangguniang Bayan of Argao Legislative Information System
+# https://sb-argao.web.app
+
+# Allow all bots by default
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /.git
+Disallow: /.firebase
+Disallow: /node_modules
+
+# Specific directives
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://sb-argao.web.app/sitemap.xml
