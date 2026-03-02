@@ -3,31 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Official Legislative Information System of the Sangguniang Bayan of Argao, Cebu. Browse, search, and request certified copies of ordinances, resolutions, and legislative documents.">
-  <meta name="keywords" content="Sangguniang Bayan, Argao, Cebu, LGU Argao, legislative documents, ordinances, resolutions, government transparency, RA 7160, local government">
-  <meta name="author" content="Sangguniang Bayan of Argao">
+  <meta name="description" content="LGU Legislative Information System — browse, search, and request certified copies of ordinances, resolutions, and legislative documents.">
+  <meta name="keywords" content="LGU, Sangguniang Bayan, legislative documents, ordinances, resolutions, government transparency, RA 7160, local government Philippines">
+  <meta name="author" content="LGU Legislative Information System">
   <meta name="robots" content="index, follow">
   <meta name="language" content="English">
-  <meta name="geo.region" content="PH-CEB">
-  <meta name="geo.placename" content="Argao, Cebu, Philippines">
-  <meta property="og:title" content="Sangguniang Bayan of Argao · Legislative Information System">
-  <meta property="og:description" content="Browse all ordinances and resolutions of the Sangguniang Bayan of Argao, Cebu. Transparent access to local legislative documents under RA 7160.">
+  <meta property="og:title" content="LGU Legislative Information System">
+  <meta property="og:description" content="Browse all ordinances and resolutions of your local government unit. Transparent access to local legislative documents under RA 7160.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://sb-argao.web.app">
-  <meta property="og:image" content="https://sb-argao.web.app/argao-seal.png">
   <meta property="og:locale" content="en_PH">
-  <meta property="og:site_name" content="Sangguniang Bayan of Argao">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sangguniang Bayan of Argao · Legislative Information System">
-  <meta name="twitter:description" content="Browse all ordinances and resolutions passed by the Sangguniang Bayan of Argao, Cebu.">
-  <meta name="twitter:image" content="https://sb-argao.web.app/argao-seal.png">
-  <link rel="canonical" href="https://sb-argao.web.app">
+  <meta name="twitter:title" content="LGU Legislative Information System">
+  <meta name="twitter:description" content="Browse all ordinances and resolutions of your local government unit.">
   <link rel="sitemap" type="application/xml" href="/sitemap.xml">
-  <link id="dynamicFavicon" rel="icon" href="./argao-seal.png">
-  <title>Sangguniang Bayan of Argao · Legislative Information System</title>
+  <link id="dynamicFavicon" rel="icon" href="">
+  <title id="pageTitle">LGU Legislative Information System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   <style>
     * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
 
@@ -84,11 +78,12 @@
       <div class="flex justify-between items-center h-20">
 
         <div class="flex items-center gap-3 cursor-pointer group" onclick="window.navigateTo('public')">
-          <img id="navSealImg" src="./argao-seal.png"
+          <img id="navSealImg" src=""
                alt="Organization Seal"
-               class="w-11 h-11 object-contain group-hover:scale-110 transition-transform duration-300">
+               class="w-11 h-11 object-contain group-hover:scale-110 transition-transform duration-300 hidden"
+               onerror="this.classList.add('hidden')" onload="this.classList.remove('hidden')">
           <div>
-            <h1 id="navOrgName" class="font-black text-base sm:text-lg leading-tight text-slate-900">Sangguniang Bayan of Argao</h1>
+            <h1 id="navOrgName" class="font-black text-base sm:text-lg leading-tight text-slate-900">Your Organization</h1>
             <p class="text-[10px] font-semibold text-blue-600 tracking-widest uppercase flex items-center gap-1">
               <span class="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse inline-block"></span>
               Legislative Information System
@@ -135,14 +130,14 @@
             <div>
               <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-bold mb-8">
                 <i class="fas fa-landmark text-xs"></i>
-                <span id="heroCityProvince">Argao, Cebu</span> · Official Legislative Portal
+                <span id="heroCityProvince">Your Municipality</span> · Official Legislative Portal
               </div>
               <h1 class="text-5xl lg:text-[3.6rem] font-black text-slate-900 leading-[1.08] mb-5">
                 Find Legislative <span class="text-blue-600">Documents</span><br>
                 in Seconds
               </h1>
               <p id="heroDescription" class="text-slate-500 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-                Browse all ordinances and resolutions passed by the Sangguniang Bayan of Argao, Cebu.
+                Browse all ordinances and resolutions of your local government unit.
               </p>
 
               <!-- SEARCH BAR -->
@@ -199,7 +194,7 @@
                 <i class="fas fa-layer-group"></i> Document Library
               </p>
               <h2 class="text-3xl font-black text-slate-900">All Documents</h2>
-              <p class="text-slate-500 mt-1">Ordinances and resolutions from the Sangguniang Bayan of Argao</p>
+              <p id="docLibrarySubtitle" class="text-slate-500 mt-1">Ordinances and resolutions from your LGU</p>
             </div>
             <div class="flex items-center gap-3">
               <select id="typeFilterMobile"
@@ -248,7 +243,7 @@
               <i class="fas fa-users"></i> Legislative Officers
             </p>
             <h2 class="text-3xl font-black text-slate-900">Meet the Members</h2>
-            <p id="membersSubtitle" class="text-slate-500 mt-1">Sangguniang Bayan of Argao, Cebu</p>
+            <p id="membersSubtitle" class="text-slate-500 mt-1">Your Organization</p>
           </div>
           <div class="mb-8">
             <div class="hero-search max-w-2xl">
@@ -401,6 +396,10 @@
                 class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
           <i class="fas fa-users mr-2"></i>Members
         </button>
+        <button onclick="window.switchAdminTab('barangay')" id="tab-barangay"
+                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+          <i class="fas fa-map-marked-alt mr-2"></i>Barangays
+        </button>
         <button onclick="window.switchAdminTab('settings')" id="tab-settings"
                 class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
           <i class="fas fa-sliders mr-2"></i>Settings
@@ -408,6 +407,10 @@
         <button onclick="window.switchAdminTab('profile')" id="tab-profile"
                 class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
           <i class="fas fa-user-circle mr-2"></i>My Profile
+        </button>
+        <button onclick="window.switchAdminTab('pricing')" id="tab-pricing"
+                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+          <i class="fas fa-tags mr-2"></i>Packages
         </button>
       </div>
 
@@ -420,12 +423,20 @@
             <h3 class="text-xl font-black text-slate-900">Documents</h3>
             <p class="text-sm text-slate-500">Manage legislative documents</p>
           </div>
-          <button type="button" onclick="window.toggleAddDocPanel()"
-                  id="addDocToggleBtn"
-                  class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
-            <i class="fas fa-plus text-xs" id="addDocToggleIcon"></i>
-            <span id="addDocToggleLabel">Add Document</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="window.downloadDocsExcel()"
+                    title="Download all documents as Excel"
+                    class="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-bold text-sm hover:bg-emerald-700 transition-all shadow-md">
+              <i class="fas fa-file-excel text-xs"></i>
+              <span class="hidden sm:inline">Excel</span>
+            </button>
+            <button type="button" onclick="window.toggleAddDocPanel()"
+                    id="addDocToggleBtn"
+                    class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
+              <i class="fas fa-plus text-xs" id="addDocToggleIcon"></i>
+              <span id="addDocToggleLabel">Add Document</span>
+            </button>
+          </div>
         </div>
 
         <!-- Collapsible upload panel (hidden by default) -->
@@ -702,14 +713,14 @@
               <div class="space-y-5 mt-6">
                 <div>
                   <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-landmark mr-1"></i>Organization Name</label>
-                  <input type="text" id="brandingOrgName" placeholder="e.g., Sangguniang Bayan of Argao"
+                  <input type="text" id="brandingOrgName" placeholder="e.g., Sangguniang Bayan ng Cebu City"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Appears in the navigation bar and footer</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map-marker-alt mr-1"></i>Municipality</label>
-                    <input type="text" id="brandingMunicipality" placeholder="e.g., Argao"
+                    <input type="text" id="brandingMunicipality" placeholder="e.g., Cebu City"
                            class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   </div>
                   <div>
@@ -742,7 +753,7 @@
                 </div>
                 <div>
                   <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-at mr-1"></i>Public Contact Email</label>
-                  <input type="email" id="brandingContactEmail" placeholder="e.g., sbargao@lgu.gov.ph"
+                  <input type="email" id="brandingContactEmail" placeholder="e.g., sb@lgu.gov.ph"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Displayed on the Contact page. Separate from document-request email in Admin Profile.</p>
                 </div>
@@ -878,6 +889,151 @@
       </div>
 
     </section>
+  </div>
+
+  <!-- ═══ BARANGAY TAB PANEL ═══ -->
+  <div id="admin-tab-barangay" class="hidden">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h3 class="text-xl font-black text-slate-900">Barangays</h3>
+        <p class="text-sm text-slate-500">Register barangay units and manage their legislative documents</p>
+      </div>
+      <button type="button" onclick="window.toggleAddBarangayPanel()"
+              id="addBarangayToggleBtn"
+              class="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-xl font-bold text-sm hover:from-teal-700 hover:to-emerald-700 transition-all shadow-md">
+        <i class="fas fa-plus text-xs" id="addBarangayToggleIcon"></i>
+        <span id="addBarangayToggleLabel">Add Barangay</span>
+      </button>
+    </div>
+
+    <!-- Add Barangay Form (collapsed) -->
+    <div id="addBarangayPanel" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-slate-100 mb-8">
+      <h4 class="font-black text-slate-900 mb-5 flex items-center gap-2">
+        <i class="fas fa-map-marker-alt text-teal-600"></i> Register New Barangay
+      </h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Name</label>
+          <input type="text" id="barangayName" placeholder="e.g., Barangay San Antonio"
+                 class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100 transition-all">
+        </div>
+        <div>
+          <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Code / ID</label>
+          <input type="text" id="barangayCode" placeholder="e.g., brgy-san-antonio"
+                 class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100 transition-all">
+          <p class="text-[10px] text-slate-400 mt-1 ml-1">Lowercase, no spaces (used as Firestore ID)</p>
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Captain Name</label>
+          <input type="text" id="barangayCaptain" placeholder="e.g., Juan Dela Cruz"
+                 class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100 transition-all">
+        </div>
+      </div>
+      <button type="button" onclick="window.saveBarangay()"
+              id="saveBarangayBtn"
+              class="mt-6 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-teal-600 to-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:from-teal-700 hover:to-emerald-700 transition-all">
+        <i class="fas fa-save"></i> Save Barangay
+      </button>
+    </div>
+
+    <!-- Barangay List -->
+    <div id="barangayList" class="space-y-3">
+      <div class="text-center py-16 text-slate-400">
+        <i class="fas fa-map-marked-alt text-4xl mb-3 block opacity-30"></i>
+        <p class="text-sm font-semibold">No barangays registered yet.</p>
+        <p class="text-xs mt-1">Click "Add Barangay" to register your first barangay unit.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PRICING TAB PANEL ═══ -->
+  <div id="admin-tab-pricing" class="hidden">
+    <div class="mb-8">
+      <h3 class="text-xl font-black text-slate-900">Service Packages</h3>
+      <p class="text-sm text-slate-500">Choose the plan that fits your LGU's needs</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <!-- Free Tier -->
+      <div class="bg-white rounded-3xl border-2 border-slate-200 p-8 flex flex-col">
+        <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 text-xl mb-5">
+          <i class="fas fa-seedling"></i>
+        </div>
+        <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Starter</p>
+        <h4 class="text-3xl font-black text-slate-900 mb-1">Free</h4>
+        <p class="text-slate-500 text-sm mb-6">Forever — no credit card needed</p>
+        <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 100 legislative documents</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> 1 Admin account</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Public document portal</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Members directory</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Basic branding</li>
+          <li class="flex items-center gap-2"><i class="fas fa-times text-slate-300 text-xs"></i> Barangay sub-portals</li>
+          <li class="flex items-center gap-2"><i class="fas fa-times text-slate-300 text-xs"></i> Excel export</li>
+          <li class="flex items-center gap-2"><i class="fas fa-times text-slate-300 text-xs"></i> Priority support</li>
+        </ul>
+        <span class="block text-center py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold text-sm">Current Plan</span>
+      </div>
+
+      <!-- Standard Tier -->
+      <div class="bg-white rounded-3xl border-2 border-blue-500 p-8 flex flex-col relative shadow-lg shadow-blue-100">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span class="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow">Most Popular</span>
+        </div>
+        <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 text-xl mb-5">
+          <i class="fas fa-building-columns"></i>
+        </div>
+        <p class="text-xs font-black uppercase tracking-widest text-blue-500 mb-1">Standard</p>
+        <h4 class="text-3xl font-black text-slate-900 mb-1">₱1,500<span class="text-base font-semibold text-slate-400">/mo</span></h4>
+        <p class="text-slate-500 text-sm mb-6">For active municipal LGUs</p>
+        <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited documents</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 5 Admin accounts</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 10 Barangay sub-portals</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Excel bulk export</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Full branding customization</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Document request tracking</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Email support</li>
+          <li class="flex items-center gap-2"><i class="fas fa-times text-slate-300 text-xs"></i> Custom domain</li>
+        </ul>
+        <a href="mailto:rlagahit@icloud.com?subject=Standard Plan Inquiry"
+           class="block text-center py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
+          Contact Us to Upgrade
+        </a>
+      </div>
+
+      <!-- Premium Tier -->
+      <div class="bg-white rounded-3xl border-2 border-purple-200 p-8 flex flex-col">
+        <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 text-xl mb-5">
+          <i class="fas fa-crown"></i>
+        </div>
+        <p class="text-xs font-black uppercase tracking-widest text-purple-500 mb-1">Premium</p>
+        <h4 class="text-3xl font-black text-slate-900 mb-1">₱3,500<span class="text-base font-semibold text-slate-400">/mo</span></h4>
+        <p class="text-slate-500 text-sm mb-6">For large cities &amp; provinces</p>
+        <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Everything in Standard</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited Admin accounts</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited Barangay portals</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Custom domain (e.g., sb.lgu.gov.ph)</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Activity audit log</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Dedicated onboarding</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Priority phone &amp; email support</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> SLA guarantee</li>
+        </ul>
+        <a href="mailto:rlagahit@icloud.com?subject=Premium Plan Inquiry"
+           class="block text-center py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-md">
+          Contact Us to Upgrade
+        </a>
+      </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex items-start gap-3 text-sm text-blue-800">
+      <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+      <div>
+        <strong>All plans include:</strong> Firebase hosting, real-time updates, mobile-responsive design, and RA 7160 compliance.
+        Contact <a href="mailto:rlagahit@icloud.com" class="underline font-semibold">rlagahit@icloud.com</a> to upgrade or for custom pricing for your province or city.
+      </div>
+    </div>
   </div>
 
   <!-- Profile Modal -->
@@ -1353,8 +1509,8 @@
       
       const linkedAuthor = localMembers.find(m => m.id === doc.authorId);
       const author = linkedAuthor || {
-        name: doc.authorName || 'SB Argao',
-        image: doc.authorImage || 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Ph_seal_cebu_argao.png'
+        name: doc.authorName || settingsState.orgName || 'Your LGU',
+        image: doc.authorImage || (settingsState.sealUrl || '')
       };
       
       const date = doc.timestamp?.toDate
@@ -1569,17 +1725,13 @@ Thank you.`;
     };
 
     window.switchAdminTab = (tab) => {
-      document.getElementById('admin-tab-docs').classList.toggle('hidden', tab!=='docs');
-      document.getElementById('admin-tab-members').classList.toggle('hidden', tab!=='members');
-      document.getElementById('admin-tab-settings').classList.toggle('hidden', tab!=='settings');
-      document.getElementById('admin-tab-profile').classList.toggle('hidden', tab!=='profile');
-      document.getElementById('tab-docs').className    = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='docs'    ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
-      document.getElementById('tab-members').className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='members' ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
-      document.getElementById('tab-settings').className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='settings' ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
-      document.getElementById('tab-profile').className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab==='profile' ?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
-      if (tab === 'profile') {
-        window.loadAdminProfile();
-      }
+      ['docs','members','barangay','settings','profile','pricing'].forEach(t => {
+        document.getElementById(`admin-tab-${t}`)?.classList.toggle('hidden', tab!==t);
+        const btn = document.getElementById(`tab-${t}`);
+        if (btn) btn.className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab===t?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+      });
+      if (tab === 'profile')   window.loadAdminProfile();
+      if (tab === 'barangay')  window.loadBarangays();
     };
 
     /* ── Upload Type Switcher ── */
@@ -1817,7 +1969,7 @@ Thank you.`;
         const expired = isTermExpired(m);
         const init  = m.name.replace('Hon.','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
         const fbUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(init)}&background=1e40af&color=fff&bold=true&size=256`;
-        const bio   = m.bio || 'Legislative officer of the Sangguniang Bayan of Argao, Cebu.';
+        const bio   = m.bio || `Legislative officer of the ${settingsState.orgName || 'Sangguniang Bayan'}.`;
         const committees = (m.committees||[]).map(c=>`<span class="tag-chip">${escapeHtml(c)}</span>`).join('');
         const termStart = formatDate(m.termStart);
         const termEnd = formatDate(m.termEnd);
@@ -1999,8 +2151,8 @@ Thank you.`;
       grid.innerHTML = filtered.map((docData, i) => {
         const linkedAuthor = localMembers.find(m=>m.id===docData.authorId);
         const author = linkedAuthor || {
-          name: docData.authorName || 'SB Argao',
-          image: docData.authorImage || 'https://upload.wikimedia.org/wikipedia/commons/7/7e/Ph_seal_cebu_argao.png'
+          name: docData.authorName || settingsState.orgName || 'Your LGU',
+          image: docData.authorImage || (settingsState.sealUrl || '')
         };
         const date = docData.timestamp?.toDate
           ? new Date(docData.timestamp.toDate()).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
@@ -2223,10 +2375,10 @@ Thank you.`;
 
     /* ── Sync Branding UI ── */
     function syncBrandingUi() {
-      const orgName     = settingsState.orgName     || 'Sangguniang Bayan of Argao';
-      const municipality = settingsState.municipality || 'Argao';
-      const province    = settingsState.province    || 'Cebu';
-      const sealUrl     = settingsState.sealUrl     || './argao-seal.png';
+      const orgName      = settingsState.orgName     || 'Your Organization';
+      const municipality = settingsState.municipality || 'Your Municipality';
+      const province     = settingsState.province    || '';
+      const sealUrl      = settingsState.sealUrl     || '';
       const cityProv    = `${municipality}, ${province}`;
 
       // Nav
@@ -2243,7 +2395,15 @@ Thank you.`;
 
       // Members subtitle
       const membersSub = document.getElementById('membersSubtitle');
-      if (membersSub) membersSub.textContent = `${orgName}, ${province}`;
+      if (membersSub) membersSub.textContent = province ? `${orgName}, ${province}` : orgName;
+
+      // Document library subtitle
+      const docLibSub = document.getElementById('docLibrarySubtitle');
+      if (docLibSub) docLibSub.textContent = `Ordinances and resolutions from ${orgName}`;
+
+      // Page title
+      const pageTitle = document.getElementById('pageTitle');
+      if (pageTitle) pageTitle.textContent = `${orgName} · Legislative Information System`;
 
       // Footer
       const footerSeal  = document.getElementById('footerSealImg');
@@ -2253,7 +2413,9 @@ Thank you.`;
       if (footerSeal) footerSeal.src = sealUrl;
       if (footerName) footerName.textContent = orgName;
       if (footerCity) footerCity.textContent = cityProv;
-      if (footerDesc) footerDesc.innerHTML = `Official Legislative Information System providing transparent access to ordinances and resolutions of the ${escapeHtml(orgName)}, ${escapeHtml(province)}. <strong>2026</strong>`;
+      if (footerDesc) footerDesc.innerHTML = `Official Legislative Information System of ${escapeHtml(orgName)}. Transparent access to local government ordinances and resolutions. <strong>2026</strong>`;
+      const footerCopy = document.getElementById('footerCopyright');
+      if (footerCopy) footerCopy.textContent = orgName;
 
       // Favicon
       const favicon = document.getElementById('dynamicFavicon');
@@ -2374,7 +2536,7 @@ Thank you.`;
         if (snap.exists()) {
           const data = snap.data();
           document.getElementById('adminName').value  = data.name  || '';
-          document.getElementById('adminRole').value  = data.role  || '';
+          document.getElementById('adminRole').value  = data.position  || '';
           document.getElementById('adminEmail').value = data.contactEmail || '';
           document.getElementById('adminImage').value = data.image || '';
           document.getElementById('adminBio').value   = data.bio   || '';
@@ -2404,7 +2566,7 @@ Thank you.`;
         const adminProfileRef = doc(db,'users',user.uid);
         await setDoc(adminProfileRef, {
           uid: user.uid,
-          name, role, contactEmail: email, image, bio,
+          name, position: role, contactEmail: email, image, bio,
           isComplete: true,
           updatedAt: serverTimestamp(),
           updatedBy: user.email || user.uid || ''
@@ -2725,6 +2887,116 @@ Thank you.`;
       }
     });
 
+    /* ── Barangay Management ── */
+    const BARANGAY_COL = () => collection(db,'lgus',lguId,'barangays');
+
+    window.toggleAddBarangayPanel = () => {
+      const panel = document.getElementById('addBarangayPanel');
+      const icon  = document.getElementById('addBarangayToggleIcon');
+      const label = document.getElementById('addBarangayToggleLabel');
+      const open  = panel.classList.toggle('hidden');
+      icon.className  = open ? 'fas fa-plus text-xs' : 'fas fa-times text-xs';
+      label.textContent = open ? 'Add Barangay' : 'Cancel';
+    };
+
+    window.saveBarangay = async () => {
+      if (!user) { showToast('Admin login required','error'); return; }
+      const name    = document.getElementById('barangayName').value.trim();
+      const code    = document.getElementById('barangayCode').value.trim().toLowerCase().replace(/\s+/g,'-');
+      const captain = document.getElementById('barangayCaptain').value.trim();
+      if (!name || !code) { showToast('Barangay name and code are required.','error'); return; }
+      const btn  = document.getElementById('saveBarangayBtn');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving…';
+      btn.disabled = true;
+      try {
+        await setDoc(doc(db,'lgus',lguId,'barangays',code), {
+          name, code, captain: captain || '',
+          lguId,
+          createdAt: serverTimestamp(),
+          updatedBy: user.uid,
+        }, { merge: true });
+        showToast(`Barangay "${name}" saved.`,'success');
+        document.getElementById('barangayName').value = '';
+        document.getElementById('barangayCode').value = '';
+        document.getElementById('barangayCaptain').value = '';
+        window.loadBarangays();
+      } catch(e) {
+        console.error(e);
+        showToast('Error saving barangay. Check permissions.','error');
+      } finally {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+      }
+    };
+
+    window.loadBarangays = async () => {
+      const list = document.getElementById('barangayList');
+      if (!list) return;
+      try {
+        const snap = await getDocs(query(BARANGAY_COL(), orderBy('name')));
+        if (snap.empty) {
+          list.innerHTML = `<div class="text-center py-16 text-slate-400"><i class="fas fa-map-marked-alt text-4xl mb-3 block opacity-30"></i><p class="text-sm font-semibold">No barangays registered yet.</p><p class="text-xs mt-1">Click "Add Barangay" to register your first barangay unit.</p></div>`;
+          return;
+        }
+        list.innerHTML = snap.docs.map(d => {
+          const b = d.data();
+          return `<div class="bg-white rounded-2xl border border-slate-200 px-5 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center text-teal-600 flex-shrink-0"><i class="fas fa-map-marker-alt"></i></div>
+              <div>
+                <p class="font-black text-slate-900 text-sm">${escapeHtml(b.name)}</p>
+                <p class="text-xs text-slate-400">Code: <code class="font-mono bg-slate-100 px-1 rounded">${escapeHtml(b.code)}</code>${b.captain ? ` · Captain: ${escapeHtml(b.captain)}` : ''}</p>
+              </div>
+            </div>
+            <button onclick="window.deleteBarangay('${d.id}')" title="Delete barangay"
+                    class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0">
+              <i class="fas fa-trash text-xs"></i>
+            </button>
+          </div>`;
+        }).join('');
+      } catch(e) {
+        console.error(e);
+        list.innerHTML = '<p class="text-sm text-red-500 p-4">Error loading barangays.</p>';
+      }
+    };
+
+    window.deleteBarangay = async (id) => {
+      if (!confirm('Delete this barangay? This cannot be undone.')) return;
+      try {
+        await deleteDoc(doc(db,'lgus',lguId,'barangays',id));
+        showToast('Barangay deleted.','success');
+        window.loadBarangays();
+      } catch(e) {
+        console.error(e);
+        showToast('Error deleting barangay.','error');
+      }
+    };
+
+    /* ── Bulk Excel Download ── */
+    window.downloadDocsExcel = () => {
+      if (!localDocs.length) { showToast('No documents to export.', 'error'); return; }
+      const orgName = settingsState.orgName || 'LGU';
+      const rows = localDocs.map(d => ({
+        'Document ID':   d.docId        || '',
+        'Title':         d.title        || '',
+        'Type':          d.type         || '',
+        'Primary Sponsor': d.authorName || '',
+        'Co-Sponsors':   (d.coSponsors||[]).join(', '),
+        'Date':          d.date         || '',
+        'Tags':          (d.tags||[]).join(', '),
+        'More Info':     d.moreInfo     || '',
+        'Document URL':  d.url          || '',
+        'Views':         d.views        || 0,
+      }));
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Legislative Documents');
+      const filename = `${orgName.replace(/[^a-z0-9]/gi,'_')}_documents_${new Date().toISOString().slice(0,10)}.xlsx`;
+      XLSX.writeFile(wb, filename);
+      showToast(`Exported ${rows.length} documents to Excel.`, 'success');
+    };
+
     /* ── Auth tab switcher ── */
     window.switchAuthTab = (tab) => {
       const isSignIn = tab === 'signin';
@@ -2857,17 +3129,20 @@ Thank you.`;
         noRoleBanner?.classList.add('hidden');
       }
 
-      const navBtn       = document.getElementById('navBtn');
-      const adminPanelBtn= document.getElementById('adminPanelBtn');
+      const navBtn        = document.getElementById('navBtn');
+      const adminPanelBtn = document.getElementById('adminPanelBtn');
+      const superAdminFab = document.getElementById('superAdminFab');
       if (u) {
         navBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i><span class="hidden sm:inline ml-1">Logout</span>';
         adminPanelBtn.classList.remove('hidden');
         adminPanelBtn.classList.add('flex');
+        if (superAdminFab) superAdminFab.classList.add('hidden');
         window.checkAdminProfileComplete();
       } else {
         navBtn.innerHTML = '<span class="relative z-10 flex items-center gap-2"><i class="fas fa-lock text-xs"></i><span class="hidden sm:inline">Admin</span></span><div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>';
         adminPanelBtn.classList.add('hidden');
         adminPanelBtn.classList.remove('flex');
+        if (superAdminFab) superAdminFab.classList.remove('hidden');
       }
       if (u && !document.getElementById('view-login').classList.contains('hidden')) {
         window.navigateTo('admin');
@@ -2925,12 +3200,13 @@ Thank you.`;
     <div class="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white py-20 px-4 text-center relative overflow-hidden">
       <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 30% 50%,#3b82f6 0%,transparent 60%),radial-gradient(circle at 70% 50%,#8b5cf6 0%,transparent 60%)"></div>
       <div class="relative max-w-2xl mx-auto">
-        <img id="contactPageSealImg" src="./argao-seal.png" alt="Organization Seal"
-             class="w-20 h-20 mx-auto mb-5 object-contain drop-shadow-lg">
+        <img id="contactPageSealImg" src="" alt="Organization Seal"
+             class="w-20 h-20 mx-auto mb-5 object-contain drop-shadow-lg hidden"
+             onerror="this.classList.add('hidden')" onload="this.classList.remove('hidden')">
         <h1 id="contactPageOrgName"
-            class="text-3xl md:text-4xl font-black mb-2 leading-tight">Sangguniang Bayan of Argao</h1>
+            class="text-3xl md:text-4xl font-black mb-2 leading-tight">Your Organization</h1>
         <p id="contactPageCityProv"
-           class="text-blue-300 font-semibold text-lg mb-1">Argao, Cebu</p>
+           class="text-blue-300 font-semibold text-lg mb-1">Your Municipality</p>
         <p class="text-slate-400 text-sm">Get in touch with our office</p>
       </div>
     </div>
@@ -3050,6 +3326,16 @@ Thank you.`;
     </div>
   </section>
 
+  <!-- ═══ SUPER ADMIN FAB ═══ -->
+  <!-- Floating login button — visible on public pages when logged out -->
+  <button id="superAdminFab"
+          onclick="window.navigateTo('login')"
+          title="Admin Login"
+          class="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 bg-slate-900/90 backdrop-blur-sm text-white rounded-2xl font-bold text-xs shadow-xl border border-slate-700/60 hover:bg-slate-800 hover:border-blue-500/50 transition-all duration-200 group hidden">
+    <i class="fas fa-shield-alt text-purple-400 group-hover:text-purple-300 transition-colors"></i>
+    <span>Super Admin</span>
+  </button>
+
   <!-- ═══ FOOTER ═══ -->
   <footer class="bg-slate-900 text-slate-100 border-t border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -3060,14 +3346,15 @@ Thank you.`;
         <!-- Organization Info -->
         <div>
           <div class="flex items-center gap-2 mb-4">
-            <img id="footerSealImg" src="./argao-seal.png" alt="Organization Seal" class="w-10 h-10 object-contain">
+            <img id="footerSealImg" src="" alt="Organization Seal" class="w-10 h-10 object-contain hidden"
+                 onerror="this.classList.add('hidden')" onload="this.classList.remove('hidden')">
             <div>
-              <h4 id="footerOrgName" class="font-black text-sm">Sangguniang Bayan of Argao</h4>
-              <p id="footerCityProvince" class="text-[11px] text-slate-400">Argao, Cebu</p>
+              <h4 id="footerOrgName" class="font-black text-sm">Your Organization</h4>
+              <p id="footerCityProvince" class="text-[11px] text-slate-400">Your Municipality</p>
             </div>
           </div>
           <p id="footerDescription" class="text-sm text-slate-400 leading-relaxed mb-4">
-            Official Legislative Information System providing transparent access to ordinances and resolutions of the Sangguniang Bayan of Argao, Cebu. <strong>2026</strong>
+            Official Legislative Information System providing transparent access to local government ordinances and resolutions. <strong>2026</strong>
           </p>
           <div class="flex gap-3">
             <a id="footerFacebookLink" href="#" title="Facebook" class="w-9 h-9 rounded-lg bg-slate-800 hover:bg-blue-600 flex items-center justify-center transition-all">
@@ -3156,7 +3443,7 @@ Thank you.`;
         <!-- Copyright -->
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-800">
           <p class="text-xs text-slate-500 text-center sm:text-left">
-            &copy; 2026 Sangguniang Bayan of Argao. All rights reserved. | Republic Act 7160 (Local Government Code)
+            &copy; 2026 <span id="footerCopyright">Your Organization</span>. All rights reserved. | Republic Act 7160 (Local Government Code)
           </p>
           <p class="text-xs text-slate-600 flex items-center gap-1">
             Built with <i class="fas fa-heart text-red-500"></i> for transparent government
@@ -3166,21 +3453,14 @@ Thank you.`;
     </div>
   </footer>
 
-  <!-- JSON-LD Structured Data for SEO -->
+  <!-- JSON-LD Structured Data for SEO — generic until org sets their branding -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "GovernmentOrganization",
-    "name": "Sangguniang Bayan of Argao",
-    "description": "Official Legislative Information System of the Sangguniang Bayan of Argao, Cebu",
-    "url": "https://sb-argao.web.app",
-    "image": "https://sb-argao.web.app/argao-seal.png",
-    "address": {
-      "@type": "PostalAddress",
-      "addressLocality": "Argao",
-      "addressRegion": "Cebu",
-      "addressCountry": "PH"
-    },
+    "name": "LGU Legislative Information System",
+    "description": "Official Legislative Information System for local government units in the Philippines.",
+    "addressCountry": "PH",
     "sameAs": []
   }
   </script>
