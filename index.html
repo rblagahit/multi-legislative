@@ -52,7 +52,6 @@
     ::-webkit-scrollbar-thumb:hover { background:#94a3b8 }
     .tag-chip { display:inline-flex; align-items:center; gap:4px; background:#eff6ff; color:#2563eb; font-size:10px; font-weight:700; padding:3px 10px; border-radius:100px; text-transform:uppercase; letter-spacing:.05em }
     .view-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; color:#94a3b8 }
-
     #toast {
       visibility:hidden; min-width:300px; background:#1e293b; color:white;
       text-align:center; border-radius:100px; padding:14px 22px;
@@ -160,6 +159,14 @@
                   <option value="Ordinance">📜 Ordinances</option>
                   <option value="Resolution">📄 Resolutions</option>
                 </select>
+                <select id="locationFilter"
+                        class="hidden md:block shrink-0 bg-white border-l border-slate-100 px-5 py-5 text-sm font-bold text-slate-600 outline-none cursor-pointer max-w-[220px]">
+                  <option value="">🏛 All Municipalities</option>
+                </select>
+                <select id="barangayFilter"
+                        class="hidden lg:block shrink-0 bg-white border-l border-slate-100 px-5 py-5 text-sm font-bold text-slate-600 outline-none cursor-pointer max-w-[220px]">
+                  <option value="">📍 All Barangays</option>
+                </select>
                 <button onclick="renderDocs(true)"
                         class="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-9 py-5 font-black text-sm tracking-wide transition-all flex items-center gap-2">
                   <i class="fas fa-search text-xs"></i> Search
@@ -208,6 +215,14 @@
                 <option value="All">📋 All Types</option>
                 <option value="Ordinance">📜 Ordinances</option>
                 <option value="Resolution">📄 Resolutions</option>
+              </select>
+              <select id="locationFilterMobile"
+                      class="sm:hidden bg-white px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold outline-none shadow-sm cursor-pointer max-w-[170px]">
+                <option value="">🏛 All Municipalities</option>
+              </select>
+              <select id="barangayFilterMobile"
+                      class="sm:hidden bg-white px-4 py-3 rounded-xl border border-slate-200 text-sm font-semibold outline-none shadow-sm cursor-pointer max-w-[170px]">
+                <option value="">📍 All Barangays</option>
               </select>
               <button onclick="window.clearFilters()"
                       class="flex items-center gap-2 text-sm font-bold text-slate-400 hover:text-red-500 transition-colors bg-white px-5 py-3 rounded-xl border border-slate-200 shadow-sm">
@@ -446,44 +461,74 @@
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="flex gap-2 mb-8 border-b border-slate-200">
-        <button onclick="window.switchAdminTab('docs')" id="tab-docs"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-all">
-          <i class="fas fa-file-alt mr-2"></i>Documents
-        </button>
-        <button onclick="window.switchAdminTab('members')" id="tab-members"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
-          <i class="fas fa-users mr-2"></i>Members
-        </button>
-        <button onclick="window.switchAdminTab('barangay')" id="tab-barangay"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-map-marked-alt mr-2"></i>Barangays
-        </button>
-        <button onclick="window.switchAdminTab('settings')" id="tab-settings"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-sliders mr-2"></i>Settings
-        </button>
-        <button onclick="window.switchAdminTab('profile')" id="tab-profile"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-user-circle mr-2"></i>My Profile
-        </button>
-        <button onclick="window.switchAdminTab('users')" id="tab-users"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-users-cog mr-2"></i>Users
-        </button>
-        <button onclick="window.switchAdminTab('analytics')" id="tab-analytics"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-chart-bar mr-2"></i>Advanced Analytics
-        </button>
-        <button onclick="window.switchAdminTab('pricing')" id="tab-pricing"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-tags mr-2"></i>Subscription
-        </button>
-        <button onclick="window.switchAdminTab('activity')" id="tab-activity"
-                class="admin-tab px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
-          <i class="fas fa-history mr-2"></i>Activity
-        </button>
+      <!-- Parent/Child Tabs -->
+      <div class="mb-8 border-b border-slate-200">
+        <!-- Parent groups -->
+        <div class="flex flex-wrap gap-2 mb-3">
+          <button id="admin-group-records"
+                  onclick="window.switchAdminGroup('records')"
+                  class="admin-group-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border border-blue-200 bg-blue-50 text-blue-700 transition-all">
+            Records
+          </button>
+          <button id="admin-group-administration"
+                  onclick="window.switchAdminGroup('administration')"
+                  class="admin-group-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 transition-all">
+            Administration
+          </button>
+          <button id="admin-group-insights"
+                  onclick="window.switchAdminGroup('insights')"
+                  class="admin-group-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300 transition-all">
+            Insights &amp; Billing
+          </button>
+        </div>
+
+        <!-- Child tabs per group -->
+        <div class="overflow-x-auto no-scrollbar pb-2">
+          <div id="admin-group-tabs-records" class="admin-group-tabs flex gap-2 min-w-max">
+            <button onclick="window.switchAdminTab('docs')" id="tab-docs"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-blue-600 text-blue-600 transition-all">
+              <i class="fas fa-file-alt mr-2"></i>Documents
+            </button>
+            <button onclick="window.switchAdminTab('members')" id="tab-members"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              <i class="fas fa-users mr-2"></i>Members
+            </button>
+            <button onclick="window.switchAdminTab('barangay')" id="tab-barangay"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-map-marked-alt mr-2"></i>Barangays
+            </button>
+          </div>
+
+          <div id="admin-group-tabs-administration" class="admin-group-tabs hidden flex gap-2 min-w-max">
+            <button onclick="window.switchAdminTab('settings')" id="tab-settings"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-sliders mr-2"></i>Settings
+            </button>
+            <button onclick="window.switchAdminTab('profile')" id="tab-profile"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-user-circle mr-2"></i>My Profile
+            </button>
+            <button onclick="window.switchAdminTab('users')" id="tab-users"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-users-cog mr-2"></i>Users
+            </button>
+          </div>
+
+          <div id="admin-group-tabs-insights" class="admin-group-tabs hidden flex gap-2 min-w-max">
+            <button onclick="window.switchAdminTab('analytics')" id="tab-analytics"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-chart-bar mr-2"></i>Advanced Analytics
+            </button>
+            <button onclick="window.switchAdminTab('pricing')" id="tab-pricing"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-tags mr-2"></i>Subscription
+            </button>
+            <button onclick="window.switchAdminTab('activity')" id="tab-activity"
+                    class="admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all hidden">
+              <i class="fas fa-history mr-2"></i>Activity
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- DOCS TAB -->
@@ -526,6 +571,13 @@
             </button>
           </div>
 
+          <div id="uploadCreditNotice" class="mb-6 bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-800">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-calculator"></i>
+              <span class="font-bold">Checking document credits…</span>
+            </div>
+          </div>
+
           <!-- Single Document Form -->
           <div id="upload-type-single">
           <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -566,6 +618,14 @@
               <select id="newAuthor" required
                       class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                 <option value="">Select sponsor…</option>
+              </select>
+            </div>
+            <!-- Barangay (optional source) -->
+            <div>
+              <label for="newBarangayId" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map-marker-alt mr-1"></i>Barangay <span class="text-slate-300 font-normal">(optional)</span></label>
+              <select id="newBarangayId"
+                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
+                <option value="">Municipal-wide document</option>
               </select>
             </div>
             <!-- PDF URL -->
@@ -659,7 +719,7 @@
               </button>
             </div>
             <p class="text-[11px] text-slate-500 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <strong>CSV Format:</strong> Columns should be: Title, Document ID, Type, Sponsor ID, PDF URL, Tags (semicolon-separated), Co-Sponsors (semicolon-separated), More Information (optional, max 400 chars)
+              <strong>CSV Format:</strong> Columns should be: Title, Document ID, Type, Sponsor ID, PDF URL, Tags (semicolon-separated), Co-Sponsors (semicolon-separated), More Information (optional, max 400 chars), Barangay ID (optional), Barangay Name (optional)
             </p>
           </div>
         </div>
@@ -1042,7 +1102,7 @@
             <h4 class="text-3xl font-black text-slate-900 mb-1">Free</h4>
             <p class="text-slate-500 text-sm mb-6">Forever — no credit card needed</p>
             <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
-              <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 100 legislative documents</li>
+              <li class="plan-doc-limit flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 200 legislative documents</li>
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> 1 Admin account</li>
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Public document portal</li>
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Members directory</li>
@@ -1063,7 +1123,7 @@
             <p class="text-slate-500 text-sm mb-6">For active municipal LGUs</p>
             <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited documents</li>
-              <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 5 Admin accounts</li>
+              <li class="plan-user-limit flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> 1 Admin + up to 3 additional user accounts</li>
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 10 Barangay sub-portals</li>
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Excel bulk export</li>
               <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Full branding customization</li>
@@ -1520,16 +1580,23 @@
   <!-- ═══ FIRST-TIME PROFILE COMPLETION MODAL ═══ -->
   <!-- Shown to all newly registered users (admin/editor/viewer/pending) until isComplete=true -->
   <div id="adminProfileModal"
-       class="fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-4 hidden">
+       class="fixed inset-0 z-[200] modal-overlay flex items-center justify-center p-4 hidden"
+       onclick="if(event.target===this) window.dismissAdminProfileModal()">
     <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[92vh]">
       <!-- Header -->
       <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6 flex-shrink-0">
+        <button type="button" onclick="window.dismissAdminProfileModal()"
+                class="absolute top-5 right-5 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors"
+                aria-label="Close profile completion">
+          <i class="fas fa-times text-sm"></i>
+        </button>
         <p class="text-xs font-black uppercase tracking-widest text-blue-200 mb-1">Welcome</p>
         <h2 class="text-xl font-black text-white">Complete Your Profile</h2>
-        <p class="text-sm text-blue-100 mt-1">This helps verify your identity and set up your account.</p>
+        <p class="text-sm text-blue-100 mt-1">Use the same account details from your Profile tab.</p>
       </div>
       <!-- Form (scrollable) -->
       <div class="p-8 space-y-5 overflow-y-auto">
+        <p class="text-xs text-slate-500">You can skip this for now and complete it later in <strong>My Profile</strong>.</p>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <!-- Full Name -->
           <div class="sm:col-span-2">
@@ -1547,12 +1614,6 @@
           <div>
             <label for="adminProfileEmail" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-envelope mr-1"></i>Contact Email <span class="text-red-400">*</span></label>
             <input type="email" id="adminProfileEmail"
-                   class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
-          </div>
-          <!-- Phone -->
-          <div>
-            <label for="adminProfilePhone" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-phone mr-1"></i>Contact Phone</label>
-            <input type="tel" id="adminProfilePhone" placeholder="09XX-XXX-XXXX"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <!-- Profile Image URL -->
@@ -1589,10 +1650,16 @@
         <input type="hidden" id="adminProfileDocument" value="">
         <input type="hidden" id="adminProfileAdditional" value="">
 
-        <button type="button" id="completeProfileBtn" onclick="window.completeAdminProfile()"
-                class="w-full py-4 rounded-2xl font-black text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
-          <i class="fas fa-check mr-2"></i>Save & Continue
-        </button>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button type="button" onclick="window.dismissAdminProfileModal()"
+                  class="w-full py-4 rounded-2xl font-bold text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all">
+            Skip for now
+          </button>
+          <button type="button" id="completeProfileBtn" onclick="window.completeAdminProfile()"
+                  class="w-full py-4 rounded-2xl font-black text-sm bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
+            <i class="fas fa-check mr-2"></i>Save & Continue
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -1608,7 +1675,7 @@
     import { getFirestore, collection, onSnapshot,
              addDoc, updateDoc, setDoc, doc, increment, deleteDoc, getDoc, getDocs,
              serverTimestamp, query, where,
-             orderBy, limit }                         from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+             orderBy, limit, collectionGroup }        from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
     const firebaseConfig = {
       apiKey:            "%VITE_FIREBASE_API_KEY%",
@@ -1648,11 +1715,50 @@
 
     let user = null, userRole = null, userLguId = null;
     let localDocs = [], localMembers = [], localBarangays = [];
+    let globalPublicDocs = [];
+    let globalPublicBarangays = [];
+    let globalSettingsByLgu = {};
+    let _globalPublicLoaded = false;
+    let _globalPublicLoading = false;
+    let _platformPricing = null;
+    let _lguRegistryCache = {};
+    let _docUsageState = { tier: 'starter', used: 0, limit: 200, remaining: 200, unlimited: false };
+    let _activePublicDoc = null;
     let _platformChartRole = null;   // Chart.js bar chart instance for overview
     let _platformUsersUnsub = null;  // onSnapshot listener for platform overview
     let memberSearchTerm = '';
+    let platformTabFilters = {
+      lgus: { search: '', sort: 'name-asc' },
+      users: { search: '', sort: 'pending-first' },
+      barangays: { search: '', sort: 'name-asc' },
+    };
     let unsubDocs, unsubMembers, unsubSettings;
-    let pendingDocUrl = '', pendingDocId = '';
+    let pendingDocUrl = '', pendingDocId = '', pendingDocLguId = '';
+
+    const TIER_ORDER = { premium: 3, standard: 2, starter: 1 };
+    const DEFAULT_PLAN_PRICING = {
+      starter: {
+        label: 'Starter',
+        monthlyPrice: 0,
+        currency: 'PHP',
+        docLimit: 200,
+        additionalUsers: 0
+      },
+      standard: {
+        label: 'Standard',
+        monthlyPrice: 1500,
+        currency: 'PHP',
+        docLimit: 0,
+        additionalUsers: 3
+      },
+      premium: {
+        label: 'Premium',
+        monthlyPrice: 3500,
+        currency: 'PHP',
+        docLimit: 0,
+        additionalUsers: -1
+      }
+    };
 
     const DEFAULT_DOWNLOAD_NOTICE = "Downloaded documents are for reference only. Under RA 7160, they are not official or binding unless authenticated by the Office of the Secretary to the Sangguniang Bayan with official seal and signature. Certified True Copies must be requested from the SB Secretary's Office.";
     let settingsState = {
@@ -1701,6 +1807,131 @@
       } catch {
         return '';
       }
+    };
+
+    const cloneJson = (v) => JSON.parse(JSON.stringify(v));
+    const fmtPeso = (n=0) => `₱${Number(n||0).toLocaleString('en-PH')}`;
+    const escapeAttr = (str='') => escapeHtml(String(str)).replaceAll('\n', ' ');
+    const safeLguId = (v='') => String(v || '').trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    const tierCapLabel = (tier='starter') => ({starter:'Starter',standard:'Standard',premium:'Premium'}[tier] || tier);
+
+    const mergePlanPricing = (raw) => {
+      const base = cloneJson(DEFAULT_PLAN_PRICING);
+      if (!raw || typeof raw !== 'object') return base;
+      ['starter','standard','premium'].forEach(t => {
+        const src = raw[t] || {};
+        if (typeof src.label === 'string' && src.label.trim()) base[t].label = src.label.trim();
+        if (Number.isFinite(Number(src.monthlyPrice))) base[t].monthlyPrice = Math.max(0, Number(src.monthlyPrice));
+        if (Number.isFinite(Number(src.docLimit))) base[t].docLimit = Math.max(0, Math.floor(Number(src.docLimit)));
+        if (Number.isFinite(Number(src.additionalUsers))) base[t].additionalUsers = Math.floor(Number(src.additionalUsers));
+      });
+      return base;
+    };
+
+    const pricingForTier = (tier='starter') => (_platformPricing && _platformPricing[tier]) ? _platformPricing[tier] : DEFAULT_PLAN_PRICING[tier];
+    const tierPriceLabel = (tier='starter') => {
+      const p = pricingForTier(tier);
+      const price = Number(p?.monthlyPrice || 0);
+      return price <= 0 ? 'Free' : `${fmtPeso(price)}/mo`;
+    };
+    const tierSelectLabel = (tier='starter') => {
+      const name = tierCapLabel(tier);
+      const price = Number(pricingForTier(tier)?.monthlyPrice || 0);
+      return price <= 0 ? `${name} (Free)` : `${name} — ${fmtPeso(price)}/mo`;
+    };
+    const tierDocLimit = (tier='starter') => {
+      const lim = Number(pricingForTier(tier)?.docLimit || 0);
+      return lim > 0 ? lim : Infinity;
+    };
+    const tierUserLimit = (tier='starter') => {
+      const addUsers = Number(pricingForTier(tier)?.additionalUsers || 0);
+      if (tier === 'premium' || addUsers < 0) return Infinity;
+      return Math.max(1, 1 + addUsers);
+    };
+    const extraUsersLabel = (tier='starter') => {
+      const addUsers = Number(pricingForTier(tier)?.additionalUsers || 0);
+      if (addUsers < 0 || tier === 'premium') return 'Unlimited additional user accounts';
+      if (addUsers === 0) return 'No additional user accounts';
+      if (addUsers >= 3) return '2-3 additional user accounts';
+      return `Up to ${addUsers} additional user account${addUsers===1?'':'s'}`;
+    };
+
+    const buildScopedDocId = (rawDoc={}) => {
+      const lid = safeLguId(rawDoc._lguId || rawDoc.lguId || lguId || '');
+      const did = String(rawDoc.id || '').trim();
+      if (!lid || !did) return did;
+      return `${lid}::${did}`;
+    };
+    const parseScopedDocId = (scoped='') => {
+      const raw = String(scoped || '');
+      if (!raw.includes('::')) return { lguId: '', docId: raw };
+      const [lid, did] = raw.split('::');
+      return { lguId: safeLguId(lid), docId: did || '' };
+    };
+    const docTimestampMs = (entry={}) => entry.timestamp?.seconds
+      ? entry.timestamp.seconds * 1000
+      : (entry.timestamp?.toDate ? entry.timestamp.toDate().getTime() : 0);
+    const docLocationLabel = (entry={}) => {
+      const mun = String(entry._municipality || '').trim();
+      const prov = String(entry._province || '').trim();
+      if (mun && prov) return `${mun}, ${prov}`;
+      if (mun) return mun;
+      if (prov) return prov;
+      return entry._lguId || entry.lguId || 'Unknown location';
+    };
+    const getPublicDocsSource = () => {
+      if (globalPublicDocs.length > 0) return globalPublicDocs;
+      return localDocs.map(d => ({
+        ...d,
+        _lguId: lguId,
+        _orgName: settingsState.orgName || '',
+        _municipality: settingsState.municipality || '',
+        _province: settingsState.province || '',
+        _contactEmail: settingsState.contactEmail || '',
+        _scopeId: buildScopedDocId({ ...d, _lguId: lguId })
+      }));
+    };
+    const findDocByScopedId = (docScopedId='') => {
+      if (!docScopedId) return null;
+      const docs = getPublicDocsSource();
+      const direct = docs.find(d => (d._scopeId || buildScopedDocId(d)) === docScopedId);
+      if (direct) return direct;
+      const parsed = parseScopedDocId(docScopedId);
+      if (parsed.docId && parsed.lguId) {
+        return docs.find(d => String(d.id || '') === parsed.docId && safeLguId(d._lguId || d.lguId) === parsed.lguId) || null;
+      }
+      return docs.find(d => String(d.id || '') === docScopedId) || null;
+    };
+
+    const PROFILE_PROMPT_SNOOZE_MS = 24 * 60 * 60 * 1000; // 24h
+    const profilePromptDismissKey = (uid='') => `profilePromptDismissed:${uid}`;
+    const isProfilePromptDismissed = (uid='') => {
+      if (!uid) return false;
+      try {
+        const raw = localStorage.getItem(profilePromptDismissKey(uid));
+        if (!raw) return false;
+        const ts = Number(raw);
+        return Number.isFinite(ts) && (Date.now() - ts) < PROFILE_PROMPT_SNOOZE_MS;
+      } catch {
+        return false;
+      }
+    };
+    const setProfilePromptDismissed = (uid='') => {
+      if (!uid) return;
+      try {
+        localStorage.setItem(profilePromptDismissKey(uid), String(Date.now()));
+      } catch {}
+    };
+    const clearProfilePromptDismissed = (uid='') => {
+      if (!uid) return;
+      try {
+        localStorage.removeItem(profilePromptDismissKey(uid));
+      } catch {}
+    };
+
+    window.dismissAdminProfileModal = () => {
+      document.getElementById('adminProfileModal')?.classList.add('hidden');
+      if (user?.uid) setProfilePromptDismissed(user.uid);
     };
 
     window.togglePassVis = (inputId, iconId) => {
@@ -1819,12 +2050,158 @@
       if (slug && slug !== lguId) switchLgu(slug);
     });
 
+    const getMergedFilterValue = (primaryId, secondaryId, defaultValue='') => {
+      const p = document.getElementById(primaryId)?.value;
+      const s = document.getElementById(secondaryId)?.value;
+      if (p != null && p !== '' && p !== defaultValue) return p;
+      if (s != null && s !== '' && s !== defaultValue) return s;
+      return p != null ? p : (s != null ? s : defaultValue);
+    };
+
+    const syncFilterPairValue = (aId, bId, value='') => {
+      const a = document.getElementById(aId);
+      const b = document.getElementById(bId);
+      if (a) a.value = value;
+      if (b) b.value = value;
+    };
+
+    window.refreshPublicFilterOptions = () => {
+      const docs = getPublicDocsSource();
+      const locationSel = document.getElementById('locationFilter');
+      const locationMob = document.getElementById('locationFilterMobile');
+      const barangaySel = document.getElementById('barangayFilter');
+      const barangayMob = document.getElementById('barangayFilterMobile');
+      if (!locationSel || !locationMob || !barangaySel || !barangayMob) return;
+
+      const currentLoc = getMergedFilterValue('locationFilter', 'locationFilterMobile', '');
+      const currentBrgy = getMergedFilterValue('barangayFilter', 'barangayFilterMobile', '');
+
+      const locationMap = {};
+      docs.forEach(d => {
+        const lid = safeLguId(d._lguId || d.lguId || '');
+        if (!lid) return;
+        if (!locationMap[lid]) {
+          locationMap[lid] = { lguId: lid, label: docLocationLabel(d), count: 0 };
+        }
+        locationMap[lid].count += 1;
+      });
+      const locationRows = Object.values(locationMap).sort((a,b) => a.label.localeCompare(b.label));
+      const locOptions = [
+        `<option value="">🏛 All Municipalities</option>`,
+        ...locationRows.map(r => `<option value="${escapeAttr(r.lguId)}">${escapeHtml(r.label)} (${r.count})</option>`)
+      ].join('');
+      locationSel.innerHTML = locOptions;
+      locationMob.innerHTML = locOptions;
+      syncFilterPairValue('locationFilter', 'locationFilterMobile', locationMap[currentLoc] ? currentLoc : '');
+
+      const activeLoc = getMergedFilterValue('locationFilter', 'locationFilterMobile', '');
+      const barangayMap = {};
+      docs.forEach(d => {
+        const lid = safeLguId(d._lguId || d.lguId || '');
+        if (activeLoc && lid !== activeLoc) return;
+        const bKey = String(d._barangayKey || '').trim();
+        const bName = String(d._barangayName || '').trim();
+        if (!bKey || !bName) return;
+        const scopedKey = `${lid}::${bKey}`;
+        if (!barangayMap[scopedKey]) {
+          const locLabel = docLocationLabel(d);
+          barangayMap[scopedKey] = {
+            key: scopedKey,
+            label: activeLoc ? bName : `${bName} (${locLabel})`,
+            count: 0
+          };
+        }
+        barangayMap[scopedKey].count += 1;
+      });
+      const barangayRows = Object.values(barangayMap).sort((a,b) => a.label.localeCompare(b.label));
+      const brgyOptions = [
+        `<option value="">📍 All Barangays</option>`,
+        ...barangayRows.map(r => `<option value="${escapeAttr(r.key)}">${escapeHtml(r.label)} (${r.count})</option>`)
+      ].join('');
+      barangaySel.innerHTML = brgyOptions;
+      barangayMob.innerHTML = brgyOptions;
+      syncFilterPairValue('barangayFilter', 'barangayFilterMobile', barangayMap[currentBrgy] ? currentBrgy : '');
+    };
+
+    window.loadGlobalPublicIndex = async (force=false) => {
+      if (_globalPublicLoading) return;
+      if (_globalPublicLoaded && !force) return;
+      _globalPublicLoading = true;
+      try {
+        const [docSnap, settingsSnap, barangaySnap] = await Promise.all([
+          getDocs(collectionGroup(db, 'legislations')),
+          getDocs(collectionGroup(db, 'settings')),
+          getDocs(collectionGroup(db, 'barangays'))
+        ]);
+
+        const settingsMap = {};
+        settingsSnap.docs.forEach(sd => {
+          if (sd.id !== 'general') return;
+          const lid = safeLguId(sd.ref.parent?.parent?.id || '');
+          if (!lid) return;
+          const d = sd.data() || {};
+          settingsMap[lid] = {
+            orgName: d.orgName || '',
+            municipality: d.municipality || '',
+            province: d.province || '',
+            contactEmail: d.contactEmail || ''
+          };
+        });
+
+        const brgyList = barangaySnap.docs.map(bd => {
+          const lid = safeLguId(bd.ref.parent?.parent?.id || '');
+          const b = bd.data() || {};
+          return {
+            id: bd.id,
+            lguId: lid,
+            name: b.name || '',
+            code: b.code || '',
+            captain: b.captain || ''
+          };
+        }).filter(b => b.lguId);
+
+        const docs = docSnap.docs.map(ds => {
+          const d = ds.data() || {};
+          const docLgu = safeLguId(ds.ref.parent?.parent?.id || d.lguId || '');
+          const lguSettings = settingsMap[docLgu] || {};
+          const rawBrgyId = String(d.barangayId || '').trim();
+          const rawBrgyName = String(d.barangayName || '').trim();
+          const barangayKey = safeLguId(rawBrgyId || rawBrgyName.replace(/\s+/g, '-'));
+          return {
+            id: ds.id,
+            ...d,
+            _lguId: docLgu,
+            _orgName: d.orgName || lguSettings.orgName || '',
+            _municipality: d.municipality || lguSettings.municipality || '',
+            _province: d.province || lguSettings.province || '',
+            _contactEmail: lguSettings.contactEmail || '',
+            _barangayKey: barangayKey || '',
+            _barangayName: rawBrgyName || '',
+            _scopeId: `${docLgu}::${ds.id}`
+          };
+        }).filter(d => d._lguId);
+        docs.sort((a,b) => docTimestampMs(b) - docTimestampMs(a));
+
+        globalSettingsByLgu = settingsMap;
+        globalPublicBarangays = brgyList;
+        globalPublicDocs = docs;
+        _globalPublicLoaded = true;
+
+        window.refreshPublicFilterOptions();
+        renderDocs();
+      } catch (e) {
+        console.error(e);
+      } finally {
+        _globalPublicLoading = false;
+      }
+    };
+
     window.clearFilters = () => {
       document.getElementById('searchInput').value = '';
-      ['typeFilter','typeFilterMobile'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.value = 'All';
-      });
+      syncFilterPairValue('typeFilter', 'typeFilterMobile', 'All');
+      syncFilterPairValue('locationFilter', 'locationFilterMobile', '');
+      syncFilterPairValue('barangayFilter', 'barangayFilterMobile', '');
+      window.refreshPublicFilterOptions();
       renderDocs();
     };
 
@@ -1839,22 +2216,39 @@
     };
 
     /* ── Admin Profile Completion ── */
-    window.checkAdminProfileComplete = async () => {
+    window.checkAdminProfileComplete = async (roleHint = userRole) => {
       if (!user) return;
+      if (roleHint === 'superadmin') return;
+      if (isProfilePromptDismissed(user.uid)) return;
       try {
         const snap = await getDoc(doc(db,'users',user.uid));
-        if (!snap.exists() || !snap.data().isComplete) {
-          const role = snap.data()?.role || 'pending';
-          // Show org/reason fields for pending applicants only
-          document.getElementById('pendingProfileFields')?.classList.toggle('hidden', role !== 'pending');
-          // Pre-fill email
-          const emailEl = document.getElementById('adminProfileEmail');
-          if (emailEl && user.email) emailEl.value = user.email;
-          // Pre-fill name if set during invite
-          const nameEl = document.getElementById('adminProfileName');
-          if (nameEl && snap.data()?.name) nameEl.value = snap.data().name;
-          document.getElementById('adminProfileModal')?.classList.remove('hidden');
+        const data = snap.exists() ? snap.data() : {};
+        const role = data.role || roleHint || 'pending';
+        if (role === 'superadmin') return;
+        if (data.isComplete === true) {
+          clearProfilePromptDismissed(user.uid);
+          return;
         }
+
+        // Show org/reason fields for pending applicants only
+        document.getElementById('pendingProfileFields')?.classList.toggle('hidden', role !== 'pending');
+        // Pre-fill fields from existing account doc where possible
+        const emailEl = document.getElementById('adminProfileEmail');
+        if (emailEl) emailEl.value = data.contactEmail || data.email || user.email || '';
+        const nameEl = document.getElementById('adminProfileName');
+        if (nameEl) nameEl.value = data.name || '';
+        const roleEl = document.getElementById('adminProfileRole');
+        if (roleEl) roleEl.value = data.position || '';
+        const imageEl = document.getElementById('adminProfileImage');
+        if (imageEl) imageEl.value = data.image || '';
+        const bioEl = document.getElementById('adminProfileBio');
+        if (bioEl) bioEl.value = data.bio || '';
+        const orgEl = document.getElementById('adminProfileOrgLgu');
+        if (orgEl) orgEl.value = data.orgLgu || '';
+        const reasonEl = document.getElementById('adminProfileReason');
+        if (reasonEl) reasonEl.value = data.reasonForAccess || '';
+
+        document.getElementById('adminProfileModal')?.classList.remove('hidden');
       } catch(e) {
         console.error(e);
       }
@@ -1865,15 +2259,10 @@
       const name     = document.getElementById('adminProfileName')?.value.trim() || '';
       const position = document.getElementById('adminProfileRole')?.value.trim() || '';
       const email    = document.getElementById('adminProfileEmail')?.value.trim() || '';
-      const phone    = document.getElementById('adminProfilePhone')?.value.trim() || '';
       const image    = document.getElementById('adminProfileImage')?.value.trim() || '';
       const bio      = document.getElementById('adminProfileBio')?.value.trim() || '';
       const orgLgu   = document.getElementById('adminProfileOrgLgu')?.value.trim() || '';
       const reason   = document.getElementById('adminProfileReason')?.value.trim() || '';
-      // legacy hidden fields kept for backward compat
-      const committees = (document.getElementById('adminProfileCommittees')?.value || '').split(',').map(c=>c.trim()).filter(Boolean);
-      const additional = document.getElementById('adminProfileAdditional')?.value.trim() || '';
-      const document_  = document.getElementById('adminProfileDocument')?.value.trim() || '';
 
       if (!name)  { showToast('Full name is required', 'error'); return; }
       if (!position) { showToast('Position / Designation is required', 'error'); return; }
@@ -1894,7 +2283,6 @@
         await setDoc(doc(db,'users',user.uid), {
           name,
           position,
-          phone,
           image,
           bio,
           contactEmail: email,
@@ -1907,8 +2295,8 @@
         if (!isPending && lguId && name) {
           const memberPayload = {
             name, role: position, image: image || '',
-            committees, bio, additionalInfo: additional,
-            document: document_, isAdmin: true, isArchived: false,
+            committees: [], bio, additionalInfo: '',
+            document: '', isAdmin: true, isArchived: false,
             timestamp: serverTimestamp()
           };
           const col = collection(db,'lgus',lguId,'members');
@@ -1926,6 +2314,7 @@
         }
 
         showToast('Profile saved successfully!', 'success');
+        clearProfilePromptDismissed(user.uid);
         document.getElementById('adminProfileModal').classList.add('hidden');
 
         // Pending users → go to waiting screen; others stay on admin panel
@@ -1942,11 +2331,14 @@
     };
 
     /* ── Document Details Modal ── */
-    window.openDocumentDetails = (docId) => {
-      const doc = localDocs.find(d => d.id === docId);
+    window.openDocumentDetails = (docScopedId) => {
+      const doc = findDocByScopedId(docScopedId);
       if (!doc) return;
+      _activePublicDoc = doc;
 
-      const linkedAuthor = localMembers.find(m => m.id === doc.authorId);
+      const linkedAuthor = safeLguId(doc._lguId || doc.lguId || '') === safeLguId(lguId)
+        ? localMembers.find(m => m.id === doc.authorId)
+        : null;
       const author = linkedAuthor || {
         name: doc.authorName || settingsState.orgName || 'Your LGU',
         image: doc.authorImage || (settingsState.sealUrl || '')
@@ -1960,7 +2352,8 @@
       const coSponsors = (doc.coSponsors||[]).filter(Boolean).map(s => escapeHtml(s)).join(', ');
       const views = Number.isFinite(Number(doc.views)) ? Number(doc.views) : 0;
       const moreInfo = (doc.moreInfo || '').trim();
-      const safeDocId = String(doc.id || '');
+      const scopedId = doc._scopeId || buildScopedDocId(doc);
+      const safeDocId = escapeAttr(scopedId);
       const safeDocLink = sanitizeUrl(doc.link || '');
       const safeDocType = escapeHtml(doc.type || 'Document');
       const safeDocTitle = escapeHtml(doc.title || 'Untitled');
@@ -1980,6 +2373,8 @@
       const typeBg = typeColors[doc.type] || 'from-slate-700 to-slate-800';
       const imgFb = `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=2563eb&color=fff&bold=true`;
       const safeAuthorImage = sanitizeUrl(author.image) || imgFb;
+      const safeDocLocation = escapeHtml(docLocationLabel(doc));
+      const safeDocBarangay = escapeHtml(doc._barangayName || '');
 
       const content = `
         <div class="space-y-6">
@@ -1993,6 +2388,7 @@
             <h2 class="text-2xl font-black text-slate-900 leading-snug mb-3">${safeDocTitle}</h2>
             <p class="text-sm text-slate-600 mb-3"><strong>Document ID:</strong> ${safeDocCode}</p>
             <p class="text-sm text-slate-600"><strong>Date:</strong> ${safeDate}</p>
+            <p class="text-sm text-slate-600"><strong>Location:</strong> ${safeDocLocation}${safeDocBarangay ? ` · ${safeDocBarangay}` : ''}</p>
           </div>
 
           <div class="border-t border-slate-200 pt-6">
@@ -2024,6 +2420,7 @@
                    data-action="open-doc"
                    data-doc-link="${escapeHtml(safeDocLink)}"
                    data-doc-id="${escapeHtml(safeDocId)}"
+                   data-doc-lgu="${escapeAttr(doc._lguId || doc.lguId || '')}"
                    ${safeDocLink ? '' : 'disabled'}
                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase text-sm hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
               <i class="far fa-file-pdf"></i> View Full Document
@@ -2047,11 +2444,12 @@
         openBtn.addEventListener('click', () => {
           const link = openBtn.getAttribute('data-doc-link') || '';
           const id = openBtn.getAttribute('data-doc-id') || '';
+          const lid = openBtn.getAttribute('data-doc-lgu') || '';
           if (!link) {
             showToast('Document URL is unavailable.', 'error');
             return;
           }
-          window.openDocumentNotice(encodeURIComponent(link), id);
+          window.openDocumentNotice(encodeURIComponent(link), id, lid);
         });
       }
 
@@ -2068,15 +2466,15 @@
 
     /* ── Document Request Modal ── */
     let requestingDocId = '';
-    window.openDocumentRequest = (docId) => {
-      const doc = localDocs.find(d => d.id === docId);
+    window.openDocumentRequest = (docScopedId) => {
+      const doc = findDocByScopedId(docScopedId);
       if (!doc) return;
-      const officeEmail = (settingsState.contactEmail || '').trim();
+      const officeEmail = String(doc._contactEmail || settingsState.contactEmail || '').trim();
       if (!officeEmail) {
         showToast('Contact information is not configured yet.', 'error');
         return;
       }
-      requestingDocId = docId;
+      requestingDocId = docScopedId;
       document.getElementById('requestDocumentTitle').textContent = `📄 ${doc.title || 'Document'}`;
       document.getElementById('requestEmail').value = '';
       document.getElementById('requestPhone').value = '';
@@ -2088,11 +2486,11 @@
       const email = document.getElementById('requestEmail').value.trim();
       const phone = document.getElementById('requestPhone').value.trim();
       const notes = document.getElementById('requestNotes').value.trim();
-      const docData = localDocs.find(d => d.id === requestingDocId);
+      const docData = findDocByScopedId(requestingDocId);
 
       if (!email || !phone) { showToast('Please fill in all required fields','error'); return; }
       if (!docData) { showToast('Document not found','error'); return; }
-      const adminEmail = (settingsState.contactEmail || '').trim();
+      const adminEmail = String(docData._contactEmail || settingsState.contactEmail || '').trim();
       if (!adminEmail) {
         showToast('Contact information is not configured yet.', 'error');
         return;
@@ -2105,13 +2503,15 @@
 
       try {
         const subject = `Document Copy Request: ${docData.title} (${docData.docId || ''})`;
+        const requestedLocation = docLocationLabel(docData);
         const body =
-`Dear Sangguniang Bayan of Argao,
+`Dear ${docData._orgName || 'LGU Legislative Office'},
 
 I would like to request a certified copy of the following document:
 
 Document Title : ${docData.title}
 Document ID    : ${docData.docId || 'N/A'}
+Location       : ${requestedLocation}${docData._barangayName ? ` · ${docData._barangayName}` : ''}
 
 Requester Information:
   Email          : ${email}
@@ -2155,6 +2555,7 @@ Thank you.`;
         document.getElementById('customTypeWrap').classList.add('hidden');
         document.getElementById('optionalFieldsPanel').classList.add('hidden');
         document.getElementById('optFieldsIcon').style.transform = '';
+        window.refreshUploadCreditNotice();
       }
     };
 
@@ -2220,12 +2621,81 @@ Thank you.`;
       } catch(_) { /* silent */ }
     }
 
+    const ADMIN_TABS = ['docs','members','barangay','settings','profile','users','analytics','pricing','activity'];
+    const ADMIN_TAB_GROUPS = {
+      records: ['docs','members','barangay'],
+      administration: ['settings','profile','users'],
+      insights: ['analytics','pricing','activity'],
+    };
+    const TAB_GROUP_MAP = Object.fromEntries(
+      Object.entries(ADMIN_TAB_GROUPS).flatMap(([group, tabs]) => tabs.map(tab => [tab, group]))
+    );
+
+    function _visibleTabsInGroup(group) {
+      return (ADMIN_TAB_GROUPS[group] || []).filter(tab => {
+        const btn = document.getElementById(`tab-${tab}`);
+        return !!btn && !btn.classList.contains('hidden');
+      });
+    }
+
+    function _activeAdminTab() {
+      return ADMIN_TABS.find(tab => !document.getElementById(`admin-tab-${tab}`)?.classList.contains('hidden')) || null;
+    }
+
+    function _setAdminGroupUi(group) {
+      ['records','administration','insights'].forEach(g => {
+        const btn = document.getElementById(`admin-group-${g}`);
+        const row = document.getElementById(`admin-group-tabs-${g}`);
+        if (!btn || !row) return;
+        const visibleTabs = _visibleTabsInGroup(g);
+        const hasTabs = visibleTabs.length > 0;
+        btn.classList.toggle('hidden', !hasTabs);
+        row.classList.toggle('hidden', g !== group || !hasTabs);
+        if (hasTabs) {
+          btn.className = `admin-group-tab px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${g===group?'border-blue-200 bg-blue-50 text-blue-700':'border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300'}`;
+        }
+      });
+    }
+
+    function _syncAdminGroupVisibility() {
+      const activeTab = _activeAdminTab();
+      let group = activeTab ? TAB_GROUP_MAP[activeTab] : null;
+      if (!group || _visibleTabsInGroup(group).length === 0) {
+        group = ['records','administration','insights'].find(g => _visibleTabsInGroup(g).length > 0) || 'records';
+      }
+      _setAdminGroupUi(group);
+    }
+
+    window.switchAdminGroup = (group) => {
+      const visibleTabs = _visibleTabsInGroup(group);
+      if (visibleTabs.length === 0) return;
+      _setAdminGroupUi(group);
+      const activeTab = _activeAdminTab();
+      if (!activeTab || TAB_GROUP_MAP[activeTab] !== group) {
+        window.switchAdminTab(visibleTabs[0]);
+      }
+    };
+
     window.switchAdminTab = (tab) => {
-      ['docs','members','barangay','settings','profile','users','analytics','pricing','activity'].forEach(t => {
+      const targetBtn = document.getElementById(`tab-${tab}`);
+      if (!targetBtn || targetBtn.classList.contains('hidden')) {
+        const fallbackTab = ADMIN_TABS.find(t => {
+          const b = document.getElementById(`tab-${t}`);
+          return b && !b.classList.contains('hidden');
+        });
+        if (!fallbackTab) return;
+        tab = fallbackTab;
+      }
+
+      const group = TAB_GROUP_MAP[tab] || 'records';
+      _setAdminGroupUi(group);
+
+      ADMIN_TABS.forEach(t => {
         document.getElementById(`admin-tab-${t}`)?.classList.toggle('hidden', tab!==t);
         const btn = document.getElementById(`tab-${t}`);
-        if (btn && !btn.classList.contains('hidden'))
-          btn.className = `admin-tab px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab===t?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+        if (btn && !btn.classList.contains('hidden')) {
+          btn.className = `admin-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab===t?'border-blue-600 text-blue-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+        }
       });
       if (tab === 'profile')   window.loadAdminProfile();
       if (tab === 'barangay')  window.loadBarangays();
@@ -2241,6 +2711,77 @@ Thank you.`;
       document.getElementById('upload-type-batch').classList.toggle('hidden', type !== 'batch');
       document.getElementById('tab-upload-single').className = `upload-tab px-4 py-2 font-bold text-sm border-b-2 transition-all ${type === 'single' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`;
       document.getElementById('tab-upload-batch').className = `upload-tab px-4 py-2 font-bold text-sm border-b-2 transition-all ${type === 'batch' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`;
+    };
+
+    window.getPlatformPricing = async (force=false) => {
+      if (_platformPricing && !force) return _platformPricing;
+      try {
+        const snap = await getDoc(doc(db, 'setup', 'bootstrapped'));
+        const raw = snap.exists() ? (snap.data().subscriptionPricing || {}) : {};
+        _platformPricing = mergePlanPricing(raw);
+      } catch (_) {
+        _platformPricing = mergePlanPricing(null);
+      }
+      return _platformPricing;
+    };
+
+    async function getLguRegistryState(targetLguId=lguId, force=false) {
+      const lid = safeLguId(targetLguId);
+      if (!lid) return {};
+      if (_lguRegistryCache[lid] && !force) return _lguRegistryCache[lid];
+      try {
+        const snap = await getDoc(doc(db, 'lguRegistry', lid));
+        _lguRegistryCache[lid] = snap.exists() ? (snap.data() || {}) : {};
+      } catch (_) {
+        _lguRegistryCache[lid] = {};
+      }
+      return _lguRegistryCache[lid];
+    }
+
+    window.getDocumentQuotaStatus = async (force=false) => {
+      if (!user) {
+        _docUsageState = { tier: 'starter', used: localDocs.length, limit: 200, remaining: Math.max(0, 200 - localDocs.length), unlimited: false };
+        return _docUsageState;
+      }
+      await window.getPlatformPricing(force);
+      const reg = await getLguRegistryState(lguId, force);
+      const tier = reg.tier || 'starter';
+      const limit = tierDocLimit(tier);
+      const used = localDocs.length;
+      const unlimited = !Number.isFinite(limit) || limit <= 0;
+      const remaining = unlimited ? Infinity : Math.max(0, limit - used);
+      _docUsageState = { tier, used, limit, remaining, unlimited };
+      return _docUsageState;
+    };
+
+    window.refreshUploadCreditNotice = async (force=false) => {
+      const box = document.getElementById('uploadCreditNotice');
+      if (!box) return;
+      if (!user || !['admin','editor','superadmin'].includes(String(userRole || ''))) {
+        box.classList.add('hidden');
+        return;
+      }
+      box.classList.remove('hidden');
+      const quota = await window.getDocumentQuotaStatus(force);
+      if (!quota) return;
+      if (quota.unlimited) {
+        box.className = 'mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-800';
+        box.innerHTML = `<div class="flex items-center gap-2"><i class="fas fa-infinity"></i><span class="font-bold">${tierCapLabel(quota.tier)} plan:</span><span>Unlimited documents (${quota.used} currently uploaded).</span></div>`;
+        return;
+      }
+      const ratio = quota.limit > 0 ? quota.used / quota.limit : 0;
+      const low = ratio >= 0.85;
+      const depleted = quota.remaining <= 0;
+      box.className = `mb-6 rounded-2xl p-4 text-sm border ${depleted ? 'bg-red-50 border-red-200 text-red-800' : low ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`;
+      box.innerHTML = `<div class="flex items-center gap-2"><i class="fas ${depleted ? 'fa-ban' : low ? 'fa-exclamation-triangle' : 'fa-gauge-high'}"></i><span class="font-bold">${tierCapLabel(quota.tier)} document credits:</span><span>${quota.remaining} remaining of ${quota.limit} (${quota.used} used)</span></div>`;
+    };
+
+    window.ensureCanUploadDocuments = async (requiredCount=1) => {
+      const quota = await window.getDocumentQuotaStatus();
+      if (!quota || quota.unlimited) return true;
+      if (quota.remaining >= requiredCount) return true;
+      showToast(`Upload blocked: only ${quota.remaining} document credit${quota.remaining===1?'':'s'} left on ${tierCapLabel(quota.tier)}.`, 'error');
+      return false;
     };
 
     let batchFileData = [];
@@ -2284,7 +2825,9 @@ Thank you.`;
           link: cells[4] || '',
           tags: cells[5] ? cells[5].split(';').map(t => t.trim()) : [],
           coSponsors: cells[6] ? cells[6].split(';').map(s => s.trim()) : [],
-          moreInfo: cells[7] ? cells[7].slice(0, 400) : ''
+          moreInfo: cells[7] ? cells[7].slice(0, 400) : '',
+          barangayId: cells[8] ? safeLguId(cells[8]) : '',
+          barangayName: cells[9] ? cells[9].trim() : ''
         });
       }
       return records;
@@ -2316,6 +2859,14 @@ Thank you.`;
       if (!user) { showToast('Admin login required', 'error'); return; }
       const btn = document.getElementById('batchSubmitBtn');
       const status = document.getElementById('batchUploadStatus');
+      const validRows = batchFileData.filter(r => r.title && r.docId && r.type && r.sponsorId && r.link);
+      if (!validRows.length) { showToast('No valid rows to import.', 'error'); return; }
+      const quota = await window.getDocumentQuotaStatus();
+      if (!quota.unlimited && validRows.length > quota.remaining) {
+        showToast(`Batch exceeds remaining credits: ${quota.remaining} available, ${validRows.length} valid rows found.`, 'error');
+        await window.refreshUploadCreditNotice();
+        return;
+      }
       const original = btn.innerHTML;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
       btn.disabled = true;
@@ -2328,6 +2879,8 @@ Thank you.`;
             continue;
           }
           const sponsor = localMembers.find(m => m.id === row.sponsorId);
+          const bId = safeLguId(row.barangayId || row.barangayName.replace(/\s+/g, '-'));
+          const bName = row.barangayName || localBarangays.find(b => safeLguId(b.code || b.id) === bId)?.name || '';
           await addDoc(DOC_REF, {
             title: row.title,
             docId: row.docId,
@@ -2340,6 +2893,12 @@ Thank you.`;
             tags: row.tags || [],
             coSponsors: row.coSponsors || [],
             moreInfo: row.moreInfo || '',
+            barangayId: bId || '',
+            barangayName: bName || '',
+            lguId,
+            orgName: settingsState.orgName || '',
+            municipality: settingsState.municipality || '',
+            province: settingsState.province || '',
             views: 0,
             timestamp: serverTimestamp()
           });
@@ -2351,8 +2910,11 @@ Thank you.`;
       }
       status.innerHTML = `<span class="text-green-700 bg-green-50 border border-green-200">✓ Imported ${imported} documents${failed > 0 ? ` (${failed} failed)` : ''}</span>`;
       status.classList.remove('hidden');
+      _lguRegistryCache[safeLguId(lguId)] = _lguRegistryCache[safeLguId(lguId)] || {};
       btn.innerHTML = original;
       btn.disabled = false;
+      await window.refreshUploadCreditNotice();
+      window.loadGlobalPublicIndex(true);
       if (imported > 0) {
         setTimeout(() => window.cancelBatchUpload(), 2000);
       }
@@ -2376,7 +2938,12 @@ Thank you.`;
       // Load barangays for public search (fire-and-forget)
       getDocs(collection(db,'lgus',lguId,'barangays')).then(snap => {
         localBarangays = snap.docs.map(d=>({id:d.id,...d.data()}));
-      }).catch(()=>{ localBarangays = []; });
+        window.refreshBarangayUploadOptions();
+        window.refreshPublicFilterOptions();
+      }).catch(()=>{
+        localBarangays = [];
+        window.refreshBarangayUploadOptions();
+      });
 
       unsubMembers = onSnapshot(
         query(MEMBER_REF, orderBy('name'), limit(50)),
@@ -2385,8 +2952,33 @@ Thank you.`;
       );
 
       unsubDocs = onSnapshot(
-        query(DOC_REF, orderBy('timestamp','desc'), limit(200)),
-        snap => { localDocs = snap.docs.map(d=>({id:d.id,...d.data()})); setLoading(false); renderUI(); updateStats(); },
+        query(DOC_REF, orderBy('timestamp','desc')),
+        snap => {
+          localDocs = snap.docs.map(d => {
+            const payload = d.data() || {};
+            const rawBrgyId = String(payload.barangayId || '').trim();
+            const rawBrgyName = String(payload.barangayName || '').trim();
+            const barangayKey = safeLguId(rawBrgyId || rawBrgyName.replace(/\s+/g, '-'));
+            const enriched = {
+              id: d.id,
+              ...payload,
+              _lguId: lguId,
+              _orgName: payload.orgName || settingsState.orgName || '',
+              _municipality: payload.municipality || settingsState.municipality || '',
+              _province: payload.province || settingsState.province || '',
+              _contactEmail: settingsState.contactEmail || '',
+              _barangayKey: barangayKey || '',
+              _barangayName: rawBrgyName || '',
+            };
+            enriched._scopeId = buildScopedDocId(enriched);
+            return enriched;
+          });
+          setLoading(false);
+          renderUI();
+          updateStats();
+          window.refreshPublicFilterOptions();
+          window.refreshUploadCreditNotice();
+        },
         err  => { console.error(err); setLoading(false); showToast("Error loading documents",'error'); }
       );
 
@@ -2411,6 +3003,14 @@ Thank you.`;
           syncNoticeUi();
           syncSocialMediaUi();
           syncBrandingUi();
+          localDocs = localDocs.map(d => ({
+            ...d,
+            _orgName: d._orgName || settingsState.orgName || '',
+            _municipality: d._municipality || settingsState.municipality || '',
+            _province: d._province || settingsState.province || '',
+            _contactEmail: settingsState.contactEmail || d._contactEmail || ''
+          }));
+          window.refreshPublicFilterOptions();
         },
         err => {
           console.error(err);
@@ -2418,6 +3018,7 @@ Thank you.`;
           syncNoticeUi();
           syncSocialMediaUi();
           syncBrandingUi();
+          window.refreshPublicFilterOptions();
         }
       );
     };
@@ -2437,9 +3038,11 @@ Thank you.`;
     function renderUI() {
       renderPublicMembers();
       renderAuthorSelect();
+      window.refreshBarangayUploadOptions();
       renderDocs();
       renderAdminMembers();
       renderDocumentManagementList();
+      window.refreshUploadCreditNotice();
     }
 
     /* ── Public Members Section ── */
@@ -2515,6 +3118,21 @@ Thank you.`;
       if (sel) sel.innerHTML = options;
       if (editSel) editSel.innerHTML = options;
     }
+
+    window.refreshBarangayUploadOptions = () => {
+      const sel = document.getElementById('newBarangayId');
+      if (!sel) return;
+      const current = sel.value || '';
+      const options = [
+        '<option value="">Municipal-wide document</option>',
+        ...localBarangays
+          .slice()
+          .sort((a,b) => String(a.name||'').localeCompare(String(b.name||'')))
+          .map(b => `<option value="${escapeAttr(b.code || b.id || '')}">${escapeHtml(b.name || b.code || 'Barangay')}</option>`)
+      ].join('');
+      sel.innerHTML = options;
+      if (current && Array.from(sel.options).some(o => o.value === current)) sel.value = current;
+    };
 
     /* ── Admin member list ── */
     function renderAdminMembers() {
@@ -2609,9 +3227,11 @@ Thank you.`;
     };
 
     /* ── Hit counter ── */
-    window.incrementView = async (docId) => {
+    window.incrementView = async (docId, sourceLguId = lguId) => {
+      const targetLguId = safeLguId(sourceLguId || lguId);
+      if (!docId || !targetLguId) return;
       try {
-        await updateDoc(doc(db,'lgus',lguId,'legislations',docId), {
+        await updateDoc(doc(db,'lgus',targetLguId,'legislations',docId), {
           views: increment(1)
         });
       } catch(e) { /* silent */ }
@@ -2623,20 +3243,28 @@ Thank you.`;
       const empty = document.getElementById('emptyState');
       if (!grid) return;
 
-      const term    = (document.getElementById('searchInput')?.value||'').toLowerCase().trim();
-      const tfMain  = document.getElementById('typeFilter');
-      const tfMob   = document.getElementById('typeFilterMobile');
-      const typeVal = tfMain?.value !== 'All' ? tfMain?.value : tfMob?.value ?? 'All';
+      const docsSource = getPublicDocsSource();
+      const term = (document.getElementById('searchInput')?.value||'').toLowerCase().trim();
+      const typeVal = getMergedFilterValue('typeFilter', 'typeFilterMobile', 'All') || 'All';
+      const locationVal = getMergedFilterValue('locationFilter', 'locationFilterMobile', '') || '';
+      const barangayVal = getMergedFilterValue('barangayFilter', 'barangayFilterMobile', '') || '';
+      const { lguId: barangayLguVal, docId: barangayKeyVal } = parseScopedDocId(barangayVal);
 
       // Search barangay records by name / code
       const brgyContainer = document.getElementById('barangayResults');
       const brgyList      = document.getElementById('barangayResultsList');
-      if (term && localBarangays.length > 0) {
-        const matchedBrgy = localBarangays.filter(b =>
-          b.name?.toLowerCase().includes(term) ||
-          b.code?.toLowerCase().includes(term) ||
-          b.captain?.toLowerCase().includes(term)
-        );
+      const searchBarangays = globalPublicBarangays.length > 0
+        ? globalPublicBarangays
+        : localBarangays.map(b => ({ ...b, lguId }));
+      if (term && searchBarangays.length > 0) {
+        const matchedBrgy = searchBarangays.filter(b => {
+          const thisLguId = safeLguId(b.lguId || lguId);
+          const locMatch = !locationVal || thisLguId === locationVal;
+          if (!locMatch) return false;
+          return (b.name||'').toLowerCase().includes(term)
+            || (b.code||'').toLowerCase().includes(term)
+            || (b.captain||'').toLowerCase().includes(term);
+        }).slice(0, 12);
         if (matchedBrgy.length > 0 && brgyList) {
           brgyList.innerHTML = matchedBrgy.map(b=>`
             <div class="inline-flex items-center gap-3 bg-teal-50 border border-teal-200 rounded-2xl px-4 py-3">
@@ -2645,21 +3273,28 @@ Thank you.`;
               </div>
               <div>
                 <p class="text-sm font-black text-slate-900">${escapeHtml(b.name||'—')}</p>
-                <p class="text-[10px] text-slate-500">Code: ${escapeHtml(b.code||'—')}${b.captain?' · Capt. '+escapeHtml(b.captain):''}</p>
+                <p class="text-[10px] text-slate-500">Code: ${escapeHtml(b.code||'—')}${b.captain?' · Capt. '+escapeHtml(b.captain):''}${b.lguId ? ` · ${escapeHtml(String(b.lguId))}` : ''}</p>
               </div>
             </div>`).join('');
           brgyContainer?.classList.remove('hidden');
         } else { brgyContainer?.classList.add('hidden'); }
       } else { brgyContainer?.classList.add('hidden'); }
 
-      const filtered = localDocs.filter(d => {
+      const filtered = docsSource.filter(d => {
         const inTitle  = d.title?.toLowerCase().includes(term);
         const inId     = d.docId?.toLowerCase().includes(term);
         const inTags   = d.tags?.some(t=>t.toLowerCase().includes(term));
         const inType   = d.type?.toLowerCase().includes(term);
-        const matchSearch = !term || inTitle || inId || inTags || inType;
+        const inOrg    = (d._orgName || '').toLowerCase().includes(term);
+        const inLoc    = docLocationLabel(d).toLowerCase().includes(term);
+        const inBrgy   = (d._barangayName || '').toLowerCase().includes(term);
+        const matchSearch = !term || inTitle || inId || inTags || inType || inOrg || inLoc || inBrgy;
         const matchType   = typeVal === 'All' || d.type === typeVal;
-        return matchSearch && matchType;
+        const thisLguId   = safeLguId(d._lguId || d.lguId || '');
+        const matchLoc    = !locationVal || thisLguId === locationVal;
+        const thisBrgyKey = String(d._barangayKey || '').trim();
+        const matchBrgy   = !barangayVal || (thisLguId === barangayLguVal && thisBrgyKey === barangayKeyVal);
+        return matchSearch && matchType && matchLoc && matchBrgy;
       });
 
       if (!filtered.length) {
@@ -2680,7 +3315,9 @@ Thank you.`;
 
       if (scrollToResults) document.getElementById('documents')?.scrollIntoView({behavior:'smooth', block:'start'});
       grid.innerHTML = filtered.map((docData, i) => {
-        const linkedAuthor = localMembers.find(m=>m.id===docData.authorId);
+        const linkedAuthor = safeLguId(docData._lguId || docData.lguId || '') === safeLguId(lguId)
+          ? localMembers.find(m=>m.id===docData.authorId)
+          : null;
         const author = linkedAuthor || {
           name: docData.authorName || settingsState.orgName || 'Your LGU',
           image: docData.authorImage || (settingsState.sealUrl || '')
@@ -2691,12 +3328,15 @@ Thank you.`;
         const tags = (docData.tags||[]).map(t=>`<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
         const coS  = (docData.coSponsors||[]).filter(Boolean).map(s => escapeHtml(s)).join(', ');
         const views= Number.isFinite(Number(docData.views)) ? Number(docData.views) : 0;
-        const safeDocId = escapeHtml(String(docData.id || ''));
+        const scopeId = docData._scopeId || buildScopedDocId(docData);
+        const safeDocId = escapeAttr(scopeId);
         const safeDocType = escapeHtml(docData.type || 'Document');
         const safeTitle = escapeHtml(docData.title || 'Untitled');
         const safeAuthorName = escapeHtml(author.name || 'Your LGU');
         const safeAuthorImage = sanitizeUrl(author.image);
         const safeDate = escapeHtml(date);
+        const safeLoc = escapeHtml(docLocationLabel(docData));
+        const safeBrgy = escapeHtml(docData._barangayName || '');
         const typeBg = typeColors[docData.type] || 'bg-gradient-to-r from-slate-700 to-slate-800';
         const imgFb  = `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name || 'LGU')}&background=2563eb&color=fff&bold=true`;
         const imageSrc = safeAuthorImage || imgFb;
@@ -2723,6 +3363,9 @@ Thank you.`;
                   ${coS ? `<p class="text-[9px] text-slate-400 mt-0.5">Co: ${coS}</p>` : ''}
                 </div>
               </div>
+              <p class="text-[10px] text-slate-500 mt-3">
+                <i class="fas fa-location-dot text-slate-400 mr-1"></i>${safeLoc}${safeBrgy ? ` · ${safeBrgy}` : ''}
+              </p>
             </div>
             <div class="p-6 bg-gradient-to-b from-white to-slate-50">
               <button type="button"
@@ -2769,12 +3412,13 @@ Thank you.`;
             const committeeMatch = (m.committees||[]).map(normalizeTag).some(c => (d.tags||[]).map(normalizeTag).includes(c));
             const safeRelatedDocId = escapeHtml(String(d.id || ''));
             const safeRelatedDocLink = escapeHtml(sanitizeUrl(d.link || ''));
+            const safeRelatedDocLgu = escapeAttr(d._lguId || lguId || '');
             const labels = [
               (d.authorId === m.id || normalizeName(d.authorName||'')===normalizeName(m.name||'')) ? 'Primary Sponsor' : '',
               coSponsored ? 'Co-Sponsor' : '',
               committeeMatch ? 'Committee' : ''
             ].filter(Boolean).map(l=>`<span class="tag-chip">${escapeHtml(l)}</span>`).join('');
-            return `<button type="button" data-action="open-doc-notice" data-doc-id="${safeRelatedDocId}" data-doc-link="${safeRelatedDocLink}" class="w-full text-left block p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"><p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">${type}</p><p class="text-sm font-bold text-slate-800 leading-snug mb-2">${title}</p>${labels?`<div class="flex flex-wrap gap-1">${labels}</div>`:''}</button>`;
+            return `<button type="button" data-action="open-doc-notice" data-doc-id="${safeRelatedDocId}" data-doc-link="${safeRelatedDocLink}" data-doc-lgu="${safeRelatedDocLgu}" class="w-full text-left block p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"><p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">${type}</p><p class="text-sm font-bold text-slate-800 leading-snug mb-2">${title}</p>${labels?`<div class="flex flex-wrap gap-1">${labels}</div>`:''}</button>`;
           }).join('')
         : '<p class="text-slate-500 text-sm">No related documents found.</p>';
 
@@ -2805,11 +3449,12 @@ Thank you.`;
         btn.addEventListener('click', () => {
           const docLink = btn.getAttribute('data-doc-link') || '';
           const docId = btn.getAttribute('data-doc-id') || '';
+          const docLgu = btn.getAttribute('data-doc-lgu') || '';
           if (!docLink) {
             showToast('Document URL is unavailable.', 'error');
             return;
           }
-          window.openDocumentNotice(encodeURIComponent(docLink), docId);
+          window.openDocumentNotice(encodeURIComponent(docLink), docId, docLgu);
         });
       });
 
@@ -2842,11 +3487,13 @@ Thank you.`;
       resetMemberForm();
     };
 
-    window.openDocumentNotice = (encodedUrl, docId='') => {
+    window.openDocumentNotice = (encodedUrl, docScopedId='', docLguId='') => {
       const url = sanitizeUrl(decodeURIComponent(encodedUrl || ''));
       if (!url) return;
+      const parsed = parseScopedDocId(docScopedId);
       pendingDocUrl = url;
-      pendingDocId = docId || '';
+      pendingDocId = parsed.docId || docScopedId || '';
+      pendingDocLguId = safeLguId(docLguId || parsed.lguId || lguId || '');
       const agree = document.getElementById('docNoticeAgree');
       const btn = document.getElementById('docNoticeContinueBtn');
       if (agree) agree.checked = false;
@@ -2857,10 +3504,11 @@ Thank you.`;
 
     window.confirmDocumentNotice = () => {
       if (!pendingDocUrl) return;
-      if (pendingDocId) window.incrementView(pendingDocId);
+      if (pendingDocId) window.incrementView(pendingDocId, pendingDocLguId || lguId);
       window.open(pendingDocUrl, '_blank', 'noopener,noreferrer');
       pendingDocUrl = '';
       pendingDocId = '';
+      pendingDocLguId = '';
       window.closeModal('docNoticeModal');
     };
 
@@ -2958,7 +3606,7 @@ Thank you.`;
       const heroCityProv = document.getElementById('heroCityProvince');
       const heroDesc     = document.getElementById('heroDescription');
       if (heroCityProv) heroCityProv.textContent = cityProv;
-      if (heroDesc)     heroDesc.textContent = `Browse all ordinances and resolutions passed by the ${orgName}, ${province}.`;
+      if (heroDesc)     heroDesc.textContent = `Search ordinances and resolutions from ${orgName} and other participating LGUs.`;
 
       // Members subtitle
       const membersSub = document.getElementById('membersSubtitle');
@@ -2966,7 +3614,7 @@ Thank you.`;
 
       // Document library subtitle
       const docLibSub = document.getElementById('docLibrarySubtitle');
-      if (docLibSub) docLibSub.textContent = `Ordinances and resolutions from ${orgName}`;
+      if (docLibSub) docLibSub.textContent = `Searchable documents across municipalities and barangays`;
 
       // Page title
       const pageTitle = document.getElementById('pageTitle');
@@ -3084,6 +3732,7 @@ Thank you.`;
         settingsState.contactEmail  = contactEmail;
         syncBrandingUi();
         showToast('Branding updated', 'success');
+        window.loadGlobalPublicIndex(true);
       } catch(e) {
         console.error(e);
         showToast('Error saving branding', 'error');
@@ -3119,14 +3768,12 @@ Thank you.`;
       if (!container) return;
       container.innerHTML = '<div class="text-center py-10 text-slate-400"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i><p class="text-sm">Loading…</p></div>';
       window.loadInvites(); // load pending invites alongside registered users
-      // Check feature flag: additional users
       try {
-        const regSnap = await getDoc(doc(db,'lguRegistry',lguId));
-        const canAdd  = userRole === 'superadmin' || (regSnap.exists() && regSnap.data().features?.additionalUsers !== false);
-        document.getElementById('inviteUserBtn')?.classList.toggle('hidden', !canAdd);
-        document.getElementById('requestUsersBtn')?.classList.toggle('hidden', canAdd);
-      } catch(_){}
-      try {
+        await window.getPlatformPricing();
+        const reg = await getLguRegistryState(lguId, true);
+        const tier = reg.tier || 'starter';
+        const featureAllows = userRole === 'superadmin' || reg.features?.additionalUsers !== false;
+
         // Admins query their own LGU only; superadmins see all users
         const q = userRole === 'superadmin'
           ? collection(db, 'users')
@@ -3143,6 +3790,23 @@ Thank you.`;
           viewer:     'bg-slate-100 text-slate-600',
           pending:    'bg-amber-100 text-amber-700'
         };
+        const users = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+        const managedUsers = userRole === 'superadmin'
+          ? users
+          : users.filter(u => safeLguId(u.lguId || '') === safeLguId(lguId));
+        const activeCount = managedUsers.filter(u => !['pending','rejected'].includes(String(u.role || ''))).length;
+        const slotLimit = tierUserLimit(tier);
+        const limitReached = Number.isFinite(slotLimit) && activeCount >= slotLimit;
+        const canInvite = featureAllows && !limitReached;
+        const inviteBtn = document.getElementById('inviteUserBtn');
+        const reqBtn = document.getElementById('requestUsersBtn');
+        if (inviteBtn) inviteBtn.classList.toggle('hidden', !canInvite);
+        if (reqBtn) reqBtn.classList.toggle('hidden', canInvite);
+
+        const usageHint = Number.isFinite(slotLimit)
+          ? `<p class="text-xs text-slate-500 mb-3">User slots used: <strong>${activeCount}</strong> / <strong>${slotLimit}</strong> (${escapeHtml(tierCapLabel(tier))} plan)</p>`
+          : `<p class="text-xs text-emerald-600 mb-3"><strong>Unlimited user slots</strong> (${escapeHtml(tierCapLabel(tier))} plan)</p>`;
+
         container.innerHTML = '<div class="space-y-3">' + snap.docs.map(d => {
           const u        = d.data();
           const isSelf   = d.id === user?.uid;
@@ -3181,9 +3845,13 @@ Thank you.`;
               </div>`}
             </div>`;
         }).join('') + '</div>';
+        container.innerHTML = usageHint + container.innerHTML;
       } catch(e) {
         console.error(e);
-        container.innerHTML = '<p class="text-center text-red-500 py-10 text-sm font-semibold">Could not load users.</p>';
+        const hint = e?.code === 'permission-denied'
+          ? 'Permission denied. Please deploy latest Firestore rules or verify your admin role/LGU assignment.'
+          : 'Could not load users.';
+        container.innerHTML = `<p class="text-center text-red-500 py-10 text-sm font-semibold">${escapeHtml(hint)}</p>`;
       }
     };
 
@@ -3203,12 +3871,39 @@ Thank you.`;
     };
 
     /* ── Admin Subscription Status ── */
+    window.syncAdminPlanCardsWithPricing = async () => {
+      await window.getPlatformPricing();
+      const planCards = document.getElementById('planCards');
+      if (!planCards) return;
+
+      const starter = planCards.querySelector('[data-tier="starter"]');
+      const standard = planCards.querySelector('[data-tier="standard"]');
+      const premium = planCards.querySelector('[data-tier="premium"]');
+      if (starter) {
+        const h = starter.querySelector('h4');
+        const docLine = starter.querySelector('.plan-doc-limit');
+        if (h) h.textContent = tierPriceLabel('starter');
+        if (docLine) docLine.innerHTML = `<i class="fas fa-check text-emerald-500 text-xs"></i> Up to ${Number(pricingForTier('starter')?.docLimit || 200)} legislative documents`;
+      }
+      if (standard) {
+        const h = standard.querySelector('h4');
+        const userLine = standard.querySelector('.plan-user-limit');
+        if (h) h.innerHTML = `${fmtPeso(pricingForTier('standard')?.monthlyPrice || 0)}<span class="text-base font-semibold text-slate-400">/mo</span>`;
+        if (userLine) userLine.innerHTML = `<i class="fas fa-check text-emerald-500 text-xs"></i> 1 Admin + ${escapeHtml(extraUsersLabel('standard'))}`;
+      }
+      if (premium) {
+        const h = premium.querySelector('h4');
+        if (h) h.innerHTML = `${fmtPeso(pricingForTier('premium')?.monthlyPrice || 0)}<span class="text-base font-semibold text-slate-400">/mo</span>`;
+      }
+    };
+
     window.loadAdminSubscription = async () => {
       const container = document.getElementById('subscriptionStatus');
       if (!container || !lguId) return;
       try {
-        const snap = await getDoc(doc(db, 'lguRegistry', lguId));
-        const reg  = snap.exists() ? snap.data() : {};
+        await window.getPlatformPricing();
+        await window.syncAdminPlanCardsWithPricing();
+        const reg = await getLguRegistryState(lguId, true);
         const tier = reg.tier || 'starter';
         const paid = reg.paid || false;
         const expiryTs = reg.subscriptionExpiry ? reg.subscriptionExpiry.seconds * 1000 : null;
@@ -3216,18 +3911,34 @@ Thank you.`;
         const expired  = expiryTs && expiryTs < Date.now();
         const daysLeft = expiryTs ? Math.ceil((expiryTs - Date.now()) / 86400000) : null;
 
-        const tierLabel = {starter:'Starter (Free)',standard:'Standard',premium:'Premium'}[tier] || tier;
+        const tierLabel = tierPriceLabel(tier) === 'Free'
+          ? `${tierCapLabel(tier)} (Free)`
+          : `${tierCapLabel(tier)} (${tierPriceLabel(tier)})`;
         const tierColor = {starter:'slate',standard:'blue',premium:'purple'}[tier] || 'slate';
 
         // Highlight the active plan card
         document.querySelectorAll('.plan-card').forEach(card => {
           const isCurrent = card.dataset.tier === tier;
+          const cardTier = card.dataset.tier || 'starter';
           card.classList.toggle('ring-4',           isCurrent);
           card.classList.toggle(`ring-${tierColor}-400`, isCurrent);
           const cta = card.querySelector('.plan-cta');
-          if (cta && isCurrent) {
+          if (!cta) return;
+          if (isCurrent) {
             cta.textContent = 'Current Plan';
-            cta.className   = 'plan-cta block text-center py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold text-sm cursor-default';
+            cta.className = 'plan-cta block text-center py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold text-sm cursor-default';
+            if (cta.tagName === 'A') cta.removeAttribute('href');
+          } else if (cardTier === 'starter') {
+            cta.textContent = 'Entry Tier';
+            cta.className = 'plan-cta block text-center py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold text-sm';
+          } else if (cardTier === 'standard') {
+            cta.textContent = 'Contact Us to Upgrade';
+            cta.className = 'plan-cta block text-center py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md';
+            if (cta.tagName === 'A') cta.href = 'mailto:rlagahit@icloud.com?subject=Standard Plan Inquiry';
+          } else {
+            cta.textContent = 'Contact Us to Upgrade';
+            cta.className = 'plan-cta block text-center py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-md';
+            if (cta.tagName === 'A') cta.href = 'mailto:rlagahit@icloud.com?subject=Premium Plan Inquiry';
           }
         });
 
@@ -3268,6 +3979,7 @@ Thank you.`;
             </div>`;
         }
         container.innerHTML = statusHtml;
+        await window.refreshUploadCreditNotice(true);
       } catch(e) {
         console.error(e);
         container.innerHTML = '<p class="text-sm text-slate-400 py-4">Subscription info not available.</p>';
@@ -3575,6 +4287,15 @@ Thank you.`;
       if (tab === 'users')      window.loadPlatformUsers();
       if (tab === 'analytics')  window.loadPlatformAnalytics();
       if (tab === 'barangays')  window.loadPlatformBarangays();
+      if (tab === 'subscriptions') window.loadPlatformSubscriptions();
+    };
+
+    window.setPlatformFilter = (tab, key, value) => {
+      if (!platformTabFilters[tab]) return;
+      platformTabFilters[tab][key] = String(value || '');
+      if (tab === 'lgus') window.loadPlatformLgus();
+      if (tab === 'users') window.loadPlatformUsers();
+      if (tab === 'barangays') window.loadPlatformBarangays();
     };
 
     /* Helper to render the overview UI from a snapshot of all users */
@@ -3683,6 +4404,7 @@ Thank you.`;
       if (!container) return;
       container.innerHTML = '<div class="text-center py-10 text-slate-400"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i></div>';
       try {
+        await window.getPlatformPricing();
         const [usersSnap, regSnap] = await Promise.all([
           getDocs(collection(db,'users')),
           getDocs(collection(db,'lguRegistry')),
@@ -3702,8 +4424,7 @@ Thank you.`;
           const tier = reg.tier || 'starter';
           tiers[tier] = (tiers[tier]||0) + 1;
           if (reg.paid) { paid++; } else { unpaid++; }
-          if (reg.paid && tier==='standard') revenue += 1500;
-          if (reg.paid && tier==='premium')  revenue += 3500;
+          if (reg.paid) revenue += Number(pricingForTier(tier)?.monthlyPrice || 0);
         });
 
         const tierColHex = { starter:'#94a3b8', standard:'#3b82f6', premium:'#8b5cf6', none:'#e2e8f0' };
@@ -3771,6 +4492,9 @@ Thank you.`;
       if (!container) return;
       container.innerHTML = '<div class="text-center py-10 text-slate-400"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i></div>';
       try {
+        const filters = platformTabFilters.barangays || { search: '', sort: 'name-asc' };
+        const search = String(filters.search || '').toLowerCase().trim();
+        const sort = filters.sort || 'name-asc';
         const usersSnap = await getDocs(collection(db,'users'));
         const lguIds = [...new Set(usersSnap.docs.map(d=>d.data().lguId).filter(Boolean))].sort();
         if (lguIds.length === 0) {
@@ -3786,10 +4510,42 @@ Thank you.`;
             } catch(e) { return { lguId: lid, barangays: [] }; }
           })
         );
-        let total = 0;
-        barangayResults.forEach(r => total += r.barangays.length);
-        let html = `<p class="text-xs font-bold text-slate-400 mb-4">${total} barangay unit${total!==1?'s':''} across ${lguIds.length} LGU${lguIds.length!==1?'s':''}</p>`;
-        barangayResults.forEach(({lguId:lid, barangays}) => {
+        let rows = [];
+        barangayResults.forEach(({ lguId: lid, barangays }) => {
+          rows = rows.concat((barangays || []).map(b => ({ lguId: lid, ...b })));
+        });
+
+        if (search) {
+          rows = rows.filter(b => {
+            const hay = `${b.lguId || ''} ${b.name || ''} ${b.code || ''} ${b.captain || ''}`.toLowerCase();
+            return hay.includes(search);
+          });
+        }
+
+        rows.sort((a,b) => {
+          if (sort === 'lgu-asc' || sort === 'lgu-desc') {
+            const cmpLgu = String(a.lguId || '').localeCompare(String(b.lguId || ''));
+            if (cmpLgu !== 0) return sort === 'lgu-asc' ? cmpLgu : -cmpLgu;
+            return String(a.name || '').localeCompare(String(b.name || ''));
+          }
+          const cmpName = String(a.name || '').localeCompare(String(b.name || ''));
+          return sort === 'name-desc' ? -cmpName : cmpName;
+        });
+
+        if (!rows.length) {
+          container.innerHTML = '<p class="text-sm text-slate-400 py-10 text-center">No barangays match the current filter.</p>';
+          return;
+        }
+
+        const grouped = {};
+        rows.forEach(r => {
+          if (!grouped[r.lguId]) grouped[r.lguId] = [];
+          grouped[r.lguId].push(r);
+        });
+        const orderedLgus = Object.keys(grouped).sort((a,b) => a.localeCompare(b));
+        let html = `<p class="text-xs font-bold text-slate-400 mb-4">${rows.length} barangay unit${rows.length!==1?'s':''} shown across ${orderedLgus.length} LGU${orderedLgus.length!==1?'s':''}</p>`;
+        orderedLgus.forEach((lid) => {
+          const barangays = grouped[lid] || [];
           html += `
             <div class="mb-6">
               <div class="flex items-center gap-2 mb-3">
@@ -3866,6 +4622,7 @@ Thank you.`;
       } catch(_){}
 
       try {
+        await window.getPlatformPricing();
         // Load users and lguRegistry in parallel
         const [usersSnap, registrySnap] = await Promise.all([
           getDocs(collection(db,'users')),
@@ -3873,7 +4630,10 @@ Thank you.`;
         ]);
         const allUsers  = usersSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         const registry  = {};
-        registrySnap.docs.forEach(d => { registry[d.id] = d.data(); });
+        registrySnap.docs.forEach(d => {
+          registry[d.id] = d.data();
+          _lguRegistryCache[safeLguId(d.id)] = d.data();
+        });
 
         // Group users by lguId
         const lguMap = {};
@@ -3882,10 +4642,36 @@ Thank you.`;
           if (!lguMap[u.lguId]) lguMap[u.lguId] = { lguId: u.lguId, users: [] };
           lguMap[u.lguId].users.push(u);
         });
-        const lgus = Object.values(lguMap).sort((a,b)=>a.lguId.localeCompare(b.lguId));
+        const filters = platformTabFilters.lgus || { search: '', sort: 'name-asc' };
+        const search = String(filters.search || '').toLowerCase().trim();
+        const sort = filters.sort || 'name-asc';
+        let lgus = Object.values(lguMap).map(l => ({ ...l, reg: registry[l.lguId] || {} }));
+        if (search) {
+          lgus = lgus.filter(l => {
+            const tier = l.reg?.tier || 'starter';
+            const adminEmail = l.users.find(u=>u.role==='admin')?.contactEmail || l.users.find(u=>u.role==='admin')?.email || '';
+            const hay = `${l.lguId} ${tier} ${adminEmail}`.toLowerCase();
+            return hay.includes(search);
+          });
+        }
+        lgus.sort((a,b) => {
+          if (sort === 'name-desc') return b.lguId.localeCompare(a.lguId);
+          if (sort === 'users-desc') return (b.users.length - a.users.length) || a.lguId.localeCompare(b.lguId);
+          if (sort === 'tier-desc') {
+            const ta = TIER_ORDER[a.reg?.tier || 'starter'] || 0;
+            const tb = TIER_ORDER[b.reg?.tier || 'starter'] || 0;
+            return (tb - ta) || a.lguId.localeCompare(b.lguId);
+          }
+          if (sort === 'expiry-asc') {
+            const ax = a.reg?.subscriptionExpiry?.seconds || Number.MAX_SAFE_INTEGER;
+            const bx = b.reg?.subscriptionExpiry?.seconds || Number.MAX_SAFE_INTEGER;
+            return ax - bx;
+          }
+          return a.lguId.localeCompare(b.lguId);
+        });
 
         if (lgus.length === 0) {
-          container.innerHTML = '<div class="text-center py-16 text-slate-400"><i class="fas fa-city text-4xl mb-3 block opacity-30"></i><p class="text-sm font-semibold">No LGUs registered yet.</p></div>';
+          container.innerHTML = '<div class="text-center py-16 text-slate-400"><i class="fas fa-city text-4xl mb-3 block opacity-30"></i><p class="text-sm font-semibold">No LGUs match your filter.</p></div>';
           return;
         }
 
@@ -3896,7 +4682,7 @@ Thank you.`;
         };
 
         container.innerHTML = lgus.map(lgu => {
-          const reg     = registry[lgu.lguId] || {};
+          const reg     = lgu.reg || {};
           const tier    = reg.tier || 'starter';
           const paid    = reg.paid || false;
           const expiry  = reg.subscriptionExpiry ? new Date(reg.subscriptionExpiry.seconds*1000).toISOString().slice(0,10) : '';
@@ -3941,9 +4727,9 @@ Thank you.`;
                   <label class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Tier</label>
                   <select id="tier-${escapedLguId}"
                           class="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition-all">
-                    <option value="starter"  ${tier==='starter' ?'selected':''}>Starter (Free)</option>
-                    <option value="standard" ${tier==='standard'?'selected':''}>Standard — ₱1,500/mo</option>
-                    <option value="premium"  ${tier==='premium' ?'selected':''}>Premium — ₱3,500/mo</option>
+                    <option value="starter"  ${tier==='starter' ?'selected':''}>${escapeHtml(tierSelectLabel('starter'))}</option>
+                    <option value="standard" ${tier==='standard'?'selected':''}>${escapeHtml(tierSelectLabel('standard'))}</option>
+                    <option value="premium"  ${tier==='premium' ?'selected':''}>${escapeHtml(tierSelectLabel('premium'))}</option>
                   </select>
                 </div>
                 <div>
@@ -4032,12 +4818,20 @@ Thank you.`;
           lguId,
           tier,
           paid,
+          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tierUserLimit(tier) > 1 },
           subscriptionExpiry: expiry ? { seconds: Math.floor(new Date(expiry).getTime()/1000), nanoseconds: 0 } : null,
           updatedBy: user?.uid || null,
           updatedAt: serverTimestamp(),
         }, { merge: true });
+        _lguRegistryCache[safeLguId(lguId)] = {
+          ...(_lguRegistryCache[safeLguId(lguId)] || {}),
+          lguId, tier, paid,
+          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tierUserLimit(tier) > 1 },
+          subscriptionExpiry: expiry ? { seconds: Math.floor(new Date(expiry).getTime()/1000), nanoseconds: 0 } : null,
+        };
         showToast(`Subscription updated for ${lguId}`, 'success');
         window.loadPlatformLgus(); // refresh to show new badges
+        window.loadPlatformSubscriptions();
       } catch(e) {
         console.error(e);
         showToast('Error saving: ' + (e.code || e.message), 'error');
@@ -4058,20 +4852,204 @@ Thank you.`;
       }
     };
 
+    window.savePlatformPricing = async () => {
+      if (!user || userRole !== 'superadmin') { showToast('Superadmin access required.', 'error'); return; }
+      const next = mergePlanPricing({
+        starter: {
+          monthlyPrice: document.getElementById('pricecfg-starter')?.value,
+          docLimit: document.getElementById('doclimitcfg-starter')?.value,
+          additionalUsers: 0
+        },
+        standard: {
+          monthlyPrice: document.getElementById('pricecfg-standard')?.value,
+          docLimit: document.getElementById('doclimitcfg-standard')?.value,
+          additionalUsers: document.getElementById('adduserscfg-standard')?.value
+        },
+        premium: {
+          monthlyPrice: document.getElementById('pricecfg-premium')?.value,
+          docLimit: document.getElementById('doclimitcfg-premium')?.value,
+          additionalUsers: document.getElementById('adduserscfg-premium')?.value
+        }
+      });
+      try {
+        await setDoc(doc(db, 'setup', 'bootstrapped'), {
+          subscriptionPricing: next,
+          pricingUpdatedAt: serverTimestamp(),
+          pricingUpdatedBy: user.uid
+        }, { merge: true });
+        _platformPricing = next;
+        showToast('Pricing saved successfully.', 'success');
+        window.loadPlatformSubscriptions();
+      } catch (e) {
+        showToast('Error saving pricing: ' + (e.code || e.message), 'error');
+      }
+    };
+
+    window.assignTierFromSubscriptions = async (tier) => {
+      const lgu = document.getElementById(`assign-lgu-${tier}`)?.value || '';
+      if (!lgu) { showToast('Select an LGU first.', 'error'); return; }
+      if (!confirm(`Assign ${tierCapLabel(tier)} to ${lgu}?`)) return;
+      try {
+        await setDoc(doc(db,'lguRegistry',lgu), {
+          lguId: lgu,
+          tier,
+          paid: tier !== 'starter',
+          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tierUserLimit(tier) > 1 },
+          updatedAt: serverTimestamp(),
+          updatedBy: user?.uid || null
+        }, { merge: true });
+        _lguRegistryCache[safeLguId(lgu)] = {
+          ...(_lguRegistryCache[safeLguId(lgu)] || {}),
+          lguId: lgu,
+          tier,
+          paid: tier !== 'starter',
+          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tierUserLimit(tier) > 1 }
+        };
+        showToast(`${tierCapLabel(tier)} assigned to ${lgu}.`, 'success');
+        window.loadPlatformSubscriptions();
+      } catch (e) {
+        showToast('Error assigning tier: ' + (e.code || e.message), 'error');
+      }
+    };
+
+    window.loadPlatformSubscriptions = async () => {
+      const cardsWrap = document.getElementById('platformSubscriptionsCards');
+      const editorWrap = document.getElementById('platformPricingEditorRows');
+      if (!cardsWrap || !editorWrap) return;
+      cardsWrap.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm md:col-span-3"><i class="fas fa-spinner fa-spin mr-2"></i>Loading subscription tiers…</div>';
+      editorWrap.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading pricing…</div>';
+      try {
+        const pricing = await window.getPlatformPricing(true);
+        const [usersSnap, registrySnap] = await Promise.all([
+          getDocs(collection(db,'users')),
+          getDocs(collection(db,'lguRegistry')),
+        ]);
+        const lguSet = new Set();
+        usersSnap.docs.forEach(d => {
+          const lid = safeLguId(d.data()?.lguId || '');
+          if (lid) lguSet.add(lid);
+        });
+        registrySnap.docs.forEach(d => {
+          const lid = safeLguId(d.id || '');
+          if (lid) lguSet.add(lid);
+          _lguRegistryCache[lid] = d.data();
+        });
+        const lgus = Array.from(lguSet).sort((a,b)=>a.localeCompare(b));
+        const lguOptions = ['<option value="">Select LGU…</option>', ...lgus.map(l => `<option value="${escapeAttr(l)}">${escapeHtml(l)}</option>`)].join('');
+
+        editorWrap.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+              <p class="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">Starter</p>
+              <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Monthly Price</label>
+              <input id="pricecfg-starter" type="number" min="0" value="${Number(pricing.starter.monthlyPrice || 0)}" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold outline-none focus:border-purple-400">
+              <label class="text-[10px] font-black uppercase text-slate-400 block mt-3 mb-1">Document Limit</label>
+              <input id="doclimitcfg-starter" type="number" min="1" value="${Number(pricing.starter.docLimit || 200)}" class="w-full p-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold outline-none focus:border-purple-400">
+            </div>
+            <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <p class="text-xs font-black uppercase tracking-wider text-blue-600 mb-3">Standard</p>
+              <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Monthly Price</label>
+              <input id="pricecfg-standard" type="number" min="0" value="${Number(pricing.standard.monthlyPrice || 0)}" class="w-full p-2.5 rounded-xl border border-blue-200 bg-white text-sm font-semibold outline-none focus:border-blue-500">
+              <label class="text-[10px] font-black uppercase text-slate-400 block mt-3 mb-1">Document Limit (0 = unlimited)</label>
+              <input id="doclimitcfg-standard" type="number" min="0" value="${Number(pricing.standard.docLimit || 0)}" class="w-full p-2.5 rounded-xl border border-blue-200 bg-white text-sm font-semibold outline-none focus:border-blue-500">
+              <label class="text-[10px] font-black uppercase text-slate-400 block mt-3 mb-1">Additional Users</label>
+              <input id="adduserscfg-standard" type="number" min="0" max="10" value="${Number(pricing.standard.additionalUsers || 3)}" class="w-full p-2.5 rounded-xl border border-blue-200 bg-white text-sm font-semibold outline-none focus:border-blue-500">
+            </div>
+            <div class="bg-purple-50 border border-purple-200 rounded-2xl p-4">
+              <p class="text-xs font-black uppercase tracking-wider text-purple-600 mb-3">Premium</p>
+              <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Monthly Price</label>
+              <input id="pricecfg-premium" type="number" min="0" value="${Number(pricing.premium.monthlyPrice || 0)}" class="w-full p-2.5 rounded-xl border border-purple-200 bg-white text-sm font-semibold outline-none focus:border-purple-500">
+              <label class="text-[10px] font-black uppercase text-slate-400 block mt-3 mb-1">Document Limit (0 = unlimited)</label>
+              <input id="doclimitcfg-premium" type="number" min="0" value="${Number(pricing.premium.docLimit || 0)}" class="w-full p-2.5 rounded-xl border border-purple-200 bg-white text-sm font-semibold outline-none focus:border-purple-500">
+              <label class="text-[10px] font-black uppercase text-slate-400 block mt-3 mb-1">Additional Users (-1 = unlimited)</label>
+              <input id="adduserscfg-premium" type="number" min="-1" value="${Number(pricing.premium.additionalUsers || -1)}" class="w-full p-2.5 rounded-xl border border-purple-200 bg-white text-sm font-semibold outline-none focus:border-purple-500">
+            </div>
+          </div>
+          <div class="mt-4">
+            <button type="button" onclick="window.savePlatformPricing()"
+                    class="px-4 py-2.5 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-all">
+              <i class="fas fa-save mr-1"></i> Save Pricing
+            </button>
+          </div>
+        `;
+
+        const makeCard = (tier, colorCls, icon, desc, features) => `
+          <div class="bg-white rounded-3xl border-2 ${colorCls} p-8 flex flex-col">
+            <div class="w-12 h-12 ${tier==='starter'?'bg-slate-100 text-slate-500':tier==='standard'?'bg-blue-100 text-blue-600':'bg-purple-100 text-purple-600'} rounded-2xl flex items-center justify-center text-xl mb-5"><i class="fas ${icon}"></i></div>
+            <p class="text-xs font-black uppercase tracking-widest ${tier==='starter'?'text-slate-400':tier==='standard'?'text-blue-500':'text-purple-500'} mb-1">${escapeHtml(tierCapLabel(tier))}</p>
+            <h4 class="text-3xl font-black text-slate-900 mb-1">${escapeHtml(tierPriceLabel(tier))}</h4>
+            <p class="text-slate-500 text-sm mb-6">${escapeHtml(desc)}</p>
+            <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">${features.map(f=>`<li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i>${f}</li>`).join('')}</ul>
+            <div class="space-y-2">
+              <select id="assign-lgu-${tier}"
+                      class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold outline-none focus:border-purple-400">
+                ${lguOptions}
+              </select>
+              <button type="button" onclick="window.assignTierFromSubscriptions('${tier}')"
+                      class="w-full py-3 rounded-2xl ${tier==='standard'?'bg-gradient-to-r from-blue-600 to-purple-600 text-white':tier==='premium'?'bg-gradient-to-r from-purple-600 to-pink-600 text-white':'bg-slate-200 text-slate-700'} font-bold text-sm hover:opacity-90 transition-all">
+                Assign to LGU
+              </button>
+            </div>
+          </div>`;
+
+        cardsWrap.innerHTML = [
+          makeCard('starter', 'border-slate-200', 'fa-seedling', 'For starter LGUs', [
+            `Up to ${Number(pricing.starter.docLimit || 200)} legislative documents`,
+            '1 Admin account',
+            'Public document portal',
+            'Members directory'
+          ]),
+          makeCard('standard', 'border-blue-500 shadow-lg shadow-blue-100', 'fa-building-columns', 'For active municipal LGUs', [
+            (Number(pricing.standard.docLimit || 0) > 0 ? `Up to ${Number(pricing.standard.docLimit)} documents` : 'Unlimited documents'),
+            `1 Admin + ${escapeHtml(extraUsersLabel('standard'))}`,
+            'Up to 10 Barangay sub-portals',
+            'Excel bulk export'
+          ]),
+          makeCard('premium', 'border-purple-200', 'fa-crown', 'For large cities & provinces', [
+            'Everything in Standard',
+            escapeHtml(extraUsersLabel('premium')),
+            'Unlimited Barangay portals',
+            'Activity audit log'
+          ]),
+        ].join('');
+      } catch (e) {
+        console.error(e);
+        cardsWrap.innerHTML = '<p class="text-sm text-red-500 md:col-span-3">Error loading subscriptions.</p>';
+        editorWrap.innerHTML = '<p class="text-sm text-red-500">Error loading pricing configuration.</p>';
+      }
+    };
+
     window.loadPlatformUsers = async () => {
       const container = document.getElementById('platformUsersList');
       if (!container) return;
       container.innerHTML = '<div class="text-center py-10 text-slate-400"><i class="fas fa-spinner fa-spin text-2xl mb-2 block"></i></div>';
       try {
+        await window.getPlatformPricing();
+        const filters = platformTabFilters.users || { search: '', sort: 'pending-first' };
+        const search = String(filters.search || '').toLowerCase().trim();
+        const sort = filters.sort || 'pending-first';
+
         const snap = await getDocs(collection(db,'users'));
-        const allUsers = snap.docs.map(d=>({id:d.id,...d.data()}))
-          .sort((a,b) => {
-            // Pending users first, then by lguId
-            if ((a.role==='pending') !== (b.role==='pending')) return a.role==='pending' ? -1 : 1;
-            return (a.lguId||'').localeCompare(b.lguId||'');
+        let allUsers = snap.docs.map(d=>({id:d.id,...d.data()}));
+        if (search) {
+          allUsers = allUsers.filter(u => {
+            const hay = `${u.name || ''} ${u.email || ''} ${u.lguId || ''} ${u.role || ''} ${u.position || ''} ${u.orgLgu || ''}`.toLowerCase();
+            return hay.includes(search);
           });
+        }
+        allUsers.sort((a,b) => {
+          if (sort === 'name-asc') return String(a.name || a.email || a.id).localeCompare(String(b.name || b.email || b.id));
+          if (sort === 'name-desc') return String(b.name || b.email || b.id).localeCompare(String(a.name || a.email || a.id));
+          if (sort === 'lgu-asc') return String(a.lguId || '').localeCompare(String(b.lguId || ''));
+          if (sort === 'role-asc') return String(a.role || '').localeCompare(String(b.role || ''));
+          if (sort === 'newest') return (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+          // pending-first default
+          if ((a.role==='pending') !== (b.role==='pending')) return a.role==='pending' ? -1 : 1;
+          return String(a.lguId || '').localeCompare(String(b.lguId || ''));
+        });
+
         if (allUsers.length === 0) {
-          container.innerHTML = '<div class="text-center py-16 text-slate-400"><i class="fas fa-users text-4xl mb-3 block opacity-30"></i><p class="text-sm font-semibold">No users found.</p></div>';
+          container.innerHTML = '<div class="text-center py-16 text-slate-400"><i class="fas fa-users text-4xl mb-3 block opacity-30"></i><p class="text-sm font-semibold">No users match your filter.</p></div>';
           return;
         }
         const roleColors3 = {superadmin:'bg-purple-100 text-purple-700',admin:'bg-blue-100 text-blue-700',editor:'bg-emerald-100 text-emerald-700',viewer:'bg-slate-100 text-slate-600',pending:'bg-amber-100 text-amber-700',rejected:'bg-red-100 text-red-600'};
@@ -4117,9 +5095,9 @@ Thank you.`;
                         <p class="text-[10px] text-slate-400 pl-1">Portal ID: <span id="approve-lgu-preview-${u.id}" class="font-bold text-slate-600">${escapeHtml(u.requestedLguSlug||'—')}</span></p>
                         <select id="approve-tier-${u.id}"
                                 class="w-full p-2 bg-white rounded-xl border border-slate-200 text-xs font-semibold outline-none focus:border-purple-400 transition-all">
-                          <option value="starter">Starter (Free)</option>
-                          <option value="standard">Standard — ₱1,500/mo</option>
-                          <option value="premium">Premium — ₱3,500/mo</option>
+                          <option value="starter">${escapeHtml(tierSelectLabel('starter'))}</option>
+                          <option value="standard">${escapeHtml(tierSelectLabel('standard'))}</option>
+                          <option value="premium">${escapeHtml(tierSelectLabel('premium'))}</option>
                         </select>
                         <div class="flex gap-2">
                           <button onclick="window.approveUser('${u.id}','${escapeHtml(u.email||u.contactEmail||'')}')"
@@ -4143,8 +5121,16 @@ Thank you.`;
         const tierMap = {};
         await Promise.all(lguIds.map(async lid => {
           try {
+            const cached = _lguRegistryCache[safeLguId(lid)];
+            if (cached) {
+              tierMap[lid] = cached.tier || 'starter';
+              return;
+            }
             const rs = await getDoc(doc(db,'lguRegistry',lid));
-            if (rs.exists()) tierMap[lid] = rs.data().tier || 'starter';
+            if (rs.exists()) {
+              tierMap[lid] = rs.data().tier || 'starter';
+              _lguRegistryCache[safeLguId(lid)] = rs.data();
+            }
           } catch(_){}
         }));
         const tierBadge = t => {
@@ -4182,9 +5168,9 @@ Thank you.`;
                           <select onchange="window.changeLguTier('${escapeHtml(u.lguId||'')}', this.value)"
                                   class="text-[10px] border border-slate-200 rounded-lg px-1 py-0.5 bg-slate-50 outline-none focus:border-purple-400">
                             <option value="">Set…</option>
-                            <option value="starter">Starter</option>
-                            <option value="standard">Standard</option>
-                            <option value="premium">Premium</option>
+                            <option value="starter">${escapeHtml(tierCapLabel('starter'))}</option>
+                            <option value="standard">${escapeHtml(tierCapLabel('standard'))}</option>
+                            <option value="premium">${escapeHtml(tierCapLabel('premium'))}</option>
                           </select>
                         </div>` : '—'}
                     </td>
@@ -4204,7 +5190,8 @@ Thank you.`;
             </table>
           </div>`;
 
-        container.innerHTML = html;
+        const summary = `<p class="text-xs text-slate-500 mb-3">Showing ${allUsers.length} user account${allUsers.length!==1?'s':''}${search ? ' (filtered)' : ''}.</p>`;
+        container.innerHTML = summary + html;
       } catch(e) {
         console.error(e);
         container.innerHTML = '<p class="text-sm text-red-500 p-4">Error loading users: ' + (e.message||e.code) + '</p>';
@@ -4241,8 +5228,14 @@ Thank you.`;
         // Create/update LGU registry with assigned tier
         await setDoc(doc(db,'lguRegistry',newLguId), {
           tier, paid: tier !== 'starter', updatedAt: serverTimestamp(),
-          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tier !== 'starter' }
+          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tierUserLimit(tier) > 1 }
         }, { merge: true });
+        _lguRegistryCache[safeLguId(newLguId)] = {
+          ...(_lguRegistryCache[safeLguId(newLguId)] || {}),
+          tier,
+          paid: tier !== 'starter',
+          features: { advancedAnalytics: tier !== 'starter', additionalUsers: tierUserLimit(tier) > 1 }
+        };
         showToast(`User approved as ${role} for ${newLguId} (${tier}).`, 'success');
         // Open mailto for email notification
         if (userEmail) {
@@ -4254,6 +5247,8 @@ Thank you.`;
           window.open(`mailto:${userEmail}?subject=${sub}&body=${body}`);
         }
         window.loadPlatformUsers();
+        window.loadPlatformLgus();
+        window.loadPlatformSubscriptions();
       } catch(e) {
         showToast('Error approving user: ' + (e.code||e.message), 'error');
       }
@@ -4299,10 +5294,17 @@ Thank you.`;
       try {
         await setDoc(doc(db,'lguRegistry',lguId_), {
           tier: newTier, paid: newTier !== 'starter', updatedAt: serverTimestamp(),
-          features: { advancedAnalytics: newTier !== 'starter', additionalUsers: newTier !== 'starter' }
+          features: { advancedAnalytics: newTier !== 'starter', additionalUsers: tierUserLimit(newTier) > 1 }
         }, { merge: true });
+        _lguRegistryCache[safeLguId(lguId_)] = {
+          ...(_lguRegistryCache[safeLguId(lguId_)] || {}),
+          tier: newTier,
+          paid: newTier !== 'starter',
+          features: { advancedAnalytics: newTier !== 'starter', additionalUsers: tierUserLimit(newTier) > 1 }
+        };
         showToast(`${lguId_} tier set to ${newTier}.`, 'success');
         window.loadPlatformUsers();
+        window.loadPlatformSubscriptions();
       } catch(e) {
         showToast('Error changing tier: ' + (e.code||e.message), 'error');
       }
@@ -4707,12 +5709,21 @@ Thank you.`;
       const authorId  = document.getElementById('newAuthor').value;
       const selectedAuthor = localMembers.find(m=>m.id===authorId);
       const link      = document.getElementById('newLink').value.trim();
+      const rawBarangay = document.getElementById('newBarangayId')?.value || '';
+      const barangayId = safeLguId(rawBarangay);
+      const barangayName = barangayId
+        ? (localBarangays.find(b => safeLguId(b.code || b.id) === barangayId)?.name || '')
+        : '';
       const tagsRaw   = document.getElementById('newTags').value;
       const coSponRaw = document.getElementById('newCoSponsors').value;
       const moreInfo  = document.getElementById('newMoreInfo').value.trim();
 
       if (!title||!docId||!type||!authorId||!link) { showToast("Please fill in all required fields",'error'); return; }
       try { new URL(link); } catch { showToast("Please enter a valid URL",'error'); return; }
+      if (!await window.ensureCanUploadDocuments(1)) {
+        await window.refreshUploadCreditNotice();
+        return;
+      }
 
       const tags      = tagsRaw.split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
       const coSponsors= coSponRaw.split(',').map(s=>s.trim()).filter(Boolean);
@@ -4733,6 +5744,12 @@ Thank you.`;
           link,
           tags,
           coSponsors,
+          barangayId: barangayId || '',
+          barangayName: barangayName || '',
+          lguId,
+          orgName: settingsState.orgName || '',
+          municipality: settingsState.municipality || '',
+          province: settingsState.province || '',
           moreInfo: moreInfo || '',
           views: 0,
           timestamp: serverTimestamp()
@@ -4751,6 +5768,8 @@ Thank you.`;
         const addDocLabel = document.getElementById('addDocToggleLabel');
         if (addDocIcon)  addDocIcon.className  = 'fas fa-plus text-xs';
         if (addDocLabel) addDocLabel.textContent = 'Add Document';
+        await window.refreshUploadCreditNotice();
+        window.loadGlobalPublicIndex(true);
       } catch(err) {
         console.error(err);
         showToast("Publish error. Check permissions.",'error');
@@ -4983,7 +6002,7 @@ Thank you.`;
           lguId:       initLguId,
           barangayId:  initBrgyId,
           barangayName:initBrgyNm,
-          isComplete:  false,
+          isComplete:  role === 'superadmin',
           createdAt:   serverTimestamp(),
           // LGU registration details (saved for pending applicants; ignored for invited/superadmin)
           ...(role === 'pending' && {
@@ -5038,20 +6057,23 @@ Thank you.`;
       pending:    [],   // redirected to /pending view, no LGU tabs
       rejected:   [],   // same as pending — no access
     };
-    const ALL_TABS = ['docs','members','barangay','settings','profile','users','analytics','pricing','activity'];
 
     function updateTabVisibility(role) {
       const allowed = TAB_ACCESS[role] || [];
-      ALL_TABS.forEach(t => {
+      ADMIN_TABS.forEach(t => {
         document.getElementById(`tab-${t}`)?.classList.toggle('hidden', !allowed.includes(t));
       });
-      if (allowed.length === 0) return; // pending/rejected/superadmin — no admin tabs to switch
+      if (allowed.length === 0) {
+        _syncAdminGroupVisibility();
+        return; // pending/rejected/superadmin — no admin tabs to switch
+      }
       // If the currently active tab panel is no longer allowed, fall back to docs.
-      const hasActiveHidden = ['barangay','settings','profile','users','analytics','pricing','activity'].some(t =>
+      const hasActiveHidden = ADMIN_TABS.some(t =>
         !allowed.includes(t) &&
         !document.getElementById(`admin-tab-${t}`)?.classList.contains('hidden')
       );
-      if (hasActiveHidden) window.switchAdminTab('docs');
+      if (hasActiveHidden) window.switchAdminTab(allowed[0] || 'docs');
+      _syncAdminGroupVisibility();
     }
 
     /* ── Auth state ── */
@@ -5163,7 +6185,7 @@ Thank you.`;
           adminPanelBtn.classList.toggle('hidden', isSA || isPending);
           adminPanelBtn.classList.toggle('flex',  !isSA && !isPending);
         }
-        if (!isSA) window.checkAdminProfileComplete();
+        if (!isSA && userRole && userRole !== 'rejected') window.checkAdminProfileComplete(userRole);
         if (!isSA && userRole !== 'pending' && userRole !== 'rejected') window.checkPendingNotification();
       } else {
         navBtn.innerHTML = '<span class="relative z-10 flex items-center gap-2"><i class="fas fa-lock text-xs"></i><span class="hidden sm:inline">Admin</span></span><div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>';
@@ -5184,6 +6206,9 @@ Thank you.`;
     startSync();
     syncNoticeUi();
     syncBrandingUi();
+    window.getPlatformPricing();
+    window.loadGlobalPublicIndex();
+    window.refreshPublicFilterOptions();
 
     // Live seal preview on URL input
     document.getElementById('brandingSealUrl')?.addEventListener('input', (e) => {
@@ -5199,9 +6224,30 @@ Thank you.`;
     }
 
     document.getElementById('typeFilterMobile')?.addEventListener('change', e => {
-      const tf = document.getElementById('typeFilter');
-      if (tf) tf.value = e.target.value;
+      syncFilterPairValue('typeFilter', 'typeFilterMobile', e.target.value || 'All');
       renderDocs(true);
+    });
+    document.getElementById('typeFilter')?.addEventListener('change', e => {
+      syncFilterPairValue('typeFilter', 'typeFilterMobile', e.target.value || 'All');
+      window.renderDocs(true);
+    });
+    document.getElementById('locationFilter')?.addEventListener('change', e => {
+      syncFilterPairValue('locationFilter', 'locationFilterMobile', e.target.value || '');
+      window.refreshPublicFilterOptions();
+      window.renderDocs(true);
+    });
+    document.getElementById('locationFilterMobile')?.addEventListener('change', e => {
+      syncFilterPairValue('locationFilter', 'locationFilterMobile', e.target.value || '');
+      window.refreshPublicFilterOptions();
+      window.renderDocs(true);
+    });
+    document.getElementById('barangayFilter')?.addEventListener('change', e => {
+      syncFilterPairValue('barangayFilter', 'barangayFilterMobile', e.target.value || '');
+      window.renderDocs(true);
+    });
+    document.getElementById('barangayFilterMobile')?.addEventListener('change', e => {
+      syncFilterPairValue('barangayFilter', 'barangayFilterMobile', e.target.value || '');
+      window.renderDocs(true);
     });
 
     let st;
@@ -5209,7 +6255,6 @@ Thank you.`;
       clearTimeout(st);
       st = setTimeout(() => window.renderDocs(true), 280);
     });
-    document.getElementById('typeFilter').addEventListener('change', () => window.renderDocs(true));
 
     document.getElementById('memberSearchInput')?.addEventListener('input', (e) => {
       memberSearchTerm = (e.target.value||'').toLowerCase().trim();
@@ -5224,7 +6269,7 @@ Thank you.`;
 
   <!-- ═══ PLATFORM ADMIN VIEW ═══ -->
   <!-- Accessible only to superadmin role. Manages all LGUs, all users, and subscriptions. -->
-  <section id="view-platform" class="view-section hidden max-w-screen-2xl mx-auto px-4 sm:px-6 xl:px-12 py-12">
+  <section id="view-platform" class="view-section hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
     <!-- Platform Header (no back button — superadmins live here) -->
     <div class="mb-8">
@@ -5281,6 +6326,21 @@ Thank you.`;
         <h3 class="text-xl font-black text-slate-900">Registered LGUs</h3>
         <p class="text-sm text-slate-500">Subscription management, feature flags, and expiry per LGU</p>
       </div>
+      <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="text" id="platformLgusSearch"
+               placeholder="Search LGU, email, or tier…"
+               oninput="window.setPlatformFilter('lgus','search',this.value)"
+               class="md:col-span-2 w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all">
+        <select id="platformLgusSort"
+                onchange="window.setPlatformFilter('lgus','sort',this.value)"
+                class="w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all">
+          <option value="name-asc">Sort: LGU A-Z</option>
+          <option value="name-desc">Sort: LGU Z-A</option>
+          <option value="users-desc">Sort: Most users</option>
+          <option value="tier-desc">Sort: Premium first</option>
+          <option value="expiry-asc">Sort: Expiring soon</option>
+        </select>
+      </div>
       <!-- Feature Requests (pending user slot requests) -->
       <div id="featureRequestsSection" class="mb-6 hidden">
         <p class="text-xs font-black uppercase tracking-widest text-amber-600 mb-3"><i class="fas fa-bell mr-1"></i>Pending Feature Requests</p>
@@ -5299,6 +6359,22 @@ Thank you.`;
       <div class="mb-8">
         <h3 class="text-xl font-black text-slate-900">All Registered Users</h3>
         <p class="text-sm text-slate-500">Approve, assign roles, assign tiers, and manage every account</p>
+      </div>
+      <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="text" id="platformUsersSearch"
+               placeholder="Search user, email, LGU, or role…"
+               oninput="window.setPlatformFilter('users','search',this.value)"
+               class="md:col-span-2 w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all">
+        <select id="platformUsersSort"
+                onchange="window.setPlatformFilter('users','sort',this.value)"
+                class="w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all">
+          <option value="pending-first">Sort: Pending first</option>
+          <option value="name-asc">Sort: Name A-Z</option>
+          <option value="name-desc">Sort: Name Z-A</option>
+          <option value="lgu-asc">Sort: LGU A-Z</option>
+          <option value="role-asc">Sort: Role A-Z</option>
+          <option value="newest">Sort: Newest registration</option>
+        </select>
       </div>
       <div id="platformUsersList">
         <div class="text-center py-16 text-slate-400">
@@ -5328,6 +6404,20 @@ Thank you.`;
         <h3 class="text-xl font-black text-slate-900">Barangay Units</h3>
         <p class="text-sm text-slate-500">All registered barangay sub-units across all LGUs</p>
       </div>
+      <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+        <input type="text" id="platformBarangaysSearch"
+               placeholder="Search barangay, code, captain, or LGU…"
+               oninput="window.setPlatformFilter('barangays','search',this.value)"
+               class="md:col-span-2 w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all">
+        <select id="platformBarangaysSort"
+                onchange="window.setPlatformFilter('barangays','sort',this.value)"
+                class="w-full p-3 bg-white rounded-xl border border-slate-200 text-sm font-semibold outline-none focus:border-purple-400 focus:ring-4 focus:ring-purple-100 transition-all">
+          <option value="name-asc">Sort: Barangay A-Z</option>
+          <option value="name-desc">Sort: Barangay Z-A</option>
+          <option value="lgu-asc">Sort: LGU A-Z</option>
+          <option value="lgu-desc">Sort: LGU Z-A</option>
+        </select>
+      </div>
       <div id="platformBarangaysList">
         <div class="text-center py-16 text-slate-400">
           <i class="fas fa-map-marker-alt text-4xl mb-3 block opacity-30"></i>
@@ -5340,72 +6430,27 @@ Thank you.`;
     <div id="padmin-tab-subscriptions" class="hidden">
       <div class="mb-8">
         <h3 class="text-xl font-black text-slate-900">Service Packages</h3>
-        <p class="text-sm text-slate-500">Reference tiers for onboarding new LGUs</p>
+        <p class="text-sm text-slate-500">Manage tier pricing and assign subscriptions to LGUs</p>
       </div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        <!-- Starter -->
-        <div class="bg-white rounded-3xl border-2 border-slate-200 p-8 flex flex-col">
-          <div class="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-500 text-xl mb-5"><i class="fas fa-seedling"></i></div>
-          <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Starter</p>
-          <h4 class="text-3xl font-black text-slate-900 mb-1">Free</h4>
-          <p class="text-slate-500 text-sm mb-6">Forever — no credit card needed</p>
-          <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 100 legislative documents</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> 1 Admin account</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Public document portal</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Members directory</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Basic branding</li>
-            <li class="flex items-center gap-2"><i class="fas fa-times text-slate-300 text-xs"></i> Barangay sub-portals</li>
-            <li class="flex items-center gap-2"><i class="fas fa-times text-slate-300 text-xs"></i> Excel export</li>
-          </ul>
-          <span class="block text-center py-3 rounded-2xl border-2 border-slate-200 text-slate-400 font-bold text-sm">Entry Tier</span>
+      <div id="platformSubscriptionEditor" class="bg-white border border-slate-200 rounded-3xl p-6 mb-6">
+        <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+          <p class="text-sm font-black text-slate-800">Tier Pricing Configuration (Backend)</p>
+          <button type="button" onclick="window.loadPlatformSubscriptions()"
+                  class="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-200 transition-all">
+            <i class="fas fa-sync-alt mr-1"></i> Refresh
+          </button>
         </div>
-        <!-- Standard -->
-        <div class="bg-white rounded-3xl border-2 border-blue-500 p-8 flex flex-col relative shadow-lg shadow-blue-100">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2">
-            <span class="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow">Most Popular</span>
-          </div>
-          <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600 text-xl mb-5"><i class="fas fa-building-columns"></i></div>
-          <p class="text-xs font-black uppercase tracking-widest text-blue-500 mb-1">Standard</p>
-          <h4 class="text-3xl font-black text-slate-900 mb-1">&#8369;1,500<span class="text-base font-semibold text-slate-400">/mo</span></h4>
-          <p class="text-slate-500 text-sm mb-6">For active municipal LGUs</p>
-          <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited documents</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 5 Admin accounts</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Up to 10 Barangay sub-portals</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Excel bulk export</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Full branding customization</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Email support</li>
-          </ul>
-          <a href="mailto:rlagahit@icloud.com?subject=Standard Plan Inquiry"
-             class="block text-center py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md">
-            Assign to LGU
-          </a>
+        <div id="platformPricingEditorRows" class="space-y-3">
+          <div class="text-center py-8 text-slate-400 text-sm"><i class="fas fa-spinner fa-spin mr-2"></i>Loading pricing…</div>
         </div>
-        <!-- Premium -->
-        <div class="bg-white rounded-3xl border-2 border-purple-200 p-8 flex flex-col">
-          <div class="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-600 text-xl mb-5"><i class="fas fa-crown"></i></div>
-          <p class="text-xs font-black uppercase tracking-widest text-purple-500 mb-1">Premium</p>
-          <h4 class="text-3xl font-black text-slate-900 mb-1">&#8369;3,500<span class="text-base font-semibold text-slate-400">/mo</span></h4>
-          <p class="text-slate-500 text-sm mb-6">For large cities &amp; provinces</p>
-          <ul class="space-y-3 text-sm text-slate-600 flex-1 mb-8">
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Everything in Standard</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited Admin accounts</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Unlimited Barangay portals</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Custom domain</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Activity audit log</li>
-            <li class="flex items-center gap-2"><i class="fas fa-check text-emerald-500 text-xs"></i> Priority support &amp; SLA</li>
-          </ul>
-          <a href="mailto:rlagahit@icloud.com?subject=Premium Plan Inquiry"
-             class="block text-center py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold text-sm hover:from-purple-700 hover:to-pink-700 transition-all shadow-md">
-            Assign to LGU
-          </a>
-        </div>
+      </div>
+      <div id="platformSubscriptionsCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        <div class="text-center py-10 text-slate-400 text-sm md:col-span-3"><i class="fas fa-spinner fa-spin mr-2"></i>Loading subscription tiers…</div>
       </div>
       <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5 flex items-start gap-3 text-sm text-blue-800">
         <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
         <div>
-          <strong>Note:</strong> Subscription management (assigning tiers to LGUs, billing tracking) will be added in a future phase. Contact <a href="mailto:rlagahit@icloud.com" class="underline font-semibold">rlagahit@icloud.com</a> to upgrade an LGU.
+          <strong>Note:</strong> Pricing updates are saved in Firestore and applied throughout LGU assignment controls and analytics computations.
         </div>
       </div>
     </div>

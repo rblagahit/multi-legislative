@@ -79,9 +79,13 @@ service cloud.firestore {
       // Separating them avoids evaluating resource.data on every doc during a list.
       allow get:  if request.auth != null
                   && (request.auth.uid == uid || isSuperAdmin() || isAdmin(resource.data.lguId));
-      // Only superadmins can list the whole users collection.
-      // LGU admins should read users through scoped queries/collections only.
-      allow list: if isSuperAdmin();
+      // Superadmins can list all users.
+      // LGU admins can only list users inside their own LGU.
+      // This forces client queries to include lguId == userLguId().
+      allow list: if isSuperAdmin()
+                  || (request.auth != null
+                      && userRole() == 'admin'
+                      && resource.data.lguId == userLguId());
 
       // Self-registration (three paths):
       //   1. First bootstrap → claim 'superadmin'
