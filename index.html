@@ -531,20 +531,20 @@
           <form id="uploadForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Title -->
             <div class="md:col-span-2">
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-heading mr-1"></i>Title</label>
+              <label for="newTitle" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-heading mr-1"></i>Title</label>
               <input type="text" id="newTitle" required
                      placeholder="e.g., An Ordinance Establishing the Digital Transformation Program"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <!-- Doc ID -->
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-hashtag mr-1"></i>Document ID</label>
+              <label for="newDocId" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-hashtag mr-1"></i>Document ID</label>
               <input type="text" id="newDocId" required placeholder="ORD-2024-001"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <!-- Type -->
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-tag mr-1"></i>Document Type</label>
+              <label for="newType" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-tag mr-1"></i>Document Type</label>
               <select id="newType"
                       class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all"
                       onchange="document.getElementById('customTypeWrap').classList.toggle('hidden', this.value !== '__custom__')">
@@ -562,7 +562,7 @@
             </div>
             <!-- Primary Sponsor -->
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user-tie mr-1"></i>Primary Sponsor</label>
+              <label for="newAuthor" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user-tie mr-1"></i>Primary Sponsor</label>
               <select id="newAuthor" required
                       class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                 <option value="">Select sponsor…</option>
@@ -570,7 +570,7 @@
             </div>
             <!-- PDF URL -->
             <div class="md:col-span-2">
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-link mr-1"></i>PDF URL</label>
+              <label for="newLink" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-link mr-1"></i>PDF URL</label>
               <input type="url" id="newLink" required placeholder="https://…"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
@@ -590,21 +590,21 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2 border-t border-slate-100">
                 <!-- Co-Sponsors -->
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-users mr-1"></i>Co-Sponsors</label>
+                  <label for="newCoSponsors" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-users mr-1"></i>Co-Sponsors</label>
                   <input type="text" id="newCoSponsors" placeholder="e.g., Hon. Santos, Hon. Reyes"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate names with commas</p>
                 </div>
                 <!-- Tags -->
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-tags mr-1"></i>Tags</label>
+                  <label for="newTags" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-tags mr-1"></i>Tags</label>
                   <input type="text" id="newTags" placeholder="e.g., health, infrastructure, budget"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate tags with commas</p>
                 </div>
                 <!-- More Information -->
                 <div class="md:col-span-2">
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-info-circle mr-1"></i>More Information</label>
+                  <label for="newMoreInfo" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-info-circle mr-1"></i>More Information</label>
                   <textarea id="newMoreInfo" rows="3" maxlength="400"
                             placeholder="Additional details about this document visible to the public…"
                             oninput="document.getElementById('newMoreInfoCount').textContent=this.value.length"
@@ -697,39 +697,39 @@
           <form id="memberForm" class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <input type="hidden" id="memberEditId">
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user mr-1"></i>Full Name</label>
+              <label for="memberName" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user mr-1"></i>Full Name</label>
               <input type="text" id="memberName" required placeholder="e.g., Hon. Juan dela Cruz"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-id-badge mr-1"></i>Position / Role</label>
+              <label for="memberRole" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-id-badge mr-1"></i>Position / Role</label>
               <input type="text" id="memberRole" required placeholder="e.g., Vice Mayor, Councilor"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
+              <label for="memberImage" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
               <input type="url" id="memberImage" placeholder="https://… (optional)"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
               <p class="text-[10px] text-slate-400 mt-1 ml-1">Leave blank to use initials avatar</p>
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-sitemap mr-1"></i>Committees</label>
+              <label for="memberCommittees" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-sitemap mr-1"></i>Committees</label>
               <input type="text" id="memberCommittees" placeholder="e.g., health, budget, education"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
               <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate with commas</p>
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-calendar-day mr-1"></i>Term Start</label>
+              <label for="memberTermStart" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-calendar-day mr-1"></i>Term Start</label>
               <input type="date" id="memberTermStart"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-calendar-check mr-1"></i>Term End</label>
+              <label for="memberTermEnd" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-calendar-check mr-1"></i>Term End</label>
               <input type="date" id="memberTermEnd"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div class="md:col-span-2">
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-align-left mr-1"></i>Biography</label>
+              <label for="memberBio" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-align-left mr-1"></i>Biography</label>
               <textarea id="memberBio" rows="3" placeholder="Brief background and committee assignments…"
                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
             </div>
@@ -784,25 +784,25 @@
             <div id="section-branding" class="px-7 pb-7 border-t border-slate-100">
               <div class="space-y-5 mt-6">
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-landmark mr-1"></i>Organization Name</label>
+                  <label for="brandingOrgName" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-landmark mr-1"></i>Organization Name</label>
                   <input type="text" id="brandingOrgName" placeholder="e.g., Sangguniang Bayan ng Cebu City"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Appears in the navigation bar and footer</p>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map-marker-alt mr-1"></i>Municipality</label>
+                    <label for="brandingMunicipality" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map-marker-alt mr-1"></i>Municipality</label>
                     <input type="text" id="brandingMunicipality" placeholder="e.g., Cebu City"
                            class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   </div>
                   <div>
-                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map mr-1"></i>Province</label>
+                    <label for="brandingProvince" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-map mr-1"></i>Province</label>
                     <input type="text" id="brandingProvince" placeholder="e.g., Cebu"
                            class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   </div>
                 </div>
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Organization Seal / Logo URL</label>
+                  <label for="brandingSealUrl" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Organization Seal / Logo URL</label>
                   <input type="url" id="brandingSealUrl" placeholder="https://… (direct image link)"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Updates seal in nav, footer, and browser tab icon</p>
@@ -813,18 +813,18 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-phone mr-1"></i>Contact Number 1</label>
+                    <label for="brandingContactPhone1" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-phone mr-1"></i>Contact Number 1</label>
                     <input type="tel" id="brandingContactPhone1" placeholder="e.g., (032) 123-4567"
                            class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   </div>
                   <div>
-                    <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-mobile-alt mr-1"></i>Contact Number 2</label>
+                    <label for="brandingContactPhone2" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-mobile-alt mr-1"></i>Contact Number 2</label>
                     <input type="tel" id="brandingContactPhone2" placeholder="e.g., +63 9xx xxx xxxx"
                            class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   </div>
                 </div>
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-at mr-1"></i>Public Contact Email</label>
+                  <label for="brandingContactEmail" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-at mr-1"></i>Public Contact Email</label>
                   <input type="email" id="brandingContactEmail" placeholder="e.g., sb@lgu.gov.ph"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                   <p class="text-[10px] text-slate-400 mt-1 ml-1">Displayed on the Contact page. Separate from document-request email in Admin Profile.</p>
@@ -854,7 +854,7 @@
             </button>
             <div id="section-notice" class="hidden px-7 pb-7 border-t border-slate-100">
               <div class="mt-6">
-                <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-file-contract mr-1"></i>Notice Text</label>
+                <label for="noticeTextInput" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-file-contract mr-1"></i>Notice Text</label>
                 <textarea id="noticeTextInput" rows="6"
                           class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-y"></textarea>
                 <p class="text-[11px] text-slate-400 mt-2">Appears in the confirmation popup before PDF redirect.</p>
@@ -884,17 +884,17 @@
             <div id="section-social" class="hidden px-7 pb-7 border-t border-slate-100">
               <div class="space-y-5 mt-6">
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fab fa-facebook mr-1"></i>Facebook URL</label>
+                  <label for="socialFacebookUrl" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fab fa-facebook mr-1"></i>Facebook URL</label>
                   <input type="url" id="socialFacebookUrl" placeholder="https://facebook.com/…"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                 </div>
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fab fa-twitter mr-1"></i>Twitter / X URL</label>
+                  <label for="socialTwitterUrl" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fab fa-twitter mr-1"></i>Twitter / X URL</label>
                   <input type="url" id="socialTwitterUrl" placeholder="https://twitter.com/…"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                 </div>
                 <div>
-                  <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-envelope mr-1"></i>Email Contact</label>
+                  <label for="socialEmailUrl" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-envelope mr-1"></i>Email Contact</label>
                   <input type="email" id="socialEmailUrl" placeholder="contact@example.com"
                          class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                 </div>
@@ -924,28 +924,28 @@
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user mr-1"></i>Full Name</label>
+              <label for="adminName" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-user mr-1"></i>Full Name</label>
               <input type="text" id="adminName" placeholder="Your full name"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-id-badge mr-1"></i>Position / Role</label>
+              <label for="adminRole" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-id-badge mr-1"></i>Position / Role</label>
               <input type="text" id="adminRole" placeholder="e.g., Mayor, Vice Mayor"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div class="lg:col-span-2">
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-envelope mr-1"></i>Contact Email</label>
+              <label for="adminEmail" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-envelope mr-1"></i>Contact Email</label>
               <input type="email" id="adminEmail" placeholder="admin@example.com" required
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
               <p class="text-[10px] text-slate-400 mt-1 ml-1">This email will receive all document requests</p>
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
+              <label for="adminImage" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
               <input type="url" id="adminImage" placeholder="https://… (optional)"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div class="lg:col-span-2">
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-align-left mr-1"></i>Biography</label>
+              <label for="adminBio" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider"><i class="fas fa-align-left mr-1"></i>Biography</label>
               <textarea id="adminBio" rows="3" placeholder="Your background and qualifications…"
                         class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
             </div>
@@ -982,18 +982,18 @@
       </h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <div>
-          <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Name</label>
+          <label for="barangayName" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Name</label>
           <input type="text" id="barangayName" placeholder="e.g., Barangay San Antonio"
                  class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100 transition-all">
         </div>
         <div>
-          <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Code / ID</label>
+          <label for="barangayCode" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Code / ID</label>
           <input type="text" id="barangayCode" placeholder="e.g., brgy-san-antonio"
                  class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100 transition-all">
           <p class="text-[10px] text-slate-400 mt-1 ml-1">Lowercase, no spaces (used as Firestore ID)</p>
         </div>
         <div class="sm:col-span-2">
-          <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Captain Name</label>
+          <label for="barangayCaptain" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Barangay Captain Name</label>
           <input type="text" id="barangayCaptain" placeholder="e.g., Juan Dela Cruz"
                  class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-teal-400 focus:ring-4 focus:ring-teal-100 transition-all">
         </div>
@@ -1166,14 +1166,14 @@
         <!-- Filter bar (shown only when tier is unlocked) -->
         <div id="analyticsFilterBar" class="hidden bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 flex flex-wrap gap-3 items-end">
           <div>
-            <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Barangay</label>
+            <label for="analyticsBarangayFilter" class="text-[10px] font-black uppercase text-slate-400 block mb-1">Barangay</label>
             <select id="analyticsBarangayFilter"
                     class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:border-blue-400">
               <option value="">All Barangays</option>
             </select>
           </div>
           <div>
-            <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Document Type</label>
+            <label for="analyticsTypeFilter" class="text-[10px] font-black uppercase text-slate-400 block mb-1">Document Type</label>
             <select id="analyticsTypeFilter"
                     class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:border-blue-400">
               <option value="">All Types</option>
@@ -1184,7 +1184,7 @@
             </select>
           </div>
           <div>
-            <label class="text-[10px] font-black uppercase text-slate-400 block mb-1">Year</label>
+            <label for="analyticsYearFilter" class="text-[10px] font-black uppercase text-slate-400 block mb-1">Year</label>
             <select id="analyticsYearFilter"
                     class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white outline-none focus:border-blue-400">
               <option value="">All Years</option>
@@ -1233,19 +1233,19 @@
         <div class="space-y-4">
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Full Name <span class="text-red-400">*</span></label>
+              <label for="inviteName" class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Full Name <span class="text-red-400">*</span></label>
               <input type="text" id="inviteName" placeholder="Hon. Maria Santos" required
                      class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm">
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Email Address <span class="text-red-400">*</span></label>
+              <label for="inviteEmail" class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Email Address <span class="text-red-400">*</span></label>
               <input type="email" id="inviteEmail" placeholder="user@lgu.gov.ph" required
                      class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm">
             </div>
           </div>
 
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Role <span class="text-red-400">*</span></label>
+            <label for="inviteRole" class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Role <span class="text-red-400">*</span></label>
             <select id="inviteRole"
                     class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
               <option value="editor">Editor — can upload &amp; edit docs/members</option>
@@ -1256,20 +1256,20 @@
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Barangay ID <span class="text-slate-300 font-normal">(optional)</span></label>
+              <label for="inviteBarangayId" class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Barangay ID <span class="text-slate-300 font-normal">(optional)</span></label>
               <input type="text" id="inviteBarangayId" placeholder="brgy-poblacion"
                      class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm">
               <p class="text-[10px] text-slate-400 mt-1 ml-1">Programmatic key (no spaces)</p>
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Barangay Name <span class="text-slate-300 font-normal">(optional)</span></label>
+              <label for="inviteBarangayName" class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Barangay Name <span class="text-slate-300 font-normal">(optional)</span></label>
               <input type="text" id="inviteBarangayName" placeholder="Poblacion"
                      class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm">
             </div>
           </div>
 
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Official Barangay Email <span class="text-slate-300 font-normal">(optional)</span></label>
+            <label for="inviteOfficialEmail" class="text-xs font-black uppercase text-slate-400 block mb-1.5 tracking-wider">Official Barangay Email <span class="text-slate-300 font-normal">(optional)</span></label>
             <input type="email" id="inviteOfficialEmail" placeholder="barangay@lgu.gov.ph"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm">
           </div>
@@ -1369,18 +1369,18 @@
         
         <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2">
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Title</label>
+            <label for="editDocTitle" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Title</label>
             <input type="text" id="editDocTitle" required placeholder="Document title"
                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Document ID</label>
+              <label for="editDocId" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Document ID</label>
               <input type="text" id="editDocId" required placeholder="ORD-2024-001"
                      class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             </div>
             <div>
-              <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Type</label>
+              <label for="editDocType" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Type</label>
               <select id="editDocType"
                       class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
                 <option value="Ordinance">Ordinance</option>
@@ -1392,31 +1392,31 @@
             </div>
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Primary Sponsor</label>
+            <label for="editDocAuthor" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Primary Sponsor</label>
             <select id="editDocAuthor" required
                     class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 font-semibold text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
               <option value="">Select sponsor…</option>
             </select>
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">PDF URL</label>
+            <label for="editDocLink" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">PDF URL</label>
             <input type="url" id="editDocLink" required placeholder="https://…"
                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Tags</label>
+            <label for="editDocTags" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Tags</label>
             <input type="text" id="editDocTags" placeholder="e.g., health, infrastructure"
                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate tags with commas</p>
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Co-Sponsors</label>
+            <label for="editDocCoSponsors" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Co-Sponsors</label>
             <input type="text" id="editDocCoSponsors" placeholder="e.g., Hon. Santos, Hon. Reyes"
                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
             <p class="text-[10px] text-slate-400 mt-1 ml-1">Separate names with commas</p>
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">More Information <span class="normal-case font-normal text-slate-300">(optional)</span></label>
+            <label for="editDocMoreInfo" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">More Information <span class="normal-case font-normal text-slate-300">(optional)</span></label>
             <textarea id="editDocMoreInfo" rows="3" maxlength="400"
                       placeholder="Additional details visible to the public…"
                       oninput="document.getElementById('editMoreInfoCount').textContent=this.value.length"
@@ -1477,12 +1477,12 @@
 
         <div class="space-y-4">
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Your Email</label>
+            <label for="requestEmail" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Your Email</label>
             <input type="email" id="requestEmail" placeholder="your@email.com" required
                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Contact Number</label>
+            <label for="requestPhone" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Contact Number</label>
             <input type="tel" id="requestPhone" placeholder="+63 9xxxxxxxxx" required
                    class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all">
           </div>
@@ -1497,7 +1497,7 @@
             </div>
           </div>
           <div>
-            <label class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Special Requests (Optional)</label>
+            <label for="requestNotes" class="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Special Requests (Optional)</label>
             <textarea id="requestNotes" placeholder="e.g., sealed copy for court proceedings" rows="2"
                       class="w-full p-4 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all resize-none"></textarea>
           </div>
@@ -1533,37 +1533,37 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <!-- Full Name -->
           <div class="sm:col-span-2">
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-user mr-1"></i>Full Name <span class="text-red-400">*</span></label>
+            <label for="adminProfileName" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-user mr-1"></i>Full Name <span class="text-red-400">*</span></label>
             <input type="text" id="adminProfileName" placeholder="e.g., Juan dela Cruz"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <!-- Position -->
           <div>
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-id-badge mr-1"></i>Position / Designation <span class="text-red-400">*</span></label>
+            <label for="adminProfileRole" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-id-badge mr-1"></i>Position / Designation <span class="text-red-400">*</span></label>
             <input type="text" id="adminProfileRole" placeholder="e.g., SB Secretary"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <!-- Contact Email -->
           <div>
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-envelope mr-1"></i>Contact Email <span class="text-red-400">*</span></label>
+            <label for="adminProfileEmail" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-envelope mr-1"></i>Contact Email <span class="text-red-400">*</span></label>
             <input type="email" id="adminProfileEmail"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <!-- Phone -->
           <div>
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-phone mr-1"></i>Contact Phone</label>
+            <label for="adminProfilePhone" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-phone mr-1"></i>Contact Phone</label>
             <input type="tel" id="adminProfilePhone" placeholder="09XX-XXX-XXXX"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <!-- Profile Image URL -->
           <div>
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
+            <label for="adminProfileImage" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-image mr-1"></i>Profile Photo URL</label>
             <input type="url" id="adminProfileImage" placeholder="https://…"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <!-- Bio -->
           <div class="sm:col-span-2">
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-align-left mr-1"></i>Bio / About (optional)</label>
+            <label for="adminProfileBio" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-align-left mr-1"></i>Bio / About (optional)</label>
             <textarea id="adminProfileBio" rows="2" placeholder="Brief background…"
                       class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold resize-none"></textarea>
           </div>
@@ -1573,12 +1573,12 @@
         <div id="pendingProfileFields" class="hidden space-y-4 border-t border-slate-100 pt-5">
           <p class="text-xs font-black uppercase tracking-widest text-amber-600"><i class="fas fa-clipboard-list mr-1"></i>Application Details</p>
           <div>
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-building mr-1"></i>Organization / LGU Name <span class="text-red-400">*</span></label>
+            <label for="adminProfileOrgLgu" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-building mr-1"></i>Organization / LGU Name <span class="text-red-400">*</span></label>
             <input type="text" id="adminProfileOrgLgu" placeholder="e.g., Sangguniang Bayan ng Argao"
                    class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold">
           </div>
           <div>
-            <label class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-question-circle mr-1"></i>Reason for Requesting Access</label>
+            <label for="adminProfileReason" class="text-xs font-black uppercase tracking-wider text-slate-400 block mb-2"><i class="fas fa-question-circle mr-1"></i>Reason for Requesting Access</label>
             <textarea id="adminProfileReason" rows="2" placeholder="Describe how you plan to use this system…"
                       class="w-full p-3.5 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100 transition-all text-sm font-semibold resize-none"></textarea>
           </div>
@@ -1690,6 +1690,18 @@
       .replaceAll('>','&gt;')
       .replaceAll('"','&quot;')
       .replaceAll("'",'&#39;');
+
+    const sanitizeUrl = (url='') => {
+      const value = String(url || '').trim();
+      if (!value) return '';
+      try {
+        const parsed = new URL(value, window.location.origin);
+        if (!['http:', 'https:'].includes(parsed.protocol)) return '';
+        return parsed.href;
+      } catch {
+        return '';
+      }
+    };
 
     window.togglePassVis = (inputId, iconId) => {
       const input = document.getElementById(inputId);
@@ -1933,22 +1945,31 @@
     window.openDocumentDetails = (docId) => {
       const doc = localDocs.find(d => d.id === docId);
       if (!doc) return;
-      
+
       const linkedAuthor = localMembers.find(m => m.id === doc.authorId);
       const author = linkedAuthor || {
         name: doc.authorName || settingsState.orgName || 'Your LGU',
         image: doc.authorImage || (settingsState.sealUrl || '')
       };
-      
+
       const date = doc.timestamp?.toDate
         ? new Date(doc.timestamp.toDate()).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
         : 'N/A';
-      
+
       const tags = (doc.tags||[]).map(t=>`<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
-      const coSponsors = (doc.coSponsors||[]).filter(Boolean).join(', ');
-      const views = doc.views || 0;
+      const coSponsors = (doc.coSponsors||[]).filter(Boolean).map(s => escapeHtml(s)).join(', ');
+      const views = Number.isFinite(Number(doc.views)) ? Number(doc.views) : 0;
       const moreInfo = (doc.moreInfo || '').trim();
-      
+      const safeDocId = String(doc.id || '');
+      const safeDocLink = sanitizeUrl(doc.link || '');
+      const safeDocType = escapeHtml(doc.type || 'Document');
+      const safeDocTitle = escapeHtml(doc.title || 'Untitled');
+      const safeDocCode = escapeHtml(doc.docId || 'N/A');
+      const safeDate = escapeHtml(date);
+      const authorName = String(author.name || 'Your LGU');
+      const safeAuthorName = escapeHtml(authorName);
+      const safeAuthorRole = escapeHtml(author.role || 'SB Member');
+
       const typeColors = {
         'Ordinance':'from-blue-600 to-blue-700',
         'Resolution':'from-purple-600 to-purple-700',
@@ -1957,36 +1978,37 @@
         'Committee Report':'from-teal-600 to-teal-700'
       };
       const typeBg = typeColors[doc.type] || 'from-slate-700 to-slate-800';
-      const imgFb = `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=2563eb&color=fff&bold=true`;
+      const imgFb = `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=2563eb&color=fff&bold=true`;
+      const safeAuthorImage = sanitizeUrl(author.image) || imgFb;
 
       const content = `
         <div class="space-y-6">
           <div>
             <div class="flex items-center justify-between mb-4">
               <span class="inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest bg-gradient-to-r ${typeBg} text-white shadow-sm">
-                <i class="fas fa-file-alt text-xs"></i>${escapeHtml(doc.type)}
+                <i class="fas fa-file-alt text-xs"></i>${safeDocType}
               </span>
               <span class="view-badge"><i class="fas fa-eye"></i>${views}</span>
             </div>
-            <h2 class="text-2xl font-black text-slate-900 leading-snug mb-3">${escapeHtml(doc.title||'Untitled')}</h2>
-            <p class="text-sm text-slate-600 mb-3"><strong>Document ID:</strong> ${escapeHtml(doc.docId||'N/A')}</p>
-            <p class="text-sm text-slate-600"><strong>Date:</strong> ${date}</p>
+            <h2 class="text-2xl font-black text-slate-900 leading-snug mb-3">${safeDocTitle}</h2>
+            <p class="text-sm text-slate-600 mb-3"><strong>Document ID:</strong> ${safeDocCode}</p>
+            <p class="text-sm text-slate-600"><strong>Date:</strong> ${safeDate}</p>
           </div>
-          
+
           <div class="border-t border-slate-200 pt-6">
             <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Primary Sponsor</h3>
             <div class="flex items-center gap-3">
-              <img src="${author.image}"
+              <img src="${safeAuthorImage}"
                    class="w-12 h-12 rounded-xl object-cover bg-slate-100 ring-2 ring-white shadow-sm"
                    onerror="this.src='${imgFb}'">
               <div>
-                <p class="text-sm font-black text-slate-900">${escapeHtml(author.name)}</p>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">${escapeHtml(author.role||'SB Member')}</p>
-                ${coSponsors ? `<p class="text-xs text-slate-600 mt-1"><strong>Co-Sponsors:</strong> ${escapeHtml(coSponsors)}</p>` : ''}
+                <p class="text-sm font-black text-slate-900">${safeAuthorName}</p>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">${safeAuthorRole}</p>
+                ${coSponsors ? `<p class="text-xs text-slate-600 mt-1"><strong>Co-Sponsors:</strong> ${coSponsors}</p>` : ''}
               </div>
             </div>
           </div>
-          
+
           ${tags ? `<div class="border-t border-slate-200 pt-6">
             <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-3">Categories</h3>
             <div class="flex flex-wrap gap-2">${tags}</div>
@@ -1999,20 +2021,48 @@
 
           <div class="border-t border-slate-200 pt-6 space-y-3">
             <button type="button"
-                   onclick="window.openDocumentNotice('${encodeURIComponent(doc.link||'')}', '${doc.id}')"
+                   data-action="open-doc"
+                   data-doc-link="${escapeHtml(safeDocLink)}"
+                   data-doc-id="${escapeHtml(safeDocId)}"
+                   ${safeDocLink ? '' : 'disabled'}
                    class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold uppercase text-sm hover:bg-blue-600 transition-all flex items-center justify-center gap-2">
               <i class="far fa-file-pdf"></i> View Full Document
             </button>
             <button type="button"
-                   onclick="window.openDocumentRequest('${doc.id}')"
+                   data-action="request-copy"
+                   data-doc-id="${escapeHtml(safeDocId)}"
                    class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold uppercase text-sm hover:bg-blue-700 transition-all flex items-center justify-center gap-2">
               <i class="fas fa-file-download"></i> Request Copy of Document
             </button>
           </div>
         </div>
       `;
-      
-      document.getElementById('documentDetailsContent').innerHTML = content;
+
+      const detailsContent = document.getElementById('documentDetailsContent');
+      if (!detailsContent) return;
+      detailsContent.innerHTML = content;
+
+      const openBtn = detailsContent.querySelector('[data-action="open-doc"]');
+      if (openBtn) {
+        openBtn.addEventListener('click', () => {
+          const link = openBtn.getAttribute('data-doc-link') || '';
+          const id = openBtn.getAttribute('data-doc-id') || '';
+          if (!link) {
+            showToast('Document URL is unavailable.', 'error');
+            return;
+          }
+          window.openDocumentNotice(encodeURIComponent(link), id);
+        });
+      }
+
+      const requestBtn = detailsContent.querySelector('[data-action="request-copy"]');
+      if (requestBtn) {
+        requestBtn.addEventListener('click', () => {
+          const id = requestBtn.getAttribute('data-doc-id') || '';
+          window.openDocumentRequest(id);
+        });
+      }
+
       document.getElementById('documentDetailsModal').classList.remove('hidden');
     };
 
@@ -2021,8 +2071,13 @@
     window.openDocumentRequest = (docId) => {
       const doc = localDocs.find(d => d.id === docId);
       if (!doc) return;
+      const officeEmail = (settingsState.contactEmail || '').trim();
+      if (!officeEmail) {
+        showToast('Contact information is not configured yet.', 'error');
+        return;
+      }
       requestingDocId = docId;
-      document.getElementById('requestDocumentTitle').textContent = `📄 ${escapeHtml(doc.title||'Document')}`;
+      document.getElementById('requestDocumentTitle').textContent = `📄 ${doc.title || 'Document'}`;
       document.getElementById('requestEmail').value = '';
       document.getElementById('requestPhone').value = '';
       document.getElementById('requestNotes').value = '';
@@ -2037,6 +2092,11 @@
 
       if (!email || !phone) { showToast('Please fill in all required fields','error'); return; }
       if (!docData) { showToast('Document not found','error'); return; }
+      const adminEmail = (settingsState.contactEmail || '').trim();
+      if (!adminEmail) {
+        showToast('Contact information is not configured yet.', 'error');
+        return;
+      }
 
       const btn = document.getElementById('sendRequestBtn');
       const original = btn.innerHTML;
@@ -2044,13 +2104,6 @@
       btn.disabled = true;
 
       try {
-        // Fetch admin contact email
-        let adminEmail = '';
-        try {
-          const adminSnap = await getDoc(doc(db,'users',user.uid));
-          if (adminSnap.exists()) adminEmail = adminSnap.data().contactEmail || '';
-        } catch(e) { console.error(e); }
-
         const subject = `Document Copy Request: ${docData.title} (${docData.docId || ''})`;
         const body =
 `Dear Sangguniang Bayan of Argao,
@@ -2071,7 +2124,7 @@ Thank you.`;
 
         const mailto = `mailto:${adminEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
         window.location.href = mailto;
-        showToast(adminEmail ? 'Your email client is opening…' : 'Opening email client — please add the office email address in the To field.','success');
+        showToast('Your email client is opening…','success');
         window.closeModal('documentRequestModal');
 
       } catch(e) {
@@ -2635,11 +2688,18 @@ Thank you.`;
         const date = docData.timestamp?.toDate
           ? new Date(docData.timestamp.toDate()).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
           : '';
-        const tags = (docData.tags||[]).map(t=>`<span class="tag-chip">${t}</span>`).join('');
-        const coS  = (docData.coSponsors||[]).filter(Boolean).join(', ');
-        const views= docData.views || 0;
+        const tags = (docData.tags||[]).map(t=>`<span class="tag-chip">${escapeHtml(t)}</span>`).join('');
+        const coS  = (docData.coSponsors||[]).filter(Boolean).map(s => escapeHtml(s)).join(', ');
+        const views= Number.isFinite(Number(docData.views)) ? Number(docData.views) : 0;
+        const safeDocId = escapeHtml(String(docData.id || ''));
+        const safeDocType = escapeHtml(docData.type || 'Document');
+        const safeTitle = escapeHtml(docData.title || 'Untitled');
+        const safeAuthorName = escapeHtml(author.name || 'Your LGU');
+        const safeAuthorImage = sanitizeUrl(author.image);
+        const safeDate = escapeHtml(date);
         const typeBg = typeColors[docData.type] || 'bg-gradient-to-r from-slate-700 to-slate-800';
-        const imgFb  = `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name)}&background=2563eb&color=fff&bold=true`;
+        const imgFb  = `https://ui-avatars.com/api/?name=${encodeURIComponent(author.name || 'LGU')}&background=2563eb&color=fff&bold=true`;
+        const imageSrc = safeAuthorImage || imgFb;
 
         return `
           <div class="doc-card bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100"
@@ -2647,33 +2707,40 @@ Thank you.`;
             <div class="p-7 border-b border-slate-100">
               <div class="flex items-center justify-between mb-4">
                 <span class="inline-flex items-center gap-1.5 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest ${typeBg} text-white shadow-sm">
-                  <i class="fas fa-file-alt text-xs"></i>${docData.type}
+                  <i class="fas fa-file-alt text-xs"></i>${safeDocType}
                 </span>
                 <span class="view-badge"><i class="fas fa-eye"></i>${views}</span>
               </div>
-              <h3 class="text-lg font-extrabold text-slate-900 mb-3 leading-snug line-clamp-3 cursor-pointer hover:text-blue-600 transition-colors" onclick="window.openDocumentDetails('${docData.id}')">${docData.title}</h3>
+              <h3 class="text-lg font-extrabold text-slate-900 mb-3 leading-snug line-clamp-3 cursor-pointer hover:text-blue-600 transition-colors js-open-doc" data-doc-id="${safeDocId}">${safeTitle}</h3>
               ${tags ? `<div class="flex flex-wrap gap-1 mb-4">${tags}</div>` : ''}
               <div class="flex items-center gap-3">
-                <img src="${author.image}"
+                <img src="${imageSrc}"
                      class="w-11 h-11 rounded-xl object-cover bg-slate-100 ring-2 ring-white shadow-sm"
                      onerror="this.src='${imgFb}'">
                 <div>
-                  <p class="text-sm font-black text-slate-900">${author.name}</p>
-                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Primary Sponsor ${date?'· '+date:''}</p>
+                  <p class="text-sm font-black text-slate-900">${safeAuthorName}</p>
+                  <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Primary Sponsor ${safeDate ? `· ${safeDate}` : ''}</p>
                   ${coS ? `<p class="text-[9px] text-slate-400 mt-0.5">Co: ${coS}</p>` : ''}
                 </div>
               </div>
             </div>
             <div class="p-6 bg-gradient-to-b from-white to-slate-50">
               <button type="button"
-                 onclick="window.openDocumentDetails('${docData.id}')"
-                 class="group w-full bg-slate-900 text-white flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black uppercase text-xs hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-xl">
+                 data-doc-id="${safeDocId}"
+                 class="js-open-doc group w-full bg-slate-900 text-white flex items-center justify-center gap-2 py-3.5 rounded-2xl font-black uppercase text-xs hover:bg-blue-600 transition-all duration-300 shadow-md hover:shadow-xl">
                 <span>View Details</span>
                 <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
               </button>
             </div>
           </div>`;
       }).join('');
+
+      grid.querySelectorAll('.js-open-doc').forEach(el => {
+        el.addEventListener('click', () => {
+          const targetDocId = el.getAttribute('data-doc-id') || '';
+          window.openDocumentDetails(targetDocId);
+        });
+      });
     };
 
     /* ── Modals ── */
@@ -2683,8 +2750,13 @@ Thank you.`;
       const m = localMembers.find(x=>x.id===id);
       if (!m) return;
       const expired = isTermExpired(m);
-      const init  = m.name.replace('Hon.','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+      const memberName = String(m.name || 'SB Member');
+      const init  = memberName.replace('Hon.','').trim().split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
       const fbUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(init)}&background=1e40af&color=fff&bold=true&size=128`;
+      const safeMemberImage = sanitizeUrl(m.image) || fbUrl;
+      const safeMemberName = escapeHtml(memberName);
+      const safeMemberRole = escapeHtml(m.role || 'SB Member');
+      const safeMemberBio = escapeHtml(m.bio || 'No biography available.');
       const committees = (m.committees||[]).map(c=>`<span class="tag-chip">${escapeHtml(c)}</span>`).join('');
       const termStart = formatDate(m.termStart);
       const termEnd = formatDate(m.termEnd);
@@ -2695,35 +2767,52 @@ Thank you.`;
             const title = escapeHtml(d.title||'Untitled');
             const coSponsored = (d.coSponsors||[]).map(normalizeName).includes(normalizeName(m.name||''));
             const committeeMatch = (m.committees||[]).map(normalizeTag).some(c => (d.tags||[]).map(normalizeTag).includes(c));
+            const safeRelatedDocId = escapeHtml(String(d.id || ''));
+            const safeRelatedDocLink = escapeHtml(sanitizeUrl(d.link || ''));
             const labels = [
               (d.authorId === m.id || normalizeName(d.authorName||'')===normalizeName(m.name||'')) ? 'Primary Sponsor' : '',
               coSponsored ? 'Co-Sponsor' : '',
               committeeMatch ? 'Committee' : ''
-            ].filter(Boolean).map(l=>`<span class="tag-chip">${l}</span>`).join('');
-            return `<button type="button" onclick="window.openDocumentNotice('${encodeURIComponent(d.link||'')}', '${d.id}')" class="w-full text-left block p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"><p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">${type}</p><p class="text-sm font-bold text-slate-800 leading-snug mb-2">${title}</p>${labels?`<div class="flex flex-wrap gap-1">${labels}</div>`:''}</button>`;
+            ].filter(Boolean).map(l=>`<span class="tag-chip">${escapeHtml(l)}</span>`).join('');
+            return `<button type="button" data-action="open-doc-notice" data-doc-id="${safeRelatedDocId}" data-doc-link="${safeRelatedDocLink}" class="w-full text-left block p-4 rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"><p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">${type}</p><p class="text-sm font-bold text-slate-800 leading-snug mb-2">${title}</p>${labels?`<div class="flex flex-wrap gap-1">${labels}</div>`:''}</button>`;
           }).join('')
         : '<p class="text-slate-500 text-sm">No related documents found.</p>';
 
-      document.getElementById('profileContent').innerHTML = `
+      const profileContent = document.getElementById('profileContent');
+      if (!profileContent) return;
+      profileContent.innerHTML = `
         <div class="text-center">
           <div class="relative inline-block mb-5">
-            <img src="${m.image||fbUrl}" alt="${m.name}"
+            <img src="${safeMemberImage}" alt="${safeMemberName}"
                  class="w-28 h-28 rounded-2xl mx-auto object-cover border-4 border-white shadow-xl"
                  onerror="this.onerror=null;this.src='${fbUrl}'">
           </div>
-          <h2 class="text-xl font-black mb-1">${m.name}</h2>
-          <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-5">${m.role||'SB Member'}</p>
+          <h2 class="text-xl font-black mb-1">${safeMemberName}</h2>
+          <p class="text-sm font-bold text-blue-600 uppercase tracking-wider mb-5">${safeMemberRole}</p>
           ${(termStart||termEnd) ? `<p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Term: ${escapeHtml(termStart||'N/A')} ${termEnd?`- ${escapeHtml(termEnd)}`:''}</p>` : ''}
           ${expired ? '<p class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4">Term has ended. You may update this profile in Admin to extend or archive the record.</p>' : ''}
           ${committees ? `<div class="flex flex-wrap justify-center gap-1 mb-5">${committees}</div>` : ''}
           <div class="bg-slate-50 rounded-2xl p-5 text-left">
-            <p class="text-slate-600 leading-relaxed text-sm">${m.bio||'No biography available.'}</p>
+            <p class="text-slate-600 leading-relaxed text-sm">${safeMemberBio}</p>
           </div>
           <div class="mt-5 text-left">
             <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Related Documents</p>
             <div class="space-y-2 max-h-60 overflow-y-auto pr-1">${relatedHtml}</div>
           </div>
         </div>`;
+
+      profileContent.querySelectorAll('[data-action="open-doc-notice"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const docLink = btn.getAttribute('data-doc-link') || '';
+          const docId = btn.getAttribute('data-doc-id') || '';
+          if (!docLink) {
+            showToast('Document URL is unavailable.', 'error');
+            return;
+          }
+          window.openDocumentNotice(encodeURIComponent(docLink), docId);
+        });
+      });
+
       document.getElementById('profileModal').classList.remove('hidden');
     };
 
@@ -2754,7 +2843,7 @@ Thank you.`;
     };
 
     window.openDocumentNotice = (encodedUrl, docId='') => {
-      const url = decodeURIComponent(encodedUrl || '');
+      const url = sanitizeUrl(decodeURIComponent(encodedUrl || ''));
       if (!url) return;
       pendingDocUrl = url;
       pendingDocId = docId || '';
@@ -3479,7 +3568,7 @@ Thank you.`;
       ['overview','lgus','users','analytics','barangays','subscriptions'].forEach(t => {
         document.getElementById(`padmin-tab-${t}`)?.classList.toggle('hidden', tab !== t);
         const btn = document.getElementById(`ptab-${t}`);
-        if (btn) btn.className = `platform-tab px-5 py-3 font-bold text-sm border-b-2 transition-all ${tab===t?'border-purple-600 text-purple-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
+        if (btn) btn.className = `platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 transition-all ${tab===t?'border-purple-600 text-purple-600':'border-transparent text-slate-400 hover:text-slate-700'}`;
       });
       if (tab === 'overview')   window.loadPlatformOverview();
       if (tab === 'lgus')       window.loadPlatformLgus();
@@ -4843,7 +4932,7 @@ Thank you.`;
     /* ── Register Form ── */
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email    = document.getElementById('regEmail').value.trim();
+      const email    = document.getElementById('regEmail').value.trim().toLowerCase();
       const pass     = document.getElementById('regPass').value;
       const pass2    = document.getElementById('regPassConfirm').value;
       const orgName  = document.getElementById('regOrgName')?.value.trim()  || null;
@@ -5135,7 +5224,7 @@ Thank you.`;
 
   <!-- ═══ PLATFORM ADMIN VIEW ═══ -->
   <!-- Accessible only to superadmin role. Manages all LGUs, all users, and subscriptions. -->
-  <section id="view-platform" class="view-section hidden max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+  <section id="view-platform" class="view-section hidden max-w-screen-2xl mx-auto px-4 sm:px-6 xl:px-12 py-12">
 
     <!-- Platform Header (no back button — superadmins live here) -->
     <div class="mb-8">
@@ -5145,29 +5234,29 @@ Thank you.`;
     </div>
 
     <!-- Platform Tabs -->
-    <div class="flex flex-wrap gap-1 mb-8 border-b border-slate-200">
+    <div class="flex overflow-x-auto no-scrollbar mb-8 border-b border-slate-200">
       <button onclick="window.switchPlatformTab('overview')" id="ptab-overview"
-              class="platform-tab px-5 py-3 font-bold text-sm border-b-2 border-purple-600 text-purple-600 transition-all">
+              class="platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-purple-600 text-purple-600 transition-all">
         <i class="fas fa-tachometer-alt mr-2"></i>Overview
       </button>
       <button onclick="window.switchPlatformTab('lgus')" id="ptab-lgus"
-              class="platform-tab px-5 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              class="platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
         <i class="fas fa-city mr-2"></i>LGUs
       </button>
       <button onclick="window.switchPlatformTab('users')" id="ptab-users"
-              class="platform-tab px-5 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              class="platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
         <i class="fas fa-users-cog mr-2"></i>All Users
       </button>
       <button onclick="window.switchPlatformTab('analytics')" id="ptab-analytics"
-              class="platform-tab px-5 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              class="platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
         <i class="fas fa-chart-pie mr-2"></i>Analytics
       </button>
       <button onclick="window.switchPlatformTab('barangays')" id="ptab-barangays"
-              class="platform-tab px-5 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              class="platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
         <i class="fas fa-map-marker-alt mr-2"></i>Barangays
       </button>
       <button onclick="window.switchPlatformTab('subscriptions')" id="ptab-subscriptions"
-              class="platform-tab px-5 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
+              class="platform-tab whitespace-nowrap px-6 py-3 font-bold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-700 transition-all">
         <i class="fas fa-tags mr-2"></i>Subscriptions
       </button>
     </div>
