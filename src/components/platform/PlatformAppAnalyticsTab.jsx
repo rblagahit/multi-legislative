@@ -1,8 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, getDocs, limit, query } from 'firebase/firestore';
+import { collection, documentId, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { MultiLineChart, StatBarChart } from './PlatformCharts';
 import { groupAnalyticsRows, toDate } from '../../utils/platformMetrics';
+
+const ANALYTICS_ROW_LIMITS = {
+  7: { daily: 14, search: 60 },
+  30: { daily: 45, search: 140 },
+  90: { daily: 110, search: 260 },
+  180: { daily: 180, search: 420 },
+};
+
+function getAnalyticsLimits(windowDays) {
+  return ANALYTICS_ROW_LIMITS[Number(windowDays)] || ANALYTICS_ROW_LIMITS[30];
+}
+
+function getSearchRowDate(row = {}) {
+  return toDate(row.date || row.updatedAt || row.createdAt || row.id?.split('__')[0] || row.id);
+}
 
 export default function PlatformAppAnalyticsTab({ showToast }) {
   const [windowDays, setWindowDays] = useState('30');
@@ -17,9 +32,10 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
     const loadAnalytics = async () => {
       setLoading(true);
       try {
+        const rowLimits = getAnalyticsLimits(windowDays);
         const [dailySnap, searchSnap] = await Promise.all([
-          getDocs(query(collection(db, 'appAnalyticsDaily'), limit(180))),
-          getDocs(query(collection(db, 'appSearchTermsDaily'), limit(500))),
+          getDocs(query(collection(db, 'appAnalyticsDaily'), orderBy(documentId(), 'desc'), limit(rowLimits.daily))),
+          getDocs(query(collection(db, 'appSearchTermsDaily'), orderBy(documentId(), 'desc'), limit(rowLimits.search))),
         ]);
         if (!ignore) {
           setDailyRows(dailySnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
@@ -39,7 +55,7 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
     return () => {
       ignore = true;
     };
-  }, [showToast]);
+  }, [showToast, windowDays]);
 
   const recentDaily = useMemo(() => (
     dailyRows
@@ -62,11 +78,19 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
     return acc;
   }, { searches: 0, views: 0, visits: 0 }), [recentDaily]);
 
+  const recentSearchRows = useMemo(() => (
+    searchRows.filter((row) => {
+      const rowDate = getSearchRowDate(row);
+      if (!rowDate) return false;
+      return rowDate.getTime() >= (Date.now() - (Number(windowDays) * 24 * 60 * 60 * 1000));
+    })
+  ), [searchRows, windowDays]);
+
   const topSearchTerms = useMemo(() => (
-    [...searchRows]
+    [...recentSearchRows]
       .sort((a, b) => Number(b.count || b.total || 0) - Number(a.count || a.total || 0))
       .slice(0, 10)
-  ), [searchRows]);
+  ), [recentSearchRows]);
 
   const growthRows = useMemo(
     () => groupAnalyticsRows(dailyRows, Number(windowDays), granularity),
@@ -96,6 +120,9 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
         <div>
           <h3 className="text-xl font-black text-slate-900">App Analytics</h3>
           <p className="text-sm text-slate-500">Global app activity and top public search terms.</p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Loading the latest {getAnalyticsLimits(windowDays).daily} daily rows and {getAnalyticsLimits(windowDays).search} search-term rows.
+          </p>
         </div>
         <div>
           <label className="mb-2 block text-[10px] font-black uppercase tracking-wider text-slate-400">Window</label>

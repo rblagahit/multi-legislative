@@ -1,5 +1,38 @@
 import { useEffect, useMemo } from 'react';
 
+const MANAGED_HEAD_CONFIG = {
+  default: {
+    allowedTags: new Set(['META', 'LINK']),
+    allowedScriptHosts: new Set(),
+  },
+  global: {
+    allowedTags: new Set(['META', 'LINK']),
+    allowedScriptHosts: new Set(),
+  },
+  adsense: {
+    allowedTags: new Set(['META', 'LINK', 'SCRIPT']),
+    allowedScriptHosts: new Set([
+      'pagead2.googlesyndication.com',
+      'partner.googleadservices.com',
+      'www.googletagservices.com',
+    ]),
+  },
+};
+
+function isSafeHeadUrl(value, allowedHosts = null) {
+  const raw = String(value || '').trim();
+  if (!raw) return false;
+
+  try {
+    const url = new URL(raw, window.location.origin);
+    if (!['http:', 'https:'].includes(url.protocol)) return false;
+    if (allowedHosts && allowedHosts.size && !allowedHosts.has(url.hostname)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function ensureMeta(selectorType, selectorValue) {
   const selector = `meta[${selectorType}="${selectorValue}"]`;
   let element = document.head.querySelector(selector);
@@ -22,6 +55,7 @@ function ensureLink(rel) {
 }
 
 function applyManagedHeadHtml(rawHtml = '', scope = 'default') {
+  const config = MANAGED_HEAD_CONFIG[scope] || MANAGED_HEAD_CONFIG.default;
   const selector = `[data-managed-head-html="${scope}"]`;
   const existingManagedNodes = document.head.querySelectorAll(selector);
   existingManagedNodes.forEach((node) => node.remove());
@@ -31,20 +65,30 @@ function applyManagedHeadHtml(rawHtml = '', scope = 'default') {
 
   const template = document.createElement('template');
   template.innerHTML = html;
-  const allowedTags = new Set(['META', 'SCRIPT', 'LINK']);
 
   Array.from(template.content.children).forEach((sourceNode) => {
-    if (!allowedTags.has(sourceNode.tagName)) return;
+    if (!config.allowedTags.has(sourceNode.tagName)) return;
+    if (sourceNode.tagName === 'SCRIPT' && sourceNode.textContent?.trim()) return;
 
     const nextNode = document.createElement(sourceNode.tagName.toLowerCase());
+    let skipNode = false;
+
     Array.from(sourceNode.attributes).forEach((attribute) => {
       if (/^on/i.test(attribute.name)) return;
+
+      if ((attribute.name === 'src' || attribute.name === 'href')
+        && !isSafeHeadUrl(
+          attribute.value,
+          sourceNode.tagName === 'SCRIPT' ? config.allowedScriptHosts : null,
+        )) {
+        skipNode = true;
+        return;
+      }
+
       nextNode.setAttribute(attribute.name, attribute.value);
     });
 
-    if (sourceNode.tagName === 'SCRIPT' && sourceNode.textContent) {
-      nextNode.textContent = sourceNode.textContent;
-    }
+    if (skipNode) return;
 
     nextNode.setAttribute('data-managed-head-html', scope);
     document.head.appendChild(nextNode);

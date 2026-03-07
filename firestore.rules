@@ -71,6 +71,101 @@ service cloud.firestore {
             == ((resource.data.views is int ? resource.data.views : 0) + 1);
     }
 
+    function canInviteeAcceptInvite(email) {
+      return request.auth != null
+          && request.auth.token.email == email
+          && resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).changedKeys().hasOnly(['status', 'acceptedAt', 'acceptedBy'])
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.acceptedBy == request.auth.uid;
+    }
+
+    function validOptionalCounter(value) {
+      return value == null || ((value is int || value is float) && value >= 0);
+    }
+
+    function validAnalyticsDailyCreate() {
+      return request.resource.data.keys().hasOnly([
+        'date',
+        'visits',
+        'searches',
+        'views',
+        'documentViews',
+        'pageViews',
+        'sessions',
+        'totalSearches',
+        'docOpens',
+        'createdAt',
+        'updatedAt'
+      ])
+      && validOptionalCounter(request.resource.data.visits)
+      && validOptionalCounter(request.resource.data.searches)
+      && validOptionalCounter(request.resource.data.views)
+      && validOptionalCounter(request.resource.data.documentViews)
+      && validOptionalCounter(request.resource.data.pageViews)
+      && validOptionalCounter(request.resource.data.sessions)
+      && validOptionalCounter(request.resource.data.totalSearches)
+      && validOptionalCounter(request.resource.data.docOpens);
+    }
+
+    function validAnalyticsDailyUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        'visits',
+        'searches',
+        'views',
+        'documentViews',
+        'pageViews',
+        'sessions',
+        'totalSearches',
+        'docOpens',
+        'updatedAt'
+      ])
+      && validOptionalCounter(request.resource.data.visits)
+      && validOptionalCounter(request.resource.data.searches)
+      && validOptionalCounter(request.resource.data.views)
+      && validOptionalCounter(request.resource.data.documentViews)
+      && validOptionalCounter(request.resource.data.pageViews)
+      && validOptionalCounter(request.resource.data.sessions)
+      && validOptionalCounter(request.resource.data.totalSearches)
+      && validOptionalCounter(request.resource.data.docOpens)
+      && (request.resource.data.visits == null || request.resource.data.visits >= (resource.data.visits == null ? 0 : resource.data.visits))
+      && (request.resource.data.searches == null || request.resource.data.searches >= (resource.data.searches == null ? 0 : resource.data.searches))
+      && (request.resource.data.views == null || request.resource.data.views >= (resource.data.views == null ? 0 : resource.data.views))
+      && (request.resource.data.documentViews == null || request.resource.data.documentViews >= (resource.data.documentViews == null ? 0 : resource.data.documentViews))
+      && (request.resource.data.pageViews == null || request.resource.data.pageViews >= (resource.data.pageViews == null ? 0 : resource.data.pageViews))
+      && (request.resource.data.sessions == null || request.resource.data.sessions >= (resource.data.sessions == null ? 0 : resource.data.sessions))
+      && (request.resource.data.totalSearches == null || request.resource.data.totalSearches >= (resource.data.totalSearches == null ? 0 : resource.data.totalSearches))
+      && (request.resource.data.docOpens == null || request.resource.data.docOpens >= (resource.data.docOpens == null ? 0 : resource.data.docOpens));
+    }
+
+    function validSearchTermCreate() {
+      return request.resource.data.keys().hasOnly([
+        'date',
+        'term',
+        'searchTerm',
+        'count',
+        'total',
+        'createdAt',
+        'updatedAt'
+      ])
+      && (request.resource.data.term == null || request.resource.data.term is string)
+      && (request.resource.data.searchTerm == null || request.resource.data.searchTerm is string)
+      && validOptionalCounter(request.resource.data.count)
+      && validOptionalCounter(request.resource.data.total);
+    }
+
+    function validSearchTermUpdate() {
+      return request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        'count',
+        'total',
+        'updatedAt'
+      ])
+      && validOptionalCounter(request.resource.data.count)
+      && validOptionalCounter(request.resource.data.total)
+      && (request.resource.data.count == null || request.resource.data.count >= (resource.data.count == null ? 0 : resource.data.count))
+      && (request.resource.data.total == null || request.resource.data.total >= (resource.data.total == null ? 0 : resource.data.total));
+    }
+
     // True when no superadmin has been bootstrapped yet.
     function isFirstSetup() {
       return !exists(/databases/$(database)/documents/setup/bootstrapped);
@@ -159,7 +254,7 @@ service cloud.firestore {
       allow update: if request.auth != null
                     && (isSuperAdmin()
                         || isAdmin(resource.data.lguId)
-                        || request.auth.token.email == email);   // invited user marks accepted
+                        || canInviteeAcceptInvite(email));
       allow delete: if request.auth != null
                     && (isSuperAdmin() || isAdmin(resource.data.lguId));
     }
@@ -177,13 +272,15 @@ service cloud.firestore {
     // Only superadmin can read analytics dashboards.
     match /appAnalyticsDaily/{dateKey} {
       allow read: if isSuperAdmin();
-      allow create, update: if true;
+      allow create: if validAnalyticsDailyCreate();
+      allow update: if validAnalyticsDailyUpdate();
       allow delete: if isSuperAdmin();
     }
 
     match /appSearchTermsDaily/{termKey} {
       allow read: if isSuperAdmin();
-      allow create, update: if true;
+      allow create: if validSearchTermCreate();
+      allow update: if validSearchTermUpdate();
       allow delete: if isSuperAdmin();
     }
 

@@ -118,7 +118,7 @@ export default function PlatformSettingsTab({ setupSettings, showToast, user }) 
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm outline-none transition-all focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
             />
             <p className="mt-2 text-xs text-slate-400">
-              Injected into the global <code>&lt;head&gt;</code>. Intended for AdSense meta/script tags and other verified head snippets.
+              Injected into the global <code>&lt;head&gt;</code>. Only <code>&lt;meta&gt;</code> and <code>&lt;link&gt;</code> tags are applied here.
             </p>
           </div>
 
@@ -153,7 +153,7 @@ export default function PlatformSettingsTab({ setupSettings, showToast, user }) 
                   className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm outline-none transition-all focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
                 />
                 <p className="mt-2 text-xs text-slate-500">
-                  Only loaded when AdSense is enabled and the current page is not excluded.
+                  Only loaded when AdSense is enabled and the current page is not excluded. External scripts are limited to approved AdSense hosts.
                 </p>
               </div>
 

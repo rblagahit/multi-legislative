@@ -181,7 +181,12 @@ async function main() {
     console.log(`[generate-sitemap] Wrote ${entries.length} URL(s) to sitemap.xml`);
   } catch (error) {
     console.warn(`[generate-sitemap] Falling back to static sitemap: ${error.message}`);
-    writeFileSync(OUTPUT_PATH, renderSitemap(fallbackBaseUrl, fallbackEntries), 'utf8');
+    if (existsSync(OUTPUT_PATH)) {
+      console.warn('[generate-sitemap] Keeping existing sitemap.xml because Firestore data was unavailable.');
+    } else {
+      writeFileSync(OUTPUT_PATH, renderSitemap(fallbackBaseUrl, fallbackEntries), 'utf8');
+      console.warn('[generate-sitemap] Wrote static sitemap.xml because no existing sitemap was present.');
+    }
     writeFileSync(
       PLATFORM_BUILD_DATA_PATH,
       JSON.stringify({
