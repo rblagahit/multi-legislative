@@ -186,28 +186,17 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
             ),
           ]);
 
-        const [pageSnap, seedSnap, aggregateResults] = globalScope
+        const [pageSnap, aggregateResults] = globalScope
           ? await Promise.all([
             getDocs(publicDocumentsIndexRecentQuery()),
-            getDocs(publicDocumentsIndexSeedQuery()),
             aggregatePromise,
           ])
           : await Promise.all([
             getDocs(scopedPublicDocumentsPageQuery(lguId)),
-            Promise.resolve(null),
             aggregatePromise,
           ]);
         if (!ignore) {
           const loadedDocuments = mapDocuments(pageSnap);
-          let directoryRows = loadedDocuments;
-
-          if (globalScope) {
-            directoryRows = dedupeDocuments([
-              ...loadedDocuments,
-              ...mapDocuments(seedSnap),
-            ]);
-          }
-
           const nextDocuments = globalScope
             ? sortDocumentsByRecency(loadedDocuments).slice(0, PUBLIC_DOCUMENT_PAGE_SIZE)
             : loadedDocuments;
@@ -228,7 +217,7 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
             : null;
 
           setDocuments(nextDocuments);
-          setDirectory(globalScope ? buildDirectoryOptions(directoryRows) : EMPTY_DIRECTORY);
+          setDirectory(globalScope ? buildDirectoryOptions(loadedDocuments) : EMPTY_DIRECTORY);
           setHasMore(false);
           setLastVisible(globalScope ? null : pageSnap.docs.at(-1) || null);
           setStats({
@@ -238,6 +227,21 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
             totalViews: Number(aggregateStats?.totalViews || pageStatsFallback.totalViews),
           });
           setLoading(false);
+
+          if (globalScope) {
+            getDocs(publicDocumentsIndexSeedQuery())
+              .then((seedSnap) => {
+                if (ignore) return;
+                const directoryRows = dedupeDocuments([
+                  ...loadedDocuments,
+                  ...mapDocuments(seedSnap),
+                ]);
+                setDirectory(buildDirectoryOptions(directoryRows));
+              })
+              .catch((error) => {
+                console.error('[usePublicDocuments.seedDirectory]', error);
+              });
+          }
         }
       } catch (err) {
         console.error('[usePublicDocuments]', err);

@@ -13,11 +13,8 @@ const publicMembersColRef = () => collection(db, 'publicMembers');
 const publicMemberRef = (id) => doc(db, 'publicMembers', id);
 const ADMIN_MEMBER_LIMIT = 50;
 const PUBLIC_MEMBER_PAGE_SIZE = 24;
-const GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT = 300;
-
 const membersQuery = (lguId) => query(colRef(lguId), orderBy('name'), limit(ADMIN_MEMBER_LIMIT));
 const publicMembersIndexRecentQuery = () => query(publicMembersColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE));
-const publicMembersIndexSeedQuery = () => query(publicMembersColRef(), orderBy('timestamp', 'desc'), limit(GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT));
 const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
   cursor
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
@@ -39,16 +36,6 @@ const mapMembers = (snap) => snap.docs.map((entry) => ({
   ...entry.data(),
   lguId: sanitizeLguId(entry.ref.parent?.parent?.id || entry.data()?.lguId || ''),
 }));
-const dedupeMembers = (rows) => {
-  const seen = new Set();
-  return rows.filter((entry) => {
-    const key = `${sanitizeLguId(entry.lguId || '')}:${entry.id}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-};
-
 async function buildPublicMemberPayload(id, payload, lguId, existing = null) {
   const settingsSnap = await getDoc(settingsDocRef(lguId)).catch(() => null);
   const settings = settingsSnap?.exists() ? settingsSnap.data() : {};
@@ -129,20 +116,11 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options
     const loadMembers = async () => {
       setLoading(true);
       try {
-        const [snap, seedSnap] = globalScope
-          ? await Promise.all([
-            getDocs(publicMembersIndexRecentQuery()),
-            getDocs(publicMembersIndexSeedQuery()),
-          ])
-          : [await getDocs(scopedPublicMembersPageQuery(lguId)), null];
+        const snap = globalScope
+          ? await getDocs(publicMembersIndexRecentQuery())
+          : await getDocs(scopedPublicMembersPageQuery(lguId));
         if (!ignore) {
-          let loadedMembers = mapMembers(snap);
-          if (globalScope) {
-            loadedMembers = dedupeMembers([
-              ...loadedMembers,
-              ...mapMembers(seedSnap),
-            ]);
-          }
+          const loadedMembers = mapMembers(snap);
           const nextMembers = globalScope
             ? sortMembersByRecency(loadedMembers).slice(0, PUBLIC_MEMBER_PAGE_SIZE)
             : loadedMembers;

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { collection, limit, onSnapshot, query, serverTimestamp, setDoc, doc } from 'firebase/firestore';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { collection, getDocs, limit, orderBy, query, serverTimestamp, setDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { syncPublicMemberIndex } from '../../hooks/useMembers';
 
@@ -27,21 +27,29 @@ export default function PlatformStickyProfilesTab({ showToast }) {
   const [rows, setRows] = useState([]);
   const [filters, setFilters] = useState({ search: '', status: 'pending' });
   const [savingId, setSavingId] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const loadRows = useCallback(async (withToast = false) => {
+    setLoading(true);
+    try {
+      const snapshot = await getDocs(
+        query(collection(db, 'stickyProfileRequests'), orderBy('createdAt', 'desc'), limit(200)),
+      );
+      setRows(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+      if (withToast) {
+        showToast('Sticky profile requests refreshed.', 'success');
+      }
+    } catch (error) {
+      console.error('[PlatformStickyProfilesTab]', error);
+      showToast('Unable to load sticky profile requests.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      query(collection(db, 'stickyProfileRequests'), limit(200)),
-      (snapshot) => {
-        setRows(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-      },
-      (error) => {
-        console.error('[PlatformStickyProfilesTab]', error);
-        showToast('Unable to load sticky profile requests.', 'error');
-      },
-    );
-
-    return unsubscribe;
-  }, [showToast]);
+    loadRows();
+  }, [loadRows]);
 
   const filteredRows = useMemo(() => {
     const term = filters.search.trim().toLowerCase();
@@ -84,6 +92,19 @@ export default function PlatformStickyProfilesTab({ showToast }) {
         await syncPublicMemberIndex(row.memberId, memberPayload, row.lguId);
       }
 
+      setRows((current) => current.map((entry) => (
+        entry.id === row.id
+          ? {
+            ...entry,
+            status,
+            stickyActive: status === 'approved',
+            stickyExpiresAt: status === 'approved' ? stickyExpiresAt : null,
+            approvedAt: status === 'approved' ? new Date() : null,
+            rejectedAt: status === 'rejected' ? new Date() : null,
+            updatedAt: new Date(),
+          }
+          : entry
+      )));
       showToast(`Sticky request ${status}.`, 'success');
     } catch (error) {
       console.error('[PlatformStickyProfilesTab.updateRequest]', error);
@@ -113,6 +134,18 @@ export default function PlatformStickyProfilesTab({ showToast }) {
           <option value="rejected">Rejected</option>
           <option value="all">All statuses</option>
         </select>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => loadRows(true)}
+          disabled={loading || Boolean(savingId)}
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-rotate-right'} mr-2 text-xs`} />
+          Refresh
+        </button>
       </div>
 
       <div className="space-y-4">

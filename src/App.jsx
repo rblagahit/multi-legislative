@@ -91,12 +91,14 @@ export default function App() {
   const canAccessPlatform = Boolean(user && userRole && PLATFORM_PANEL_ROLES.includes(userRole));
   const isAdminMode = view === 'admin' && canAccessAdmin;
   const isGlobalPublicView = view === 'public';
-  const shouldLoadPublicData = !isAdminMode;
-  const publicDocsState = usePublicDocuments(tenantId, shouldLoadPublicData, { global: isGlobalPublicView });
+  const shouldLoadPublicDocuments = view === 'public' || view === 'insights';
+  const shouldLoadPublicMembers = view === 'public' || view === 'insights';
+  const shouldLoadPublicSettings = !isAdminMode;
+  const publicDocsState = usePublicDocuments(tenantId, shouldLoadPublicDocuments, { global: isGlobalPublicView });
   const adminDocsState = useAdminDocuments(tenantId, isAdminMode);
-  const publicMembersState = usePublicMembers(tenantId, shouldLoadPublicData, { global: isGlobalPublicView });
+  const publicMembersState = usePublicMembers(tenantId, shouldLoadPublicMembers, { global: isGlobalPublicView });
   const adminMembersState = useAdminMembers(tenantId, isAdminMode);
-  const publicSettingsState = usePublicSettings(tenantId, shouldLoadPublicData);
+  const publicSettingsState = usePublicSettings(tenantId, shouldLoadPublicSettings);
   const adminSettingsState = useAdminSettings(tenantId, isAdminMode);
 
   const documents = isAdminMode ? adminDocsState.documents : publicDocsState.documents;

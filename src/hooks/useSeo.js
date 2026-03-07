@@ -6,7 +6,7 @@ const MANAGED_HEAD_CONFIG = {
     allowedScriptHosts: new Set(),
   },
   global: {
-    allowedTags: new Set(['META', 'LINK']),
+    allowedTags: new Set(['META']),
     allowedScriptHosts: new Set(),
   },
   adsense: {

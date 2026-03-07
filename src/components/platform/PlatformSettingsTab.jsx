@@ -114,11 +114,11 @@ export default function PlatformSettingsTab({ setupSettings, showToast, user }) 
               value={form.globalHeadHtml}
               onChange={setValue('globalHeadHtml')}
               rows={5}
-              placeholder={`<meta name="google-adsense-account" content="ca-pub-xxxxxxxxxxxxxxxx">\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx" crossorigin="anonymous"></script>`}
+              placeholder={`<meta name="google-site-verification" content="verification-token">\n<meta name="theme-color" content="#0f172a">`}
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm outline-none transition-all focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
             />
             <p className="mt-2 text-xs text-slate-400">
-              Injected into the global <code>&lt;head&gt;</code>. Only <code>&lt;meta&gt;</code> and <code>&lt;link&gt;</code> tags are applied here.
+              Injected into the global <code>&lt;head&gt;</code>. Only <code>&lt;meta&gt;</code> tags are applied here. Use the AdSense field below for approved ad scripts.
             </p>
           </div>
 

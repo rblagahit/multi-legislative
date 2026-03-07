@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { collection, limit, onSnapshot, query } from 'firebase/firestore';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 
 function toDate(value) {
@@ -53,21 +53,29 @@ export default function PlatformPremiumOpsTab({ showToast }) {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
   const [windowDays, setWindowDays] = useState('30');
+  const [loading, setLoading] = useState(true);
+
+  const loadRows = useCallback(async (withToast = false) => {
+    setLoading(true);
+    try {
+      const snapshot = await getDocs(
+        query(collection(db, 'stickyProfileRequests'), orderBy('createdAt', 'desc'), limit(300)),
+      );
+      setRows(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+      if (withToast) {
+        showToast('Premium operations refreshed.', 'success');
+      }
+    } catch (error) {
+      console.error('[PlatformPremiumOpsTab]', error);
+      showToast('Unable to load premium operations.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      query(collection(db, 'stickyProfileRequests'), limit(300)),
-      (snapshot) => {
-        setRows(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-      },
-      (error) => {
-        console.error('[PlatformPremiumOpsTab]', error);
-        showToast('Unable to load premium operations.', 'error');
-      },
-    );
-
-    return unsubscribe;
-  }, [showToast]);
+    loadRows();
+  }, [loadRows]);
 
   const filteredRows = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -108,6 +116,18 @@ export default function PlatformPremiumOpsTab({ showToast }) {
           <option value="30">Expiring window: 30 days</option>
           <option value="60">Expiring window: 60 days</option>
         </select>
+      </div>
+
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => loadRows(true)}
+          disabled={loading}
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <i className={`fas ${loading ? 'fa-spinner fa-spin' : 'fa-rotate-right'} mr-2 text-xs`} />
+          Refresh
+        </button>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
