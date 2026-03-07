@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { AdminSurface, AdminTabHeader } from './AdminUi';
 
 /**
  * Admin profile tab — name, role, contact email, photo, bio.
@@ -64,19 +65,23 @@ export default function ProfileTab({ user, showToast }) {
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-slate-400"><i className="fas fa-spinner fa-spin text-2xl" /></div>;
+  if (loading) {
+    return (
+      <AdminSurface>
+        <div className="py-20 text-center text-slate-400">
+          <i className="fas fa-spinner fa-spin text-2xl" />
+        </div>
+      </AdminSurface>
+    );
+  }
 
   return (
-    <div className="bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-100">
-      <div className="flex items-center gap-3 mb-7">
-        <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg">
-          <i className="fas fa-user-circle" />
-        </div>
-        <div>
-          <h3 className="text-xl font-black text-slate-900">Your Admin Profile</h3>
-          <p className="text-sm text-slate-500">Only <strong>Contact Email</strong> is required — used for document copy requests</p>
-        </div>
-      </div>
+    <AdminSurface className="md:p-10">
+      <AdminTabHeader
+        icon="fa-user-circle"
+        title="Your Admin Profile"
+        description="Only Contact Email is required because it receives document copy requests."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {[
@@ -115,6 +120,6 @@ export default function ProfileTab({ user, showToast }) {
           {saving ? <><i className="fas fa-spinner fa-spin" /> Saving…</> : <><i className="fas fa-save" /> Save Profile</>}
         </button>
       </div>
-    </div>
+    </AdminSurface>
   );
 }

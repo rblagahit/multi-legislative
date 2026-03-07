@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { collection, doc, limit, onSnapshot, query, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { sanitizeLguId } from '../../utils/helpers';
+import { AdminSurface, AdminTabHeader } from './AdminUi';
 
 const EMPTY_FORM = {
   name: '',
@@ -105,29 +106,31 @@ export default function BarangaysTab({ tenantId, showToast }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h3 className="text-xl font-black text-slate-900">Barangays</h3>
-          <p className="text-sm text-slate-500">Legacy recovery: maintain barangay registry and portal assignments.</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            if (showForm) {
-              resetForm();
-              return;
-            }
-            setShowForm(true);
-          }}
-          className="inline-flex items-center gap-2 self-start rounded-2xl bg-teal-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-teal-700"
-        >
-          <i className={`fas ${showForm ? 'fa-times' : 'fa-plus'} text-xs`} />
-          {showForm ? 'Close Form' : 'Add Barangay'}
-        </button>
-      </div>
+      <AdminTabHeader
+        icon="fa-map-marker-alt"
+        title="Barangays"
+        description="Maintain the barangay registry used by the portal and invite flows."
+        badge={`${sortedBarangays.length} barangays`}
+        action={(
+          <button
+            type="button"
+            onClick={() => {
+              if (showForm) {
+                resetForm();
+                return;
+              }
+              setShowForm(true);
+            }}
+            className="inline-flex items-center gap-2 self-start rounded-2xl bg-teal-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-teal-700"
+          >
+            <i className={`fas ${showForm ? 'fa-times' : 'fa-plus'} text-xs`} />
+            {showForm ? 'Close Form' : 'Add Barangay'}
+          </button>
+        )}
+      />
 
       {showForm ? (
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <AdminSurface>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">Barangay Name</label>
@@ -194,10 +197,10 @@ export default function BarangaysTab({ tenantId, showToast }) {
               Cancel
             </button>
           </div>
-        </div>
+        </AdminSurface>
       ) : null}
 
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+      <AdminSurface>
         {loading ? (
           <div className="py-12 text-center text-slate-400">
             <i className="fas fa-spinner fa-spin text-2xl" />
@@ -240,7 +243,7 @@ export default function BarangaysTab({ tenantId, showToast }) {
             ))}
           </div>
         )}
-      </div>
+      </AdminSurface>
     </div>
   );
 }

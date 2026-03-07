@@ -1,5 +1,5 @@
 # Robots.txt for Sangguniang Bayan of Argao Legislative Information System
-# https://sb-argao.web.app
+# https://multi-legislative.web.app
 
 # Allow all bots by default
 User-agent: *
@@ -19,4 +19,4 @@ Allow: /
 Crawl-delay: 1
 
 # Sitemap location
-Sitemap: https://sb-argao.web.app/sitemap.xml
+Sitemap: https://multi-legislative.web.app/sitemap.xml

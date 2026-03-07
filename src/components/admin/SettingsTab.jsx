@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { saveSettings } from '../../hooks/useSettings';
+import { AdminTabHeader } from './AdminUi';
 
 /**
  * Admin Settings tab — accordion: Branding / Notice / Social.
@@ -73,8 +74,11 @@ export default function SettingsTab({ settings, tenantId, user, showToast }) {
 
   return (
     <div>
-      <h3 className="text-xl font-black text-slate-900 mb-2">Settings</h3>
-      <p className="text-sm text-slate-500 mb-6">Click a section to expand and edit</p>
+      <AdminTabHeader
+        icon="fa-sliders"
+        title="Settings"
+        description="Branding, download notice, and footer contact details for this LGU portal."
+      />
 
       <div className="space-y-3">
 

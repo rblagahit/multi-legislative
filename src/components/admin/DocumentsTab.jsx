@@ -2,6 +2,7 @@ import { lazy, useState } from 'react';
 import { addDocument, deleteDocument } from '../../hooks/useDocuments';
 import { parseTags } from '../../utils/helpers';
 import { DOCUMENT_TYPES } from '../../utils/constants';
+import { AdminSurface, AdminTabHeader } from './AdminUi';
 
 const EditDocumentModal = lazy(() => import('../modals/EditDocumentModal'));
 
@@ -85,24 +86,25 @@ export default function DocumentsTab({ documents, members, tenantId, showToast }
 
   return (
     <div>
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-xl font-black text-slate-900">Documents</h3>
-          <p className="text-sm text-slate-500">Manage legislative documents</p>
-        </div>
-        <button
-          onClick={() => setShowForm(v => !v)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-sm hover:from-blue-700 hover:to-purple-700 transition-all shadow-md"
-        >
-          <i className={`fas ${showForm ? 'fa-times' : 'fa-plus'} text-xs`} />
-          {showForm ? 'Cancel' : 'Add Document'}
-        </button>
-      </div>
+      <AdminTabHeader
+        icon="fa-file-lines"
+        title="Documents"
+        description="Manage legislative documents, sponsors, and published links."
+        badge={`${documents.length} total`}
+        action={(
+          <button
+            onClick={() => setShowForm(v => !v)}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-bold text-white transition-all shadow-md hover:from-blue-700 hover:to-purple-700"
+          >
+            <i className={`fas ${showForm ? 'fa-times' : 'fa-plus'} text-xs`} />
+            {showForm ? 'Close Form' : 'Add Document'}
+          </button>
+        )}
+      />
 
       {/* Collapsible add form */}
       {showForm && (
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 mb-8">
+        <AdminSurface className="mb-8">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
               <label className="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Title *</label>
@@ -182,10 +184,16 @@ export default function DocumentsTab({ documents, members, tenantId, showToast }
               </button>
             </div>
           </form>
-        </div>
+        </AdminSurface>
       )}
 
-      <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+      <AdminSurface>
+        <div className="mb-5 flex items-center justify-between gap-4">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400">Current Library</p>
+          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-wider text-blue-700">
+            {filteredDocs.length} visible
+          </span>
+        </div>
         <div className="mb-5">
           <input
             type="text" value={docSearch}
@@ -223,7 +231,7 @@ export default function DocumentsTab({ documents, members, tenantId, showToast }
             </div>
           ))}
         </div>
-      </div>
+      </AdminSurface>
 
       {/* Edit modal */}
       {editDoc && (

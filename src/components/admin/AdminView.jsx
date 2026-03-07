@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import DocumentsTab from './DocumentsTab';
+import PanelTabNav from '../layout/PanelTabNav';
 import { SETTINGS_PANEL_ROLES } from '../../utils/constants';
 
 const BarangaysTab = lazy(() => import('./BarangaysTab'));
@@ -24,9 +25,9 @@ const TABS = [
 ];
 
 const TAB_GROUPS = [
-  { id: 'records', label: 'Records' },
-  { id: 'administration', label: 'Administration' },
-  { id: 'insights', label: 'Insights & Billing' },
+  { id: 'records', label: 'Records', icon: 'fa-folder-open', description: 'Core documents, members, and barangay records.' },
+  { id: 'administration', label: 'Administration', icon: 'fa-screwdriver-wrench', description: 'User access, settings, and profile controls.' },
+  { id: 'insights', label: 'Insights & Billing', icon: 'fa-chart-pie', description: 'Usage visibility, subscription, and audit history.' },
 ];
 
 /**
@@ -85,8 +86,8 @@ export default function AdminView({ user, userRole, tenantId, documents, members
             </div>
           </div>
         </div>
-        <div className="flex gap-4">
-          <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 text-center">
+      <div className="flex gap-4">
+        <div className="bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-100 text-center">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Members</p>
             <p className="text-2xl font-black text-slate-900">{members.filter(m => !m.isArchived).length}</p>
           </div>
@@ -97,38 +98,17 @@ export default function AdminView({ user, userRole, tenantId, documents, members
         </div>
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-2">
-        {visibleGroups.map(group => (
-          <button
-            key={group.id}
-            onClick={() => setActiveGroup(group.id)}
-            className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider transition-all ${
-              activeGroup === group.id
-                ? 'bg-slate-900 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700'
-            }`}
-          >
-            {group.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-8 overflow-x-auto border-b border-slate-200 pb-2">
-        <div className="flex min-w-max gap-2">
-          {visibleTabsForGroup.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`rounded-t-xl border-b-2 px-6 py-3 text-sm font-bold transition-all
-                ${activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-slate-400 hover:text-slate-700'}`}
-            >
-              <i className={`fas ${tab.icon} mr-2`} />{tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <PanelTabNav
+        title="Dashboard Section"
+        description="Choose a section first, then switch between the child tabs for that area."
+        groups={visibleGroups}
+        tabs={visibleTabsForGroup}
+        allTabs={visibleTabs}
+        activeGroup={activeGroup}
+        activeTab={activeTab}
+        onGroupChange={setActiveGroup}
+        onTabChange={setActiveTab}
+      />
 
       {/* Tab content */}
       {activeTab === 'docs' && <DocumentsTab {...tabProps} />}

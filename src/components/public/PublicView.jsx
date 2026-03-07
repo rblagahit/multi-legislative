@@ -28,6 +28,12 @@ export default function PublicView({
   const [search, setSearch]   = useState('');
   const [typeFilter, setType] = useState('All');
 
+  const focusDocumentResults = () => {
+    const target = document.getElementById('documents');
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   // ─── Modal state ────────────────────────────────────────────────────────────
   // modal: null | 'details' | 'notice' | 'request'
   const [activeDoc, setActiveDoc] = useState(null);
@@ -110,7 +116,8 @@ export default function PublicView({
                 <option value="Resolution">📄 Resolutions</option>
               </select>
               <button
-                onClick={() => {}}
+                type="button"
+                onClick={focusDocumentResults}
                 className="shrink-0 bg-amber-500 hover:bg-amber-600 text-white px-9 py-5 font-black text-sm tracking-wide transition-all flex items-center gap-2"
               >
                 <i className="fas fa-search text-xs" /> Search

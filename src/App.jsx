@@ -4,6 +4,7 @@ import { useAdminDocuments, usePublicDocuments } from './hooks/useDocuments';
 import { useAdminMembers, usePublicMembers } from './hooks/useMembers';
 import { useAdminSettings, usePublicSettings } from './hooks/useSettings';
 import { usePlatformSettings } from './hooks/usePlatformSettings';
+import { useSeo } from './hooks/useSeo';
 import { useTenant } from './hooks/useTenant';
 import { ADMIN_PANEL_ROLES, PLATFORM_PANEL_ROLES } from './utils/constants';
 
@@ -85,6 +86,7 @@ export default function App() {
   const documents = isAdminMode ? adminDocsState.documents : publicDocsState.documents;
   const members = isAdminMode ? adminMembersState.members : publicMembersState.members;
   const settings = isAdminMode ? adminSettingsState.settings : publicSettingsState.settings;
+  useSeo(view, settings, platformSettings);
   const appLoading = authLoading
     || (isAdminMode ? adminDocsState.loading : publicDocsState.loading)
     || (isAdminMode ? adminMembersState.loading : publicMembersState.loading)

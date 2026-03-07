@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { normalizeText, sanitizeLguId } from '../../utils/helpers';
+import { AdminSurface, AdminTabHeader } from './AdminUi';
 
 const USER_ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin' },
@@ -200,23 +201,25 @@ export default function UsersTab({ tenantId, user, showToast }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h3 className="text-xl font-black text-slate-900">User Accounts</h3>
-          <p className="text-sm text-slate-500">Legacy recovery: review users, assign roles, and manage pending invites.</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowInviteForm((current) => !current)}
-          className="inline-flex items-center gap-2 self-start rounded-2xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700"
-        >
-          <i className={`fas ${showInviteForm ? 'fa-times' : 'fa-user-plus'} text-xs`} />
-          {showInviteForm ? 'Close Invite' : 'Invite User'}
-        </button>
-      </div>
+      <AdminTabHeader
+        icon="fa-users-cog"
+        title="User Accounts"
+        description="Review users, assign roles, and manage pending invites for this LGU."
+        badge={`${sortedUsers.length} users`}
+        action={(
+          <button
+            type="button"
+            onClick={() => setShowInviteForm((current) => !current)}
+            className="inline-flex items-center gap-2 self-start rounded-2xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700"
+          >
+            <i className={`fas ${showInviteForm ? 'fa-times' : 'fa-user-plus'} text-xs`} />
+            {showInviteForm ? 'Close Invite' : 'Invite User'}
+          </button>
+        )}
+      />
 
       {showInviteForm ? (
-        <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+        <AdminSurface>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">Full Name</label>
@@ -293,10 +296,10 @@ export default function UsersTab({ tenantId, user, showToast }) {
               Cancel
             </button>
           </div>
-        </div>
+        </AdminSurface>
       ) : null}
 
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+      <AdminSurface>
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-slate-400">Pending Invites</p>
@@ -332,9 +335,9 @@ export default function UsersTab({ tenantId, user, showToast }) {
             </div>
           ))}
         </div>
-      </div>
+      </AdminSurface>
 
-      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
+      <AdminSurface>
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-black uppercase tracking-widest text-slate-400">Current Users</p>
@@ -428,7 +431,7 @@ export default function UsersTab({ tenantId, user, showToast }) {
             })}
           </div>
         )}
-      </div>
+      </AdminSurface>
     </div>
   );
 }

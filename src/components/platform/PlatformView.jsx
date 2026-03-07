@@ -1,24 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
+import PanelTabNav from '../layout/PanelTabNav';
 import PlatformAppAnalyticsTab from './PlatformAppAnalyticsTab';
 import PlatformBarangaysTab from './PlatformBarangaysTab';
+import { StatBarChart } from './PlatformCharts';
 import PlatformPremiumOpsTab from './PlatformPremiumOpsTab';
 import PlatformSettingsTab from './PlatformSettingsTab';
 import PlatformStickyProfilesTab from './PlatformStickyProfilesTab';
 import PlatformSubscriptionsTab from './PlatformSubscriptionsTab';
 
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: 'fa-chart-line' },
-  { id: 'app-analytics', label: 'App Analytics', icon: 'fa-magnifying-glass-chart' },
-  { id: 'sticky-profiles', label: 'Sticky Profiles', icon: 'fa-thumbtack' },
-  { id: 'lgus', label: 'LGUs', icon: 'fa-city' },
-  { id: 'barangays', label: 'Barangays', icon: 'fa-map-marker-alt' },
-  { id: 'users', label: 'Users', icon: 'fa-users-cog' },
-  { id: 'subscriptions', label: 'Subscriptions', icon: 'fa-tags' },
-  { id: 'premium-ops', label: 'Premium Ops', icon: 'fa-gem' },
-  { id: 'settings', label: 'Settings', icon: 'fa-sliders-h' },
-  { id: 'requests', label: 'Requests', icon: 'fa-bell' },
+  { id: 'overview', label: 'Overview', icon: 'fa-chart-line', group: 'operations' },
+  { id: 'requests', label: 'Requests', icon: 'fa-bell', group: 'operations' },
+  { id: 'app-analytics', label: 'App Analytics', icon: 'fa-magnifying-glass-chart', group: 'operations' },
+  { id: 'lgus', label: 'LGUs', icon: 'fa-city', group: 'directory' },
+  { id: 'barangays', label: 'Barangays', icon: 'fa-map-marker-alt', group: 'directory' },
+  { id: 'users', label: 'Users', icon: 'fa-users-cog', group: 'directory' },
+  { id: 'subscriptions', label: 'Subscriptions', icon: 'fa-tags', group: 'commercial' },
+  { id: 'sticky-profiles', label: 'Sticky Profiles', icon: 'fa-thumbtack', group: 'commercial' },
+  { id: 'premium-ops', label: 'Premium Ops', icon: 'fa-gem', group: 'commercial' },
+  { id: 'settings', label: 'Settings', icon: 'fa-sliders-h', group: 'configuration' },
+];
+
+const TAB_GROUPS = [
+  { id: 'operations', label: 'Operations', icon: 'fa-wave-square', description: 'Overview, queue visibility, and app-level signals.' },
+  { id: 'directory', label: 'Directory', icon: 'fa-building-shield', description: 'Tenant, barangay, and user directories for the platform.' },
+  { id: 'commercial', label: 'Premium & Billing', icon: 'fa-coins', description: 'Subscriptions, sticky profiles, and premium workflows.' },
+  { id: 'configuration', label: 'Configuration', icon: 'fa-sliders', description: 'Global settings that shape the shared platform shell.' },
 ];
 
 const TIER_LABELS = {
@@ -173,6 +182,7 @@ function TableShell({ children }) {
 
 export default function PlatformView({ user, navigateTo, showToast }) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [activeGroup, setActiveGroup] = useState('operations');
   const [search, setSearch] = useState({ lgus: '', users: '', requests: '' });
   const [platformState, setPlatformState] = useState(DEFAULT_PLATFORM_STATE);
 
@@ -227,6 +237,28 @@ export default function PlatformView({ user, navigateTo, showToast }) {
     () => platformState.featureRequests.filter(request => normalizeText(request.status, 'pending').toLowerCase() === 'pending'),
     [platformState.featureRequests],
   );
+  const visibleGroups = useMemo(
+    () => TAB_GROUPS.filter(group => TABS.some(tab => tab.group === group.id)),
+    [],
+  );
+  const visibleTabsForGroup = useMemo(
+    () => TABS.filter(tab => tab.group === activeGroup),
+    [activeGroup],
+  );
+
+  useEffect(() => {
+    if (!visibleGroups.some(group => group.id === activeGroup)) {
+      setActiveGroup(visibleGroups[0]?.id || 'operations');
+    }
+  }, [activeGroup, visibleGroups]);
+
+  useEffect(() => {
+    const currentTab = TABS.find(tab => tab.id === activeTab);
+    if (currentTab?.group === activeGroup) return;
+
+    const nextTab = TABS.find(tab => tab.group === activeGroup);
+    if (nextTab) setActiveTab(nextTab.id);
+  }, [activeGroup, activeTab]);
 
   const tierCounts = useMemo(() => (
     platformState.lguRegistry.reduce((acc, entry) => {
@@ -246,6 +278,36 @@ export default function PlatformView({ user, navigateTo, showToast }) {
       return diffDays >= 0 && diffDays <= 30;
     }).length
   ), [platformState.lguRegistry]);
+
+  const roleChartItems = useMemo(() => {
+    const roleColors = {
+      superadmin: '#f59e0b',
+      admin: '#2563eb',
+      editor: '#10b981',
+      barangay_portal: '#8b5cf6',
+      pending: '#fb923c',
+    };
+    const roleCounts = platformState.users.reduce((acc, entry) => {
+      const role = normalizeText(entry.role || entry.status, 'pending').toLowerCase();
+      acc[role] = (acc[role] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(roleCounts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([role, value]) => ({
+        label: role.replaceAll('_', ' '),
+        shortLabel: role === 'barangay_portal' ? 'barangay' : role,
+        value,
+        color: roleColors[role] || '#64748b',
+      }));
+  }, [platformState.users]);
+
+  const tierChartItems = useMemo(() => ([
+    { label: 'Starter', shortLabel: 'starter', value: tierCounts.starter || 0, color: '#94a3b8' },
+    { label: 'Standard', shortLabel: 'standard', value: tierCounts.standard || 0, color: '#2563eb' },
+    { label: 'Premium', shortLabel: 'premium', value: tierCounts.premium || 0, color: '#8b5cf6' },
+  ]), [tierCounts]);
 
   const filteredLgus = useMemo(() => {
     const term = search.lgus.trim().toLowerCase();
@@ -399,23 +461,17 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         />
       </div>
 
-      <div className="mt-10 flex flex-wrap gap-2 border-b border-slate-200">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`rounded-t-2xl border-b-2 px-5 py-3 text-sm font-black transition-all ${
-              activeTab === tab.id
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-400 hover:text-slate-700'
-            }`}
-          >
-            <i className={`fas ${tab.icon} mr-2`} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <PanelTabNav
+        title="Platform Section"
+        description="Move across platform groups first, then drill into the child tabs for that area."
+        groups={visibleGroups}
+        tabs={visibleTabsForGroup}
+        allTabs={TABS}
+        activeGroup={activeGroup}
+        activeTab={activeTab}
+        onGroupChange={setActiveGroup}
+        onTabChange={setActiveTab}
+      />
 
       <div className="mt-8">
         {platformState.loading && !platformState.users.length && !platformState.lguRegistry.length ? (
@@ -427,29 +483,11 @@ export default function PlatformView({ user, navigateTo, showToast }) {
 
         {!platformState.loading && activeTab === 'overview' ? (
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Tier Distribution</h3>
-                  <p className="text-sm text-slate-500">Current tenant mix from `lguRegistry`.</p>
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-3">
-                {['starter', 'standard', 'premium'].map(tier => (
-                  <div key={tier} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <TierBadge tier={tier} />
-                      <span className="text-2xl font-black text-slate-900">{tierCounts[tier] || 0}</span>
-                    </div>
-                    <p className="mt-3 text-sm text-slate-500">
-                      {tier === 'starter' && 'Free-tier tenants still on baseline access.'}
-                      {tier === 'standard' && 'Paid LGUs with added operational controls.'}
-                      {tier === 'premium' && 'Highest-access tenants with broader feature scope.'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <StatBarChart
+              title="Tier Distribution"
+              subtitle="Current tenant mix from `lguRegistry`."
+              items={tierChartItems}
+            />
 
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
               <h3 className="text-lg font-black text-slate-900">Pending Approvals</h3>
@@ -477,6 +515,14 @@ export default function PlatformView({ user, navigateTo, showToast }) {
                   />
                 ) : null}
               </div>
+            </div>
+
+            <div className="xl:col-span-2">
+              <StatBarChart
+                title="Users by Role"
+                subtitle="Current platform account distribution across visible roles."
+                items={roleChartItems}
+              />
             </div>
 
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm xl:col-span-2">

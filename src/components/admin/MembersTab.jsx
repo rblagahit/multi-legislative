@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { addMember, updateMember, deleteMember, archiveMember } from '../../hooks/useMembers';
 import { parseTags, isTermExpired } from '../../utils/helpers';
+import { AdminSurface, AdminTabHeader } from './AdminUi';
 
 /**
  * Admin Members tab — list + collapsible Add/Edit form.
@@ -91,24 +92,25 @@ export default function MembersTab({ members, tenantId, showToast }) {
 
   return (
     <div>
-      {/* Header row */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="text-xl font-black text-slate-900">Members</h3>
-          <p className="text-sm text-slate-500">Legislative officers and profiles</p>
-        </div>
-        <button
-          onClick={showForm ? handleCancel : openAdd}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl font-bold text-sm hover:from-green-700 hover:to-teal-700 transition-all shadow-md"
-        >
-          <i className={`fas ${showForm ? 'fa-times' : 'fa-user-plus'} text-xs`} />
-          {showForm ? 'Cancel' : 'Add Member'}
-        </button>
-      </div>
+      <AdminTabHeader
+        icon="fa-users"
+        title="Members"
+        description="Legislative officers, profiles, and archive status."
+        badge={`${members.filter(m => !m.isArchived).length} active`}
+        action={(
+          <button
+            onClick={showForm ? handleCancel : openAdd}
+            className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-green-600 to-teal-600 px-5 py-3 text-sm font-bold text-white transition-all shadow-md hover:from-green-700 hover:to-teal-700"
+          >
+            <i className={`fas ${showForm ? 'fa-times' : 'fa-user-plus'} text-xs`} />
+            {showForm ? 'Close Form' : 'Add Member'}
+          </button>
+        )}
+      />
 
       {/* Collapsible form */}
       {showForm && (
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 mb-6">
+        <AdminSurface className="mb-6">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="text-xs font-black uppercase text-slate-400 block mb-2 tracking-wider">Full Name *</label>
@@ -160,11 +162,11 @@ export default function MembersTab({ members, tenantId, showToast }) {
               </button>
             </div>
           </form>
-        </div>
+        </AdminSurface>
       )}
 
       {/* Member list */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+      <AdminSurface>
         <div className="flex items-center justify-between mb-5">
           <p className="text-xs font-black uppercase text-slate-400 tracking-widest flex items-center gap-2">
             <i className="fas fa-users text-blue-600" /> Current Members
@@ -179,6 +181,9 @@ export default function MembersTab({ members, tenantId, showToast }) {
           className="w-full p-3 bg-slate-50 rounded-2xl border border-slate-200 outline-none focus:border-blue-400 mb-4 text-sm transition-all"
         />
         <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+          {filtered.length === 0 && (
+            <p className="rounded-2xl bg-slate-50 px-4 py-10 text-center text-sm text-slate-500">No members match the current filter.</p>
+          )}
           {filtered.map(m => (
             <div key={m.id}
               className={`flex items-center gap-4 p-4 rounded-2xl transition-colors
@@ -213,7 +218,7 @@ export default function MembersTab({ members, tenantId, showToast }) {
             </div>
           ))}
         </div>
-      </div>
+      </AdminSurface>
     </div>
   );
 }
