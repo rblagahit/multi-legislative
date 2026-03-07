@@ -19,7 +19,7 @@ export function groupAnalyticsRows(rows, windowDays, granularity) {
   const grouped = new Map();
 
   rows.forEach((row) => {
-    const rowDate = toDate(row.date || row.updatedAt || row.createdAt || row.id);
+    const rowDate = toDate(row.date || row.updatedAt || row.createdAt);
     if (!rowDate || rowDate.getTime() < cutoffMs) return;
 
     const key = bucketKey(rowDate, granularity);

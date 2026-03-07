@@ -39,8 +39,10 @@ export default function App() {
   const [view, setView]   = useState(() => resolveAppLocation(window.location.pathname).view);
   const [toast, setToast] = useState(null); // { message, type }
   const deniedAccessRef   = useRef(false);
+  const authEnabledViews = new Set(['login', 'barangay-login', 'admin', 'platform']);
+  const authEnabled = authEnabledViews.has(view);
 
-  const { user, userRole, userLguId, loading: authLoading, logout } = useAuth();
+  const { user, userRole, userLguId, loading: authLoading, logout, isAuthenticated } = useAuth(authEnabled);
   const { tenantId, publicPortalUrl, hashTenantId } = useTenant(userLguId);
   const { platformSettings } = usePlatformSettings();
 
@@ -100,7 +102,7 @@ export default function App() {
   const documents = isAdminMode ? adminDocsState.documents : publicDocsState.documents;
   const members = isAdminMode ? adminMembersState.members : publicMembersState.members;
   const settings = isAdminMode ? adminSettingsState.settings : publicSettingsState.settings;
-  useSeo(view, settings, platformSettings, null, { user, userRole });
+  useSeo(view, settings, platformSettings, null, { user, userRole, isAuthenticated });
 
   useEffect(() => {
     const handlePopState = () => {
@@ -162,6 +164,7 @@ export default function App() {
     showToast,
     user,
     userRole,
+    userLguId,
     tenantId,
     publicPortalUrl,
     documents,

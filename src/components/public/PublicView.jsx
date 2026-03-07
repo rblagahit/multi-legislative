@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useState, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { normalizeText, normalizeTag } from '../../utils/helpers';
 import { buildPublicShareUrl } from '../../utils/share';
 import { useSeo } from '../../hooks/useSeo';
 import { buildAppPath, buildPublicEntityPath, parsePublicEntityLocation } from '../../utils/publicRoutes';
+import { trackPublicDocumentOpen, trackPublicSearch, trackPublicVisit } from '../../utils/publicAnalytics';
 import DocumentGrid         from './DocumentGrid';
 import MembersSection       from './MembersSection';
 import MemberProfileModal from '../modals/MemberProfileModal';
@@ -35,11 +36,14 @@ export default function PublicView({
   showToast,
   user,
   userRole,
+  userLguId,
 }) {
   const [search, setSearch]   = useState('');
   const [typeFilter, setType] = useState('All');
   const [municipalityFilter, setMunicipalityFilter] = useState(defaultMunicipalityId || '');
   const [barangayFilter, setBarangayFilter] = useState('');
+  const trackedVisitRef = useRef(false);
+  const searchTrackTimeoutRef = useRef(null);
 
   const focusDocumentResults = () => {
     const target = document.getElementById('documents');
@@ -67,6 +71,9 @@ export default function PublicView({
     setActiveDoc(doc);
     setModal('details');
     setRouteTarget({ type: 'doc', id: doc.id });
+    trackPublicDocumentOpen().catch((error) => {
+      console.error('[PublicView.trackPublicDocumentOpen]', error);
+    });
   };
   const openMemberProfile = (member) => {
     setActiveMember(member);
@@ -128,6 +135,35 @@ export default function PublicView({
     if (!defaultMunicipalityId) return;
     setMunicipalityFilter((current) => current || defaultMunicipalityId);
   }, [defaultMunicipalityId]);
+
+  useEffect(() => {
+    if (trackedVisitRef.current) return;
+    trackedVisitRef.current = true;
+    trackPublicVisit().catch((error) => {
+      console.error('[PublicView.trackPublicVisit]', error);
+    });
+  }, []);
+
+  useEffect(() => {
+    const normalized = search.trim();
+    if (!normalized) return () => {};
+
+    if (searchTrackTimeoutRef.current) {
+      window.clearTimeout(searchTrackTimeoutRef.current);
+    }
+
+    searchTrackTimeoutRef.current = window.setTimeout(() => {
+      trackPublicSearch(normalized).catch((error) => {
+        console.error('[PublicView.trackPublicSearch]', error);
+      });
+    }, 700);
+
+    return () => {
+      if (searchTrackTimeoutRef.current) {
+        window.clearTimeout(searchTrackTimeoutRef.current);
+      }
+    };
+  }, [search]);
 
   useEffect(() => {
     if (!barangayFilter) return;
@@ -403,6 +439,10 @@ export default function PublicView({
         <MemberProfileModal
           member={activeMember}
           documents={enrichedDocuments}
+          platformSettings={platformSettings}
+          user={user}
+          userRole={userRole}
+          userLguId={userLguId}
           onClose={closeModals}
           onOpenDocument={openDetails}
           showToast={showToast}

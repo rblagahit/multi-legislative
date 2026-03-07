@@ -98,7 +98,7 @@ function applyManagedHeadHtml(rawHtml = '', scope = 'default') {
 function shouldInjectAdsenseHtml(view, platformSettings, session = {}) {
   if (!platformSettings?.adsEnabled) return false;
   if (!String(platformSettings?.adsenseHeadHtml || '').trim()) return false;
-  if (platformSettings?.adsDisableForAuthenticated && session?.user) return false;
+  if (platformSettings?.adsDisableForAuthenticated && (session?.isAuthenticated || session?.user)) return false;
 
   const excludedByView = {
     public: Boolean(platformSettings?.adsExcludePublic),
@@ -250,6 +250,7 @@ export function useSeo(view, settings, platformSettings, entitySeo = null, sessi
     platformSettings?.adsenseHeadHtml,
     platformSettings?.globalHeadHtml,
     seo,
+    session?.isAuthenticated,
     session?.user,
     shouldInjectAdsense,
   ]);

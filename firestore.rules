@@ -84,7 +84,27 @@ service cloud.firestore {
       return value == null || ((value is int || value is float) && value >= 0);
     }
 
-    function validAnalyticsDailyCreate() {
+    function validInitialCounter(value, maxValue) {
+      return value == null
+          || ((value is int || value is float)
+              && value >= 0
+              && value <= maxValue);
+    }
+
+    function validDailyKey(key) {
+      return key is string
+          && key.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    function validSearchTermKey(termKey, dateValue) {
+      return termKey is string
+          && termKey.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}__[-a-z0-9]{1,80}$')
+          && (dateValue is string
+              && validDailyKey(dateValue)
+              && termKey.matches('^' + dateValue + '__[-a-z0-9]{1,80}$'));
+    }
+
+    function validAnalyticsDailyCreate(dateKey) {
       return request.resource.data.keys().hasOnly([
         'date',
         'visits',
@@ -98,14 +118,18 @@ service cloud.firestore {
         'createdAt',
         'updatedAt'
       ])
-      && validOptionalCounter(request.resource.data.visits)
-      && validOptionalCounter(request.resource.data.searches)
-      && validOptionalCounter(request.resource.data.views)
-      && validOptionalCounter(request.resource.data.documentViews)
-      && validOptionalCounter(request.resource.data.pageViews)
-      && validOptionalCounter(request.resource.data.sessions)
-      && validOptionalCounter(request.resource.data.totalSearches)
-      && validOptionalCounter(request.resource.data.docOpens);
+      && validDailyKey(dateKey)
+      && (request.resource.data.date == null
+          || (request.resource.data.date is string
+              && request.resource.data.date == dateKey))
+      && validInitialCounter(request.resource.data.visits, 5)
+      && validInitialCounter(request.resource.data.searches, 5)
+      && validInitialCounter(request.resource.data.views, 5)
+      && validInitialCounter(request.resource.data.documentViews, 5)
+      && validInitialCounter(request.resource.data.pageViews, 5)
+      && validInitialCounter(request.resource.data.sessions, 5)
+      && validInitialCounter(request.resource.data.totalSearches, 5)
+      && validInitialCounter(request.resource.data.docOpens, 5);
     }
 
     function validAnalyticsDailyUpdate() {
@@ -138,7 +162,7 @@ service cloud.firestore {
       && (request.resource.data.docOpens == null || request.resource.data.docOpens >= (resource.data.docOpens == null ? 0 : resource.data.docOpens));
     }
 
-    function validSearchTermCreate() {
+    function validSearchTermCreate(termKey) {
       return request.resource.data.keys().hasOnly([
         'date',
         'term',
@@ -148,10 +172,15 @@ service cloud.firestore {
         'createdAt',
         'updatedAt'
       ])
-      && (request.resource.data.term == null || request.resource.data.term is string)
-      && (request.resource.data.searchTerm == null || request.resource.data.searchTerm is string)
-      && validOptionalCounter(request.resource.data.count)
-      && validOptionalCounter(request.resource.data.total);
+      && validSearchTermKey(termKey, request.resource.data.date)
+      && (request.resource.data.term == null
+          || (request.resource.data.term is string
+              && request.resource.data.term.size() <= 120))
+      && (request.resource.data.searchTerm == null
+          || (request.resource.data.searchTerm is string
+              && request.resource.data.searchTerm.size() <= 120))
+      && validInitialCounter(request.resource.data.count, 3)
+      && validInitialCounter(request.resource.data.total, 3);
     }
 
     function validSearchTermUpdate() {
@@ -272,14 +301,14 @@ service cloud.firestore {
     // Only superadmin can read analytics dashboards.
     match /appAnalyticsDaily/{dateKey} {
       allow read: if isSuperAdmin();
-      allow create: if validAnalyticsDailyCreate();
+      allow create: if validAnalyticsDailyCreate(dateKey);
       allow update: if validAnalyticsDailyUpdate();
       allow delete: if isSuperAdmin();
     }
 
     match /appSearchTermsDaily/{termKey} {
       allow read: if isSuperAdmin();
-      allow create: if validSearchTermCreate();
+      allow create: if validSearchTermCreate(termKey);
       allow update: if validSearchTermUpdate();
       allow delete: if isSuperAdmin();
     }
@@ -405,11 +434,13 @@ service cloud.firestore {
     }
 
     // ── Sticky Profile Requests ─────────────────────────────────────────────
-    // Public users can submit pending requests for premium sticky placement.
+    // Requests must be submitted by an authenticated LGU-side user for their own LGU.
     // Only superadmin can review/read/update/delete.
     match /stickyProfileRequests/{requestId} {
       allow read: if isSuperAdmin();
-      allow create: if request.resource.data.keys().hasOnly([
+      allow create: if request.auth != null
+                    && userRole() in ['admin', 'editor', 'barangay_portal']
+                    && request.resource.data.keys().hasOnly([
                         'status',
                         'months',
                         'fee',
@@ -427,6 +458,8 @@ service cloud.firestore {
                         'updatedAt'
                       ])
                     && request.resource.data.status == 'pending'
+                    && request.resource.data.requesterUid == request.auth.uid
+                    && request.resource.data.requesterEmail == request.auth.token.email
                     && (request.resource.data.months == 1
                         || request.resource.data.months == 2
                         || request.resource.data.months == 3)
@@ -440,7 +473,8 @@ service cloud.firestore {
                     && request.resource.data.memberId is string
                     && request.resource.data.memberId.size() >= 1
                     && request.resource.data.lguId is string
-                    && request.resource.data.lguId.size() >= 1;
+                    && request.resource.data.lguId.size() >= 1
+                    && request.resource.data.lguId == userLguId();
       allow update, delete: if isSuperAdmin();
     }
 

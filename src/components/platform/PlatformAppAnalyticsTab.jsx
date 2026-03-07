@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, documentId, getDocs, limit, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { MultiLineChart, StatBarChart } from './PlatformCharts';
 import { groupAnalyticsRows, toDate } from '../../utils/platformMetrics';
@@ -16,7 +16,30 @@ function getAnalyticsLimits(windowDays) {
 }
 
 function getSearchRowDate(row = {}) {
-  return toDate(row.date || row.updatedAt || row.createdAt || row.id?.split('__')[0] || row.id);
+  return toDate(row.date || row.updatedAt || row.createdAt);
+}
+
+async function getAnalyticsSnapshot(collectionName, rowLimit, orderFields = []) {
+  const collectionRef = collection(db, collectionName);
+
+  for (const field of orderFields) {
+    try {
+      return await getDocs(query(collectionRef, orderBy(field, 'desc'), limit(rowLimit)));
+    } catch (error) {
+      const code = typeof error?.code === 'string' ? error.code : '';
+      if (
+        code === 'failed-precondition'
+        || code === 'permission-denied'
+        || code === 'invalid-argument'
+      ) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  return getDocs(query(collectionRef, limit(rowLimit)));
 }
 
 export default function PlatformAppAnalyticsTab({ showToast }) {
@@ -34,8 +57,8 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
       try {
         const rowLimits = getAnalyticsLimits(windowDays);
         const [dailySnap, searchSnap] = await Promise.all([
-          getDocs(query(collection(db, 'appAnalyticsDaily'), orderBy(documentId(), 'desc'), limit(rowLimits.daily))),
-          getDocs(query(collection(db, 'appSearchTermsDaily'), orderBy(documentId(), 'desc'), limit(rowLimits.search))),
+          getAnalyticsSnapshot('appAnalyticsDaily', rowLimits.daily, ['date', 'createdAt', 'updatedAt']),
+          getAnalyticsSnapshot('appSearchTermsDaily', rowLimits.search, ['date', 'createdAt', 'updatedAt']),
         ]);
         if (!ignore) {
           setDailyRows(dailySnap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
@@ -60,13 +83,13 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
   const recentDaily = useMemo(() => (
     dailyRows
       .filter((row) => {
-        const rowDate = toDate(row.date || row.updatedAt || row.createdAt || row.id);
+        const rowDate = toDate(row.date || row.updatedAt || row.createdAt);
         if (!rowDate) return false;
         return rowDate.getTime() >= (Date.now() - (Number(windowDays) * 24 * 60 * 60 * 1000));
       })
       .sort((a, b) => {
-        const aDate = toDate(a.date || a.updatedAt || a.createdAt || a.id)?.getTime() || 0;
-        const bDate = toDate(b.date || b.updatedAt || b.createdAt || b.id)?.getTime() || 0;
+        const aDate = toDate(a.date || a.updatedAt || a.createdAt)?.getTime() || 0;
+        const bDate = toDate(b.date || b.updatedAt || b.createdAt)?.getTime() || 0;
         return bDate - aDate;
       })
   ), [dailyRows, windowDays]);
@@ -190,7 +213,7 @@ export default function PlatformAppAnalyticsTab({ showToast }) {
               ) : recentDaily.slice(0, 12).map((row) => (
                 <div key={row.id} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
                   <div>
-                    <p className="font-bold text-slate-900">{row.id}</p>
+                    <p className="font-bold text-slate-900">{row.date || row.id}</p>
                     <p className="text-sm text-slate-500">Searches {Number(row.searches || row.totalSearches || 0)} · Views {Number(row.documentViews || row.views || 0)}</p>
                   </div>
                   <span className="text-sm font-black text-blue-700">{Number(row.visits || row.sessions || row.pageViews || 0)} visits</span>

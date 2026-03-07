@@ -1,5 +1,10 @@
+import { useMemo, useState } from 'react';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { db } from '../../firebase';
 import { formatDate, isTermExpired, normalizeName } from '../../utils/helpers';
 import { buildPublicShareUrl, sharePublicEntity } from '../../utils/share';
+
+const STICKY_REQUEST_ROLES = ['admin', 'editor', 'barangay_portal'];
 
 function buildAvatar(member) {
   return member.image
@@ -14,10 +19,16 @@ function isPrimarySponsor(member, doc) {
 export default function MemberProfileModal({
   member,
   documents,
+  platformSettings,
+  user,
+  userRole,
+  userLguId,
   onClose,
   onOpenDocument,
   showToast,
 }) {
+  const [stickyForm, setStickyForm] = useState({ months: '1', transactionNumber: '' });
+  const [stickySubmitting, setStickySubmitting] = useState(false);
   const avatar = buildAvatar(member);
   const expired = isTermExpired(member);
   const recentSponsoredOrdinances = [...documents]
@@ -32,6 +43,19 @@ export default function MemberProfileModal({
   const shareUrl = buildPublicShareUrl('member', member);
   const shareTitle = `${member.name || 'SB Member'} | Member Profile`;
   const shareText = `View the public legislative profile for ${member.name || 'this member'}.`;
+  const stickyOptions = useMemo(() => ([
+    { months: 1, fee: Number(platformSettings?.stickyFee1 || 1500) || 1500 },
+    { months: 2, fee: Number(platformSettings?.stickyFee2 || 2800) || 2800 },
+    { months: 3, fee: Number(platformSettings?.stickyFee3 || 3900) || 3900 },
+  ]), [platformSettings?.stickyFee1, platformSettings?.stickyFee2, platformSettings?.stickyFee3]);
+  const selectedStickyOption = stickyOptions.find((entry) => String(entry.months) === String(stickyForm.months)) || stickyOptions[0];
+  const canRequestSticky = Boolean(
+    user?.uid
+    && STICKY_REQUEST_ROLES.includes(String(userRole || '').toLowerCase())
+    && userLguId
+    && member.lguId
+    && userLguId === member.lguId,
+  );
 
   const handleShare = async (channel) => {
     await sharePublicEntity({
@@ -42,6 +66,43 @@ export default function MemberProfileModal({
       onSuccess: (message) => showToast?.(message, 'success'),
       onError: (message) => showToast?.(message, 'error'),
     });
+  };
+
+  const submitStickyRequest = async () => {
+    const transactionNumber = stickyForm.transactionNumber.trim();
+    if (transactionNumber.length < 4) {
+      showToast?.('Enter a valid payment or transaction reference first.', 'error');
+      return;
+    }
+
+    setStickySubmitting(true);
+    try {
+      await addDoc(collection(db, 'stickyProfileRequests'), {
+        status: 'pending',
+        months: selectedStickyOption.months,
+        fee: selectedStickyOption.fee,
+        transactionNumber,
+        memberScopeId: `${member.lguId || 'public'}:${member.id}`,
+        memberId: member.id,
+        lguId: member.lguId || 'public',
+        memberName: member.name || '',
+        memberRole: member.role || '',
+        memberImage: member.image || '',
+        sourceHost: window.location.hostname,
+        requesterUid: user.uid,
+        requesterEmail: user.email || '',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      setStickyForm({ months: '1', transactionNumber: '' });
+      showToast?.('Sticky profile request submitted for review.', 'success');
+    } catch (error) {
+      console.error('[MemberProfileModal.submitStickyRequest]', error);
+      showToast?.('Unable to submit sticky profile request.', 'error');
+    } finally {
+      setStickySubmitting(false);
+    }
   };
 
   return (
@@ -99,6 +160,75 @@ export default function MemberProfileModal({
             <p className="mt-3 text-sm leading-relaxed text-slate-600">
               {member.bio || 'No biography available for this member yet.'}
             </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-200 bg-amber-50/70 p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest text-amber-600">Sticky Profile Premium</p>
+                <p className="mt-2 text-sm text-slate-600">
+                  Requests must be filed by a registered user from this LGU. LGU requests are then queued for superadmin review.
+                </p>
+                {platformSettings?.stickyQrUrl ? (
+                  <a
+                    href={platformSettings.stickyQrUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-800"
+                  >
+                    <i className="fas fa-qrcode text-xs" />
+                    Open payment QR / instructions
+                  </a>
+                ) : null}
+              </div>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-wider text-amber-700 shadow-sm">
+                LGU-routed request
+              </span>
+            </div>
+
+            {canRequestSticky ? (
+              <div className="mt-5 grid gap-3 md:grid-cols-[180px_minmax(0,1fr)_auto]">
+                <label className="rounded-2xl border border-amber-200 bg-white px-4 py-3 shadow-sm">
+                  <span className="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">Duration</span>
+                  <select
+                    value={stickyForm.months}
+                    onChange={(event) => setStickyForm((current) => ({ ...current, months: event.target.value }))}
+                    className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none"
+                  >
+                    {stickyOptions.map((entry) => (
+                      <option key={entry.months} value={entry.months}>
+                        {entry.months} month{entry.months > 1 ? 's' : ''} · PHP {entry.fee.toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="rounded-2xl border border-amber-200 bg-white px-4 py-3 shadow-sm">
+                  <span className="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">Transaction Reference</span>
+                  <input
+                    type="text"
+                    value={stickyForm.transactionNumber}
+                    onChange={(event) => setStickyForm((current) => ({ ...current, transactionNumber: event.target.value }))}
+                    placeholder="GCash / transfer / receipt reference"
+                    className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none"
+                  />
+                </label>
+
+                <button
+                  type="button"
+                  onClick={submitStickyRequest}
+                  disabled={stickySubmitting}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-amber-500 px-5 py-4 text-sm font-black text-white transition-all hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <i className={`fas ${stickySubmitting ? 'fa-spinner fa-spin' : 'fa-thumbtack'} text-xs`} />
+                  Request Sticky
+                </button>
+              </div>
+            ) : (
+              <div className="mt-5 rounded-2xl border border-dashed border-amber-200 bg-white/80 px-4 py-4 text-sm font-semibold text-slate-600">
+                Sticky requests are available only to signed-in LGU users from this municipality.
+              </div>
+            )}
           </div>
 
           <div>
