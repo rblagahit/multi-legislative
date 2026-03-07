@@ -4,17 +4,21 @@ import { db } from '../../firebase';
 import PanelTabNav from '../layout/PanelTabNav';
 import PlatformAppAnalyticsTab from './PlatformAppAnalyticsTab';
 import PlatformBarangaysTab from './PlatformBarangaysTab';
+import PlatformLgusTab from './PlatformLgusTab';
+import PlatformMembersTab from './PlatformMembersTab';
 import { StatBarChart } from './PlatformCharts';
 import PlatformPremiumOpsTab from './PlatformPremiumOpsTab';
 import PlatformSettingsTab from './PlatformSettingsTab';
 import PlatformStickyProfilesTab from './PlatformStickyProfilesTab';
 import PlatformSubscriptionsTab from './PlatformSubscriptionsTab';
+import PlatformUsersTab from './PlatformUsersTab';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: 'fa-chart-line', group: 'operations' },
   { id: 'requests', label: 'Requests', icon: 'fa-bell', group: 'operations' },
   { id: 'app-analytics', label: 'App Analytics', icon: 'fa-magnifying-glass-chart', group: 'operations' },
   { id: 'lgus', label: 'LGUs', icon: 'fa-city', group: 'directory' },
+  { id: 'members', label: 'Members', icon: 'fa-user-tie', group: 'directory' },
   { id: 'barangays', label: 'Barangays', icon: 'fa-map-marker-alt', group: 'directory' },
   { id: 'users', label: 'Users', icon: 'fa-users-cog', group: 'directory' },
   { id: 'subscriptions', label: 'Subscriptions', icon: 'fa-tags', group: 'commercial' },
@@ -73,24 +77,6 @@ function formatDate(value) {
     month: 'short',
     day: 'numeric',
   }).format(dateValue);
-}
-
-function formatRelativeExpiry(value) {
-  if (!value) return 'No expiry';
-  const dateValue = typeof value?.toDate === 'function'
-    ? value.toDate()
-    : value?.seconds
-      ? new Date(value.seconds * 1000)
-      : new Date(value);
-
-  if (Number.isNaN(dateValue.getTime())) return 'No expiry';
-
-  const diffMs = dateValue.getTime() - Date.now();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) return `Expired ${Math.abs(diffDays)}d ago`;
-  if (diffDays === 0) return 'Expires today';
-  return `Expires in ${diffDays}d`;
 }
 
 function normalizeText(value, fallback = '') {
@@ -172,18 +158,10 @@ function RoleBadge({ role }) {
   );
 }
 
-function TableShell({ children }) {
-  return (
-    <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-      <div className="overflow-x-auto">{children}</div>
-    </div>
-  );
-}
-
 export default function PlatformView({ user, navigateTo, showToast }) {
   const [activeTab, setActiveTab] = useState('overview');
   const [activeGroup, setActiveGroup] = useState('operations');
-  const [search, setSearch] = useState({ lgus: '', users: '', requests: '' });
+  const [search, setSearch] = useState({ requests: '' });
   const [platformState, setPlatformState] = useState(DEFAULT_PLATFORM_STATE);
 
   useEffect(() => {
@@ -308,46 +286,6 @@ export default function PlatformView({ user, navigateTo, showToast }) {
     { label: 'Standard', shortLabel: 'standard', value: tierCounts.standard || 0, color: '#2563eb' },
     { label: 'Premium', shortLabel: 'premium', value: tierCounts.premium || 0, color: '#8b5cf6' },
   ]), [tierCounts]);
-
-  const filteredLgus = useMemo(() => {
-    const term = search.lgus.trim().toLowerCase();
-    const entries = [...platformState.lguRegistry].sort((a, b) => buildLguLabel(a.id, a).localeCompare(buildLguLabel(b.id, b)));
-
-    if (!term) return entries;
-    return entries.filter(entry => {
-      const haystack = [
-        entry.id,
-        buildLguLabel(entry.id, entry),
-        entry.adminEmail,
-        entry.tier,
-        entry.province,
-      ].map(value => normalizeText(value, '').toLowerCase()).join(' ');
-      return haystack.includes(term);
-    });
-  }, [platformState.lguRegistry, search.lgus]);
-
-  const filteredUsers = useMemo(() => {
-    const term = search.users.trim().toLowerCase();
-    const entries = [...platformState.users].sort((a, b) => {
-      if (isPendingUser(a) && !isPendingUser(b)) return -1;
-      if (!isPendingUser(a) && isPendingUser(b)) return 1;
-      return normalizeText(a.name, a.email || a.id).localeCompare(normalizeText(b.name, b.email || b.id));
-    });
-
-    if (!term) return entries;
-    return entries.filter(entry => {
-      const lguLabel = buildLguLabel(entry.lguId, registryMap.get(entry.lguId));
-      const haystack = [
-        entry.name,
-        entry.email,
-        entry.role,
-        entry.status,
-        entry.lguId,
-        lguLabel,
-      ].map(value => normalizeText(value, '').toLowerCase()).join(' ');
-      return haystack.includes(term);
-    });
-  }, [platformState.users, registryMap, search.users]);
 
   const filteredRequests = useMemo(() => {
     const term = search.requests.trim().toLowerCase();
@@ -557,66 +495,16 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         ) : null}
 
         {!platformState.loading && activeTab === 'lgus' ? (
-          <div className="space-y-5">
-            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-                <input
-                  type="text"
-                  value={search.lgus}
-                  onChange={event => setSearch(current => ({ ...current, lgus: event.target.value }))}
-                  placeholder="Search LGU, tier, province, or admin email…"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-                />
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
-                  {filteredLgus.length} LGU{filteredLgus.length === 1 ? '' : 's'}
-                </div>
-              </div>
-            </div>
-            {filteredLgus.length ? (
-              <TableShell>
-                <table className="min-w-full divide-y divide-slate-100 text-sm">
-                  <thead className="bg-slate-50 text-left text-xs font-black uppercase tracking-wider text-slate-400">
-                    <tr>
-                      <th className="px-5 py-4">LGU</th>
-                      <th className="px-5 py-4">Tier</th>
-                      <th className="px-5 py-4">Admin Email</th>
-                      <th className="px-5 py-4">Expiry</th>
-                      <th className="px-5 py-4">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredLgus.map(entry => (
-                      <tr key={entry.id} className="align-top">
-                        <td className="px-5 py-4">
-                          <p className="font-black text-slate-900">{buildLguLabel(entry.id, entry)}</p>
-                          <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">{entry.id}</p>
-                        </td>
-                        <td className="px-5 py-4"><TierBadge tier={entry.tier} /></td>
-                        <td className="px-5 py-4 text-slate-600">{normalizeText(entry.adminEmail, 'Not set')}</td>
-                        <td className="px-5 py-4">
-                          <p className="font-semibold text-slate-900">{formatDate(entry.subscriptionExpiry)}</p>
-                          <p className="mt-1 text-xs font-semibold text-slate-400">{formatRelativeExpiry(entry.subscriptionExpiry)}</p>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wider ${
-                            entry.paid ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'
-                          }`}>
-                            {entry.paid ? 'Paid' : 'Unpaid'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </TableShell>
-            ) : (
-              <EmptyState
-                icon="fa-city"
-                title="No LGUs matched"
-                body="Adjust the search term to see platform tenants again."
-              />
-            )}
-          </div>
+          <PlatformLgusTab
+            lguRegistry={platformState.lguRegistry}
+            user={user}
+            showToast={showToast}
+            refreshPlatformData={refreshPlatformData}
+          />
+        ) : null}
+
+        {!platformState.loading && activeTab === 'members' ? (
+          <PlatformMembersTab showToast={showToast} />
         ) : null}
 
         {!platformState.loading && activeTab === 'barangays' ? (
@@ -624,63 +512,12 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         ) : null}
 
         {!platformState.loading && activeTab === 'users' ? (
-          <div className="space-y-5">
-            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
-                <input
-                  type="text"
-                  value={search.users}
-                  onChange={event => setSearch(current => ({ ...current, users: event.target.value }))}
-                  placeholder="Search user, role, email, or LGU…"
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
-                />
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-500">
-                  {filteredUsers.length} user{filteredUsers.length === 1 ? '' : 's'}
-                </div>
-              </div>
-            </div>
-            {filteredUsers.length ? (
-              <TableShell>
-                <table className="min-w-full divide-y divide-slate-100 text-sm">
-                  <thead className="bg-slate-50 text-left text-xs font-black uppercase tracking-wider text-slate-400">
-                    <tr>
-                      <th className="px-5 py-4">User</th>
-                      <th className="px-5 py-4">Role</th>
-                      <th className="px-5 py-4">LGU</th>
-                      <th className="px-5 py-4">Status</th>
-                      <th className="px-5 py-4">Updated</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredUsers.map(entry => (
-                      <tr key={entry.id}>
-                        <td className="px-5 py-4">
-                          <p className="font-black text-slate-900">{normalizeText(entry.name, entry.email || entry.id)}</p>
-                          <p className="mt-1 text-slate-500">{normalizeText(entry.email, 'No email')}</p>
-                        </td>
-                        <td className="px-5 py-4"><RoleBadge role={entry.role} /></td>
-                        <td className="px-5 py-4 text-slate-600">{buildLguLabel(entry.lguId, registryMap.get(entry.lguId))}</td>
-                        <td className="px-5 py-4">
-                          <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black uppercase tracking-wider ${
-                            isPendingUser(entry) ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
-                          }`}>
-                            {isPendingUser(entry) ? 'Pending' : 'Active'}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">{formatDate(entry.updatedAt || entry.createdAt)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </TableShell>
-            ) : (
-              <EmptyState
-                icon="fa-users"
-                title="No users matched"
-                body="Adjust the search term to inspect platform accounts again."
-              />
-            )}
-          </div>
+          <PlatformUsersTab
+            users={platformState.users}
+            registryMap={registryMap}
+            showToast={showToast}
+            refreshPlatformData={refreshPlatformData}
+          />
         ) : null}
 
         {!platformState.loading && activeTab === 'subscriptions' ? (

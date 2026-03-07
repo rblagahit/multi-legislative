@@ -15,7 +15,9 @@ export default function Navbar({
   logout,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const orgName = platformSettings?.navTitle || settings?.orgName || 'Sangguniang Bayan of Argao';
+  const orgName = settings?.orgName || '';
+  const navTitle = platformSettings?.navTitle || orgName || 'LGU Legislative Information System';
+  const navTagline = orgName && orgName !== navTitle ? orgName : 'Legislative Information System';
   const sealUrl = platformSettings?.logoUrl || settings?.sealUrl || '/argao-seal.png';
   const handleViewNavigation = (view) => {
     setMobileMenuOpen(false);
@@ -43,11 +45,11 @@ export default function Navbar({
             />
             <div className="text-left">
               <h1 className="font-black text-base sm:text-lg leading-tight text-slate-900">
-                {orgName}
+                {navTitle}
               </h1>
               <p className="text-[10px] font-semibold text-blue-600 tracking-widest uppercase flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse inline-block" />
-                Legislative Information System
+                {navTagline}
               </p>
             </div>
           </button>

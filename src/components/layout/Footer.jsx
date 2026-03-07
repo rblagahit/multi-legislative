@@ -4,6 +4,7 @@
 export default function Footer({ settings, platformSettings, navigateTo, navigateToSection }) {
   const { socialFacebook, socialTwitter, socialEmail, orgName, municipality, province, sealUrl } = settings || {};
   const footerTitle = platformSettings?.navTitle || orgName || 'LGU Legislative Information System';
+  const copyrightOwner = orgName || footerTitle;
   const footerSeal = platformSettings?.logoUrl || sealUrl || '';
   const cityProvince = [municipality, province].filter(Boolean).join(', ');
 
@@ -116,7 +117,7 @@ export default function Footer({ settings, platformSettings, navigateTo, navigat
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-800">
             <p className="text-xs text-slate-500">
-              &copy; {new Date().getFullYear()} {footerTitle}. All rights reserved. | Republic Act 7160 (Local Government Code)
+              &copy; {new Date().getFullYear()} {copyrightOwner}. All rights reserved. | Republic Act 7160 (Local Government Code)
             </p>
             <p className="text-xs text-slate-600 flex items-center gap-1">
               Built with <i className="fas fa-heart text-red-500 mx-1" /> for transparent government

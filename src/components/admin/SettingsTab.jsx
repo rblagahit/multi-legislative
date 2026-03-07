@@ -90,7 +90,7 @@ export default function SettingsTab({ settings, tenantId, user, showToast }) {
             <div className="px-7 pb-7 border-t border-slate-100">
               <div className="space-y-5 mt-6">
                 {[
-                  { label: 'Organization Name', key: 'orgName',       placeholder: 'e.g., Sangguniang Bayan of Argao', hint: 'Appears in nav bar and footer' },
+                  { label: 'Organization Name', key: 'orgName',       placeholder: 'e.g., Sangguniang Bayan of Argao', hint: 'Used as your LGU tagline in the navbar and footer copyright' },
                   { label: 'Seal / Logo URL',   key: 'sealUrl',       placeholder: 'https://… (direct image link)', type: 'url', hint: 'Updates nav seal, footer, and favicon' },
                   { label: 'Contact Email',     key: 'contactEmail',  placeholder: 'e.g., sbargao@lgu.gov.ph', type: 'email', hint: 'Displayed on the Contact page' },
                 ].map(f => (
