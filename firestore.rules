@@ -187,6 +187,26 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
     }
 
+    // ── Public index collections ─────────────────────────────────────────────
+    // Client-maintained mirror used by the landing page for safe global reads.
+    match /publicDocuments/{docId} {
+      allow read: if true;
+      allow create: if isAdmin(request.resource.data.lguId)
+                    || isEditor(request.resource.data.lguId)
+                    || (isBarangayPortalUser(request.resource.data.lguId)
+                        && request.resource.data.barangayId == userBarangayId());
+      allow update: if isAdmin(resource.data.lguId)
+                    || isEditor(resource.data.lguId)
+                    || (isBarangayPortalUser(resource.data.lguId)
+                        && resource.data.barangayId == userBarangayId()
+                        && request.resource.data.barangayId == userBarangayId())
+                    || isPublicLegislationViewIncrement();
+      allow delete: if isAdmin(resource.data.lguId)
+                    || isEditor(resource.data.lguId)
+                    || (isBarangayPortalUser(resource.data.lguId)
+                        && resource.data.barangayId == userBarangayId());
+    }
+
     // ── Municipal data ────────────────────────────────────────────────────────
     // Collection-group read support for public document discovery across LGUs.
     // Required for collectionGroup('legislations') queries from the public page.
@@ -310,16 +330,21 @@ service cloud.firestore {
     }
 
     // ── Barangay data ─────────────────────────────────────────────────────────
+    // Required for collectionGroup('barangays') queries from public/platform views.
+    match /{path=**}/barangays/{barangayId} {
+      allow read: if true;
+    }
+
     // Main barangay document (used by collectionGroup('barangays')).
     match /lgus/{lguId}/barangays/{barangayId} {
       allow read:  if true;
-      allow write: if isBarangayAdmin(lguId, barangayId);
+      allow write: if isSuperAdmin() || isBarangayAdmin(lguId, barangayId);
     }
 
     // Any nested documents under a barangay document.
     match /lgus/{lguId}/barangays/{barangayId}/{document=**} {
       allow read:  if true;
-      allow write: if isBarangayAdmin(lguId, barangayId);
+      allow write: if isSuperAdmin() || isBarangayAdmin(lguId, barangayId);
     }
 
   }

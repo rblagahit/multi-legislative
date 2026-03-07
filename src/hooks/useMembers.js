@@ -14,6 +14,7 @@ const PUBLIC_MEMBER_PAGE_SIZE = 24;
 const GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT = 300;
 
 const membersQuery = (lguId) => query(colRef(lguId), orderBy('name'), limit(ADMIN_MEMBER_LIMIT));
+const globalRecentMembersQuery = () => query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE));
 const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
   cursor
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
@@ -36,6 +37,14 @@ const mapMembers = (snap) => snap.docs.map((entry) => ({
   ...entry.data(),
   lguId: sanitizeLguId(entry.ref.parent?.parent?.id || entry.data()?.lguId || ''),
 }));
+const dedupeMembers = (rows) => {
+  const seen = new Set();
+  return rows.filter((entry) => {
+    if (seen.has(entry.id)) return false;
+    seen.add(entry.id);
+    return true;
+  });
+};
 
 /**
  * One-time fetch for public member browsing.
@@ -62,12 +71,16 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options
     const loadMembers = async () => {
       setLoading(true);
       try {
-        const firstPageQuery = globalScope
-          ? globalPublicMembersSeedQuery()
-          : scopedPublicMembersPageQuery(lguId);
-        const snap = await getDocs(firstPageQuery);
+        const snap = await getDocs(globalScope ? globalRecentMembersQuery() : scopedPublicMembersPageQuery(lguId));
         if (!ignore) {
-          const loadedMembers = mapMembers(snap);
+          let loadedMembers = mapMembers(snap);
+          if (globalScope && loadedMembers.length < PUBLIC_MEMBER_PAGE_SIZE) {
+            const seedSnap = await getDocs(globalPublicMembersSeedQuery());
+            loadedMembers = dedupeMembers([
+              ...loadedMembers,
+              ...mapMembers(seedSnap),
+            ]);
+          }
           const nextMembers = globalScope
             ? sortMembersByRecency(loadedMembers).slice(0, PUBLIC_MEMBER_PAGE_SIZE)
             : loadedMembers;

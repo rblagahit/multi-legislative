@@ -6,7 +6,6 @@ import { useAdminSettings, usePublicSettings } from './hooks/useSettings';
 import { usePlatformSettings } from './hooks/usePlatformSettings';
 import { useSeo } from './hooks/useSeo';
 import { useTenant } from './hooks/useTenant';
-import { usePublicDirectory } from './hooks/usePublicDirectory';
 import { ADMIN_PANEL_ROLES, PLATFORM_PANEL_ROLES } from './utils/constants';
 import { buildAppPath, resolveAppLocation } from './utils/publicRoutes';
 
@@ -97,7 +96,6 @@ export default function App() {
   const adminMembersState = useAdminMembers(tenantId, isAdminMode);
   const publicSettingsState = usePublicSettings(tenantId, shouldLoadPublicData);
   const adminSettingsState = useAdminSettings(tenantId, isAdminMode);
-  const publicDirectoryState = usePublicDirectory(shouldLoadPublicData && isGlobalPublicView);
 
   const documents = isAdminMode ? adminDocsState.documents : publicDocsState.documents;
   const members = isAdminMode ? adminMembersState.members : publicMembersState.members;
@@ -177,8 +175,8 @@ export default function App() {
     loadMoreMembers: publicMembersState.loadMore,
     settings,
     platformSettings,
-    municipalities: publicDirectoryState.municipalities,
-    barangays: publicDirectoryState.barangays,
+    municipalities: publicDocsState.municipalities,
+    barangays: publicDocsState.barangays,
     defaultMunicipalityId: hashTenantId || '',
     loading: appLoading,
   };
