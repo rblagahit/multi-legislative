@@ -1,12 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collectionGroup, deleteDoc, doc, getDocs, limit, query, serverTimestamp, updateDoc } from 'firebase/firestore';
+import {
+  collectionGroup,
+  deleteDoc,
+  doc,
+  documentId,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  serverTimestamp,
+  startAfter,
+  updateDoc,
+} from 'firebase/firestore';
 import { db } from '../../firebase';
 import { removePublicMemberIndex, syncPublicMemberIndex } from '../../hooks/useMembers';
 import { parseTags } from '../../utils/helpers';
 
-function normalizeText(value, fallback = '') {
-  return typeof value === 'string' ? value.trim() : fallback;
-}
+const PLATFORM_MEMBER_PAGE_SIZE = 100;
 
 const EMPTY_FORM = {
   name: '',
@@ -18,37 +28,64 @@ const EMPTY_FORM = {
   bio: '',
 };
 
+function normalizeText(value, fallback = '') {
+  return typeof value === 'string' ? value.trim() : fallback;
+}
+
+const mapMembers = (snapshot) => snapshot.docs.map((docSnap) => {
+  const path = docSnap.ref.path.split('/');
+  return {
+    id: docSnap.id,
+    lguId: path[1] || '',
+    pathKey: docSnap.ref.path,
+    ...docSnap.data(),
+  };
+});
+
+const membersPageQuery = (cursor = null) => (
+  cursor
+    ? query(collectionGroup(db, 'members'), orderBy(documentId()), startAfter(cursor), limit(PLATFORM_MEMBER_PAGE_SIZE))
+    : query(collectionGroup(db, 'members'), orderBy(documentId()), limit(PLATFORM_MEMBER_PAGE_SIZE))
+);
+
 export default function PlatformMembersTab({ showToast }) {
   const [rows, setRows] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [lastVisible, setLastVisible] = useState(null);
   const [editingKey, setEditingKey] = useState('');
   const [savingKey, setSavingKey] = useState('');
   const [form, setForm] = useState(EMPTY_FORM);
 
-  const loadMembers = async (withLoader = true) => {
+  const loadMembers = async ({ withLoader = true, append = false } = {}) => {
     if (withLoader) setLoading(true);
+    if (append) setLoadingMore(true);
+
     try {
-      const snapshot = await getDocs(query(collectionGroup(db, 'members'), limit(400)));
-      setRows(snapshot.docs.map((docSnap) => {
-        const path = docSnap.ref.path.split('/');
-        return {
-          id: docSnap.id,
-          lguId: path[1] || '',
-          pathKey: docSnap.ref.path,
-          ...docSnap.data(),
-        };
-      }));
+      const snapshot = await getDocs(membersPageQuery(append ? lastVisible : null));
+      const nextRows = mapMembers(snapshot);
+
+      setRows((current) => {
+        if (!append) return nextRows;
+        const seen = new Set(current.map((entry) => entry.pathKey));
+        return [...current, ...nextRows.filter((entry) => !seen.has(entry.pathKey))];
+      });
+      setLastVisible(snapshot.docs.at(-1) || null);
+      setHasMore(snapshot.docs.length === PLATFORM_MEMBER_PAGE_SIZE);
     } catch (error) {
       console.error('[PlatformMembersTab.loadMembers]', error);
       showToast('Unable to load platform members.', 'error');
     } finally {
       if (withLoader) setLoading(false);
+      if (append) setLoadingMore(false);
     }
   };
 
   useEffect(() => {
     loadMembers();
+    return undefined;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -101,11 +138,17 @@ export default function PlatformMembersTab({ showToast }) {
         bio: form.bio.trim(),
         updatedAt: serverTimestamp(),
       };
+
       await updateDoc(doc(db, 'lgus', row.lguId, 'members', row.id), payload);
       await syncPublicMemberIndex(row.id, payload, row.lguId, row);
+
+      setRows((current) => current.map((entry) => (
+        entry.pathKey === row.pathKey
+          ? { ...entry, ...payload, committees: payload.committees }
+          : entry
+      )));
       showToast('Member updated.', 'success');
       resetEdit();
-      await loadMembers(false);
     } catch (error) {
       console.error('[PlatformMembersTab.saveMember]', error);
       showToast('Unable to update member.', 'error');
@@ -123,9 +166,9 @@ export default function PlatformMembersTab({ showToast }) {
     try {
       await deleteDoc(doc(db, 'lgus', row.lguId, 'members', row.id));
       await removePublicMemberIndex(row.id);
+      setRows((current) => current.filter((entry) => entry.pathKey !== row.pathKey));
       showToast('Member deleted.', 'success');
       resetEdit();
-      await loadMembers(false);
     } catch (error) {
       console.error('[PlatformMembersTab.deleteMember]', error);
       showToast('Unable to delete member.', 'error');
@@ -135,13 +178,18 @@ export default function PlatformMembersTab({ showToast }) {
 
   return (
     <div className="space-y-6">
-      <input
-        type="text"
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        placeholder="Search member, role, committee, or LGU..."
-        className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
-      />
+      <div className="space-y-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search member, role, committee, or LGU..."
+          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
+        />
+        <p className="text-xs font-semibold text-slate-400">
+          Search applies to the members loaded so far. Load more to search deeper into the platform directory.
+        </p>
+      </div>
 
       {loading ? (
         <div className="rounded-3xl border border-slate-100 bg-white px-6 py-16 text-center text-slate-400 shadow-sm">
@@ -237,11 +285,30 @@ export default function PlatformMembersTab({ showToast }) {
               </div>
             );
           })}
+
           {!filteredRows.length ? (
             <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-6 py-12 text-center shadow-sm">
               <i className="fas fa-user-tie text-3xl text-slate-300" />
               <p className="mt-4 text-sm font-semibold text-slate-500">No members match the current filter.</p>
             </div>
+          ) : null}
+
+          {hasMore ? (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => loadMembers({ withLoader: false, append: true })}
+                disabled={loadingMore}
+                className="rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <i className={`fas ${loadingMore ? 'fa-spinner fa-spin' : 'fa-arrows-rotate'} mr-2 text-xs`} />
+                {loadingMore ? 'Loading more…' : 'Load More Members'}
+              </button>
+            </div>
+          ) : rows.length ? (
+            <p className="text-center text-xs font-semibold text-slate-400">
+              All loaded members are currently shown.
+            </p>
           ) : null}
         </div>
       )}

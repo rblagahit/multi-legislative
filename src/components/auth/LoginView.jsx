@@ -1,8 +1,24 @@
 import { useEffect, useState } from 'react';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebase';
+import { db } from '../../firebase';
 import { sanitizeLguId } from '../../utils/helpers';
+
+let authActionPromise = null;
+
+function loadAuthActions() {
+  if (!authActionPromise) {
+    authActionPromise = Promise.all([
+      import('../../firebaseAuth'),
+      import('firebase/auth'),
+    ]).then(([firebaseAuthModule, authModule]) => ({
+      auth: firebaseAuthModule.auth,
+      signInWithEmailAndPassword: authModule.signInWithEmailAndPassword,
+      createUserWithEmailAndPassword: authModule.createUserWithEmailAndPassword,
+    }));
+  }
+
+  return authActionPromise;
+}
 
 /**
  * Admin login screen.
@@ -73,6 +89,7 @@ export default function LoginView({ navigateTo, showToast, portalMode = 'admin' 
     }
     setLoading(true);
     try {
+      const { auth, signInWithEmailAndPassword } = await loadAuthActions();
       await signInWithEmailAndPassword(auth, email, password);
       showToast(isBarangayPortal ? 'Welcome, Barangay Portal User' : 'Welcome, Admin', 'success');
       navigateTo('admin');
@@ -108,6 +125,7 @@ export default function LoginView({ navigateTo, showToast, portalMode = 'admin' 
 
     setRegistering(true);
     try {
+      const { auth, createUserWithEmailAndPassword } = await loadAuthActions();
       const credential = await createUserWithEmailAndPassword(auth, safeEmail, registerForm.password);
       const inviteRef = doc(db, 'userInvites', safeEmail);
       const inviteSnap = await getDoc(inviteRef).catch(() => null);

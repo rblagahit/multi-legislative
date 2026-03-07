@@ -1,7 +1,23 @@
 import { useState, useEffect } from 'react';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { db } from '../firebase';
+
+let authRuntimePromise = null;
+
+function loadAuthRuntime() {
+  if (!authRuntimePromise) {
+    authRuntimePromise = Promise.all([
+      import('../firebaseAuth'),
+      import('firebase/auth'),
+    ]).then(([firebaseAuthModule, authModule]) => ({
+      auth: firebaseAuthModule.auth,
+      onAuthStateChanged: authModule.onAuthStateChanged,
+      signOut: authModule.signOut,
+    }));
+  }
+
+  return authRuntimePromise;
+}
 
 /**
  * Tracks Firebase auth state and exposes helpers.
@@ -15,34 +31,61 @@ export function useAuth() {
   const [loading, setLoading]     = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async u => {
-      setUser(u);
-      if (u) {
-        try {
-          const snap = await getDoc(doc(db, 'users', u.uid));
-          if (snap.exists()) {
-            const d = snap.data();
-            setUserRole(d.role   || null);
-            setUserLguId(d.lguId || null);
+    let isActive = true;
+    let unsub = () => {};
+
+    loadAuthRuntime()
+      .then(({ auth, onAuthStateChanged }) => {
+        if (!isActive) return;
+
+        unsub = onAuthStateChanged(auth, async u => {
+          setUser(u);
+          if (u) {
+            try {
+              const snap = await getDoc(doc(db, 'users', u.uid));
+              if (snap.exists()) {
+                const d = snap.data();
+                setUserRole(d.role   || null);
+                setUserLguId(d.lguId || null);
+              } else {
+                setUserRole(null);
+                setUserLguId(null);
+              }
+            } catch {
+              setUserRole(null);
+              setUserLguId(null);
+            }
           } else {
             setUserRole(null);
             setUserLguId(null);
           }
-        } catch {
-          setUserRole(null);
-          setUserLguId(null);
-        }
-      } else {
+
+          setLoading(false);
+        });
+      })
+      .catch((error) => {
+        console.error('[useAuth.loadAuthRuntime]', error);
+        if (!isActive) return;
+        setUser(null);
         setUserRole(null);
         setUserLguId(null);
-      }
-      setLoading(false);
-    });
-    return unsub;
+        setLoading(false);
+      });
+
+    return () => {
+      isActive = false;
+      unsub();
+    };
   }, []);
 
-  const logout = () =>
-    signOut(auth).catch(err => console.error('[auth] logout error:', err));
+  const logout = async () => {
+    try {
+      const { auth, signOut } = await loadAuthRuntime();
+      await signOut(auth);
+    } catch (err) {
+      console.error('[auth] logout error:', err);
+    }
+  };
 
   return { user, userRole, userLguId, loading, logout };
 }

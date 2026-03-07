@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, doc, getDoc, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import PanelTabNav from '../layout/PanelTabNav';
 import PlatformAppAnalyticsTab from './PlatformAppAnalyticsTab';
@@ -86,6 +86,8 @@ const TAB_RESOURCE_MAP = {
   'premium-ops': [],
   settings: ['setupSettings'],
 };
+
+const FEATURE_REQUEST_LIMIT = 200;
 
 function formatDate(value) {
   if (!value) return 'Not set';
@@ -262,7 +264,13 @@ export default function PlatformView({ user, navigateTo, showToast }) {
             return [resource, snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))];
           }
           case 'featureRequests': {
-            const snap = await getDocs(collection(db, 'featureRequests'));
+            const snap = await getDocs(
+              query(
+                collection(db, 'featureRequests'),
+                orderBy('createdAt', 'desc'),
+                limit(FEATURE_REQUEST_LIMIT),
+              ),
+            );
             return [resource, snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))];
           }
           case 'setupSettings': {
@@ -453,7 +461,11 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           icon="fa-bell"
           label="Feature Requests"
           value={platformState.loaded.featureRequests ? pendingRequests.length : '...'}
-          helper={platformState.loaded.featureRequests ? 'Pending superadmin review' : 'Load request data to view totals'}
+          helper={
+            platformState.loaded.featureRequests
+              ? `Pending review from the latest ${FEATURE_REQUEST_LIMIT} request records`
+              : 'Load request data to view totals'
+          }
           tone="amber"
         />
         <StatCard
@@ -531,7 +543,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
 
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm xl:col-span-2">
               <h3 className="text-lg font-black text-slate-900">Pending Feature Requests</h3>
-              <p className="text-sm text-slate-500">Recent requests queued for platform review.</p>
+              <p className="text-sm text-slate-500">Recent requests queued for platform review from the latest {FEATURE_REQUEST_LIMIT} request records.</p>
               <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {pendingRequestGroups.slice(0, 6).map(group => (
                   <div key={group.requestKey} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
@@ -624,6 +636,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         {isActiveTabReady && activeTab === 'requests' ? (
           <div className="space-y-5">
             <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+              <p className="mb-4 text-sm text-slate-500">Showing pending requests from the latest {FEATURE_REQUEST_LIMIT} request records.</p>
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                 <input
                   type="text"
