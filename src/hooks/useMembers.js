@@ -11,6 +11,7 @@ const colRef = (lguId) => collection(db, 'lgus', lguId, 'members');
 const globalColRef = () => collectionGroup(db, 'members');
 const ADMIN_MEMBER_LIMIT = 50;
 const PUBLIC_MEMBER_PAGE_SIZE = 24;
+const GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT = 300;
 
 const membersQuery = (lguId) => query(colRef(lguId), orderBy('name'), limit(ADMIN_MEMBER_LIMIT));
 const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
@@ -18,11 +19,18 @@ const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
     : query(colRef(lguId), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE))
 );
-const globalPublicMembersPageQuery = (cursor = null) => (
-  cursor
-    ? query(globalColRef(), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
-    : query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE))
+const globalPublicMembersSeedQuery = () => query(globalColRef(), limit(GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT));
+const toMillis = (value) => {
+  if (!value) return 0;
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (typeof value.seconds === 'number') return value.seconds * 1000;
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+const memberSortValue = (entry) => (
+  toMillis(entry.timestamp) || toMillis(entry.updatedAt) || toMillis(entry.createdAt)
 );
+const sortMembersByRecency = (rows) => [...rows].sort((a, b) => memberSortValue(b) - memberSortValue(a));
 const mapMembers = (snap) => snap.docs.map((entry) => ({
   id: entry.id,
   ...entry.data(),
@@ -55,13 +63,17 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options
       setLoading(true);
       try {
         const firstPageQuery = globalScope
-          ? globalPublicMembersPageQuery()
+          ? globalPublicMembersSeedQuery()
           : scopedPublicMembersPageQuery(lguId);
         const snap = await getDocs(firstPageQuery);
         if (!ignore) {
-          setMembers(mapMembers(snap));
-          setHasMore(snap.docs.length === PUBLIC_MEMBER_PAGE_SIZE);
-          setLastVisible(snap.docs.at(-1) || null);
+          const loadedMembers = mapMembers(snap);
+          const nextMembers = globalScope
+            ? sortMembersByRecency(loadedMembers).slice(0, PUBLIC_MEMBER_PAGE_SIZE)
+            : loadedMembers;
+          setMembers(nextMembers);
+          setHasMore(false);
+          setLastVisible(globalScope ? null : snap.docs.at(-1) || null);
           setLoading(false);
         }
       } catch (err) {
@@ -78,13 +90,12 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options
   }, [enabled, globalScope, lguId]);
 
   const loadMore = useCallback(async () => {
+    if (globalScope) return;
     if (!enabled || (!globalScope && !lguId) || !lastVisible || loading || loadingMore || !hasMore) return;
 
     setLoadingMore(true);
     try {
-      const nextPageQuery = globalScope
-        ? globalPublicMembersPageQuery(lastVisible)
-        : scopedPublicMembersPageQuery(lguId, lastVisible);
+      const nextPageQuery = scopedPublicMembersPageQuery(lguId, lastVisible);
       const snap = await getDocs(nextPageQuery);
       const nextMembers = mapMembers(snap);
       setMembers(current => [...current, ...nextMembers]);

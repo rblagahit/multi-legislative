@@ -19,6 +19,7 @@ const EMPTY_DOC_STATS = {
   resolutionCount: 0,
   totalViews: 0,
 };
+const GLOBAL_PUBLIC_DOCUMENT_FETCH_LIMIT = 400;
 
 const documentsQuery = (lguId) => query(colRef(lguId), orderBy('timestamp', 'desc'), limit(ADMIN_DOCUMENT_LIMIT));
 const documentImportsQuery = (lguId) => query(importsColRef(lguId), orderBy('createdAt', 'desc'), limit(IMPORTS_LIMIT));
@@ -27,11 +28,18 @@ const scopedPublicDocumentsPageQuery = (lguId, cursor = null) => (
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
     : query(colRef(lguId), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
 );
-const globalPublicDocumentsPageQuery = (cursor = null) => (
-  cursor
-    ? query(globalColRef(), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
-    : query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
+const globalPublicDocumentsSeedQuery = () => query(globalColRef(), limit(GLOBAL_PUBLIC_DOCUMENT_FETCH_LIMIT));
+const toMillis = (value) => {
+  if (!value) return 0;
+  if (typeof value.toDate === 'function') return value.toDate().getTime();
+  if (typeof value.seconds === 'number') return value.seconds * 1000;
+  const parsed = new Date(value).getTime();
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+const documentSortValue = (entry) => (
+  toMillis(entry.timestamp) || toMillis(entry.updatedAt) || toMillis(entry.createdAt)
 );
+const sortDocumentsByRecency = (rows) => [...rows].sort((a, b) => documentSortValue(b) - documentSortValue(a));
 const mapDocuments = (snap) => snap.docs.map((entry) => ({
   id: entry.id,
   ...entry.data(),
@@ -69,7 +77,7 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
       try {
         const scopedDocumentsRef = globalScope ? globalColRef() : colRef(lguId);
         const firstPageQuery = globalScope
-          ? globalPublicDocumentsPageQuery()
+          ? globalPublicDocumentsSeedQuery()
           : scopedPublicDocumentsPageQuery(lguId);
         const [pageSnap, aggregateResults] = await Promise.all([
           getDocs(firstPageQuery),
@@ -89,12 +97,15 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
           ]),
         ]);
         if (!ignore) {
-          const nextDocuments = mapDocuments(pageSnap);
+          const loadedDocuments = mapDocuments(pageSnap);
+          const nextDocuments = globalScope
+            ? sortDocumentsByRecency(loadedDocuments).slice(0, PUBLIC_DOCUMENT_PAGE_SIZE)
+            : loadedDocuments;
           const pageStatsFallback = {
-            totalDocs: nextDocuments.length,
-            ordinanceCount: nextDocuments.filter(doc => doc.type === 'Ordinance').length,
-            resolutionCount: nextDocuments.filter(doc => doc.type === 'Resolution').length,
-            totalViews: nextDocuments.reduce((acc, doc) => acc + Number(doc.views || 0), 0),
+            totalDocs: loadedDocuments.length,
+            ordinanceCount: loadedDocuments.filter(doc => doc.type === 'Ordinance').length,
+            resolutionCount: loadedDocuments.filter(doc => doc.type === 'Resolution').length,
+            totalViews: loadedDocuments.reduce((acc, doc) => acc + Number(doc.views || 0), 0),
           };
           const aggregateStats = aggregateResults[0]?.status === 'fulfilled'
             ? aggregateResults[0].value.data()
@@ -107,8 +118,8 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
             : null;
 
           setDocuments(nextDocuments);
-          setHasMore(pageSnap.docs.length === PUBLIC_DOCUMENT_PAGE_SIZE);
-          setLastVisible(pageSnap.docs.at(-1) || null);
+          setHasMore(false);
+          setLastVisible(globalScope ? null : pageSnap.docs.at(-1) || null);
           setStats({
             totalDocs: aggregateStats?.totalDocs || pageStatsFallback.totalDocs,
             ordinanceCount: ordinanceStats?.total || pageStatsFallback.ordinanceCount,
@@ -131,13 +142,12 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
   }, [enabled, globalScope, lguId]);
 
   const loadMore = useCallback(async () => {
+    if (globalScope) return;
     if (!enabled || (!globalScope && !lguId) || !lastVisible || loading || loadingMore || !hasMore) return;
 
     setLoadingMore(true);
     try {
-      const nextPageQuery = globalScope
-        ? globalPublicDocumentsPageQuery(lastVisible)
-        : scopedPublicDocumentsPageQuery(lguId, lastVisible);
+      const nextPageQuery = scopedPublicDocumentsPageQuery(lguId, lastVisible);
       const snap = await getDocs(nextPageQuery);
       const nextDocs = mapDocuments(snap);
       setDocuments(current => [...current, ...nextDocs]);
