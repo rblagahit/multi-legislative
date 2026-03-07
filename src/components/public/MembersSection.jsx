@@ -4,9 +4,8 @@ import MemberCard from './MemberCard';
 
 /**
  * Public members directory section.
- * TODO (Phase 3): Port member profile modal logic.
  */
-export default function MembersSection({ members, documents, hasMore, loadingMore, onLoadMore }) {
+export default function MembersSection({ members, documents, hasMore, loadingMore, onLoadMore, onViewProfile }) {
   const [search, setSearch] = useState('');
 
   const activeMembers = members.filter(m => !m.isArchived);
@@ -59,6 +58,7 @@ export default function MembersSection({ members, documents, hasMore, loadingMor
               key={member.id}
               member={member}
               relatedCount={relatedCounts.get(member.id) || 0}
+              onViewProfile={onViewProfile}
             />
           ))}
         </div>

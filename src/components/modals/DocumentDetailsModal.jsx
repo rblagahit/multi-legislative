@@ -1,4 +1,5 @@
 import { TYPE_GRADIENT, TYPE_GRADIENT_DEFAULT } from '../../utils/constants';
+import { buildPublicShareUrl, sharePublicEntity } from '../../utils/share';
 
 /**
  * Full document details overlay.
@@ -6,7 +7,7 @@ import { TYPE_GRADIENT, TYPE_GRADIENT_DEFAULT } from '../../utils/constants';
  * onDownload → opens DocumentNoticeModal
  * onRequest  → opens DocumentRequestModal
  */
-export default function DocumentDetailsModal({ doc, onClose, onDownload, onRequest }) {
+export default function DocumentDetailsModal({ doc, onClose, onDownload, onRequest, showToast }) {
   const typeGradient = TYPE_GRADIENT[doc.type] || TYPE_GRADIENT_DEFAULT;
 
   const date = doc.timestamp?.toDate
@@ -14,6 +15,20 @@ export default function DocumentDetailsModal({ doc, onClose, onDownload, onReque
         year: 'numeric', month: 'short', day: 'numeric',
       })
     : '';
+  const shareUrl = buildPublicShareUrl('doc', doc.id);
+  const shareTitle = `${doc.title || 'Legislative Document'} | ${doc.docId || 'Document'}`;
+  const shareText = `View ${doc.title || 'this legislative document'} from the public portal.`;
+
+  const handleShare = async (channel) => {
+    await sharePublicEntity({
+      channel,
+      title: shareTitle,
+      text: shareText,
+      url: shareUrl,
+      onSuccess: (message) => showToast?.(message, 'success'),
+      onError: (message) => showToast?.(message, 'error'),
+    });
+  };
 
   return (
     <div
@@ -93,6 +108,31 @@ export default function DocumentDetailsModal({ doc, onClose, onDownload, onReque
               <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl">{doc.moreInfo}</p>
             </div>
           )}
+
+          <div>
+            <p className="text-xs font-black uppercase text-slate-400 tracking-widest mb-2">Share This Document</p>
+            <p className="text-xs text-slate-500 mb-3">Help your community discover this record.</p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                ['facebook', 'fab fa-facebook-f', 'Facebook', 'bg-blue-50 text-blue-700 hover:bg-blue-100'],
+                ['x', 'fab fa-x-twitter', 'X', 'bg-slate-100 text-slate-700 hover:bg-slate-200'],
+                ['linkedin', 'fab fa-linkedin-in', 'LinkedIn', 'bg-sky-50 text-sky-700 hover:bg-sky-100'],
+                ['messenger', 'fab fa-facebook-messenger', 'Messenger', 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'],
+                ['email', 'fas fa-envelope', 'Email', 'bg-amber-50 text-amber-700 hover:bg-amber-100'],
+                ['copy', 'fas fa-link', 'Copy', 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'],
+              ].map(([channel, icon, label, tone]) => (
+                <button
+                  key={channel}
+                  type="button"
+                  onClick={() => handleShare(channel)}
+                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${tone}`}
+                >
+                  <i className={icon} />
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Views */}
           <div className="flex items-center gap-1.5 text-xs text-slate-400 pt-1 border-t border-slate-100">

@@ -1,7 +1,9 @@
-import { lazy, Suspense, useState, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useState, useMemo } from 'react';
 import { normalizeText, normalizeTag } from '../../utils/helpers';
+import { buildPublicShareUrl } from '../../utils/share';
 import DocumentGrid         from './DocumentGrid';
 import MembersSection       from './MembersSection';
+import MemberProfileModal from '../modals/MemberProfileModal';
 
 const DocumentDetailsModal = lazy(() => import('../modals/DocumentDetailsModal'));
 const DocumentNoticeModal = lazy(() => import('../modals/DocumentNoticeModal'));
@@ -24,6 +26,7 @@ export default function PublicView({
   loadMoreMembers,
   settings,
   tenantId,
+  showToast,
 }) {
   const [search, setSearch]   = useState('');
   const [typeFilter, setType] = useState('All');
@@ -37,12 +40,14 @@ export default function PublicView({
   // ─── Modal state ────────────────────────────────────────────────────────────
   // modal: null | 'details' | 'notice' | 'request'
   const [activeDoc, setActiveDoc] = useState(null);
+  const [activeMember, setActiveMember] = useState(null);
   const [modal, setModal]         = useState(null);
 
   const openDetails = (doc) => { setActiveDoc(doc); setModal('details'); };
+  const openMemberProfile = (member) => { setActiveMember(member); setModal('member'); };
   const openNotice  = ()    => setModal('notice');
   const openRequest = ()    => setModal('request');
-  const closeModals = ()    => { setModal(null); setActiveDoc(null); };
+  const closeModals = ()    => { setModal(null); setActiveDoc(null); setActiveMember(null); };
 
   const { orgName, municipality, province } = settings || {};
   const cityProvince = [municipality, province].filter(Boolean).join(', ') || 'Argao, Cebu';
@@ -78,6 +83,38 @@ export default function PublicView({
       </div>
     </div>
   );
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const memberId = params.get('member');
+    const docId = params.get('doc');
+
+    if (memberId && !activeMember) {
+      const targetMember = members.find((member) => member.id === memberId);
+      if (targetMember) openMemberProfile(targetMember);
+    }
+
+    if (docId && !activeDoc) {
+      const targetDoc = documents.find((entry) => entry.id === docId);
+      if (targetDoc) openDetails(targetDoc);
+    }
+  }, [activeDoc, activeMember, documents, members]);
+
+  useEffect(() => {
+    if (modal === 'member' && activeMember) {
+      window.history.replaceState(null, '', buildPublicShareUrl('member', activeMember.id));
+      return;
+    }
+    if ((modal === 'details' || modal === 'notice' || modal === 'request') && activeDoc) {
+      window.history.replaceState(null, '', buildPublicShareUrl('doc', activeDoc.id));
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete('member');
+    url.searchParams.delete('doc');
+    window.history.replaceState(null, '', url.toString());
+  }, [activeDoc, activeMember, modal]);
 
   return (
     <div>
@@ -160,7 +197,21 @@ export default function PublicView({
         hasMore={hasMoreMembers}
         loadingMore={loadingMoreMembers}
         onLoadMore={loadMoreMembers}
+        onViewProfile={openMemberProfile}
       />
+
+      {modal === 'member' && activeMember ? (
+        <MemberProfileModal
+          member={activeMember}
+          documents={documents}
+          onClose={closeModals}
+          onOpenDocument={(doc) => {
+            setActiveDoc(doc);
+            setModal('details');
+          }}
+          showToast={showToast}
+        />
+      ) : null}
 
       {/* ── Modals ────────────────────────────────────────────────────────── */}
       {modal === 'details' && activeDoc && (
@@ -170,6 +221,7 @@ export default function PublicView({
             onClose={closeModals}
             onDownload={openNotice}
             onRequest={openRequest}
+            showToast={showToast}
           />
         </Suspense>
       )}

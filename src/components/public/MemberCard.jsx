@@ -2,9 +2,8 @@ import { isTermExpired } from '../../utils/helpers';
 
 /**
  * Public member profile card.
- * TODO (Phase 3): Wire up member profile modal.
  */
-export default function MemberCard({ member, relatedCount }) {
+export default function MemberCard({ member, relatedCount, onViewProfile }) {
   const expired  = isTermExpired(member);
   const isViceMayor = /vice\s*mayor/i.test(member.role || '');
   const avatarFb = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'M')}&background=2563eb&color=fff&bold=true&size=128`;
@@ -13,14 +12,14 @@ export default function MemberCard({ member, relatedCount }) {
     <div
       className={`member-hero-card bg-white rounded-3xl overflow-hidden shadow-sm border cursor-pointer
         ${isViceMayor ? 'border-amber-200 ring-2 ring-amber-100' : 'border-slate-100'}`}
-      onClick={() => { /* TODO: open member profile modal */ }}
+      onClick={() => onViewProfile(member)}
     >
       {/* Photo */}
-      <div className="relative h-36 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+      <div className="relative h-44 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
         <img
           src={member.image || avatarFb}
           alt={member.name}
-          className="w-20 h-20 rounded-2xl object-cover shadow-md"
+          className="w-28 h-28 rounded-[1.75rem] object-cover shadow-xl ring-4 ring-white"
           onError={e => { e.target.src = avatarFb; }}
         />
         {expired && (
@@ -46,6 +45,11 @@ export default function MemberCard({ member, relatedCount }) {
         <p className="text-[10px] text-slate-400 mt-3">
           {relatedCount} document{relatedCount !== 1 ? 's' : ''}
         </p>
+
+        <div className="mt-4 inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-blue-600">
+          <i className="fas fa-arrow-up-right-from-square text-[10px]" />
+          View Profile
+        </div>
       </div>
     </div>
   );
