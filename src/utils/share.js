@@ -1,9 +1,8 @@
-export function buildPublicShareUrl(type, id) {
-  const url = new URL(window.location.href);
-  url.searchParams.delete('member');
-  url.searchParams.delete('doc');
-  if (type && id) url.searchParams.set(type, id);
-  return url.toString();
+import { buildPublicEntityUrl } from './publicRoutes';
+
+export function buildPublicShareUrl(type, entityOrId, label = '') {
+  const entityType = type === 'member' ? 'member' : 'doc';
+  return buildPublicEntityUrl(entityType, entityOrId, label);
 }
 
 export async function sharePublicEntity({

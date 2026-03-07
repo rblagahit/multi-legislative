@@ -29,7 +29,7 @@ export default function MemberProfileModal({
     })
     .slice(0, 5);
 
-  const shareUrl = buildPublicShareUrl('member', member.id);
+  const shareUrl = buildPublicShareUrl('member', member);
   const shareTitle = `${member.name || 'SB Member'} | Member Profile`;
   const shareText = `View the public legislative profile for ${member.name || 'this member'}.`;
 

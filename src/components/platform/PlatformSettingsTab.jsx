@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS = {
   seoDefaultKeywords: '',
   seoOgImage: '',
   seoCanonicalBaseUrl: '',
+  globalHeadHtml: '',
   stickyQrUrl: '',
   stickyFee1: 1500,
   stickyFee2: 2800,
@@ -97,6 +98,19 @@ export default function PlatformSettingsTab({ setupSettings, showToast, user }) 
             <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">SEO OG Image URL</label>
             <input type="url" value={form.seoOgImage} onChange={setValue('seoOgImage')} placeholder="https://.../og-image.png"
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-semibold outline-none transition-all focus:border-purple-400 focus:ring-4 focus:ring-purple-100" />
+          </div>
+          <div>
+            <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">Global Head HTML</label>
+            <textarea
+              value={form.globalHeadHtml}
+              onChange={setValue('globalHeadHtml')}
+              rows={5}
+              placeholder={`<meta name="google-adsense-account" content="ca-pub-xxxxxxxxxxxxxxxx">\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx" crossorigin="anonymous"></script>`}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm outline-none transition-all focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
+            />
+            <p className="mt-2 text-xs text-slate-400">
+              Injected into the global <code>&lt;head&gt;</code>. Intended for AdSense meta/script tags and other verified head snippets.
+            </p>
           </div>
 
           <div className="border-t border-slate-200 pt-5">

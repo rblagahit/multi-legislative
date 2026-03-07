@@ -10,6 +10,7 @@ const DEFAULT_PLATFORM_SETTINGS = {
   seoDefaultKeywords: '',
   seoOgImage: '',
   seoCanonicalBaseUrl: '',
+  globalHeadHtml: '',
   stickyQrUrl: '',
   stickyFee1: 1500,
   stickyFee2: 2800,

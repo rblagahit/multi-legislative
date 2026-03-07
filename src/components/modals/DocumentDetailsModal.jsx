@@ -15,7 +15,7 @@ export default function DocumentDetailsModal({ doc, onClose, onDownload, onReque
         year: 'numeric', month: 'short', day: 'numeric',
       })
     : '';
-  const shareUrl = buildPublicShareUrl('doc', doc.id);
+  const shareUrl = buildPublicShareUrl('doc', doc);
   const shareTitle = `${doc.title || 'Legislative Document'} | ${doc.docId || 'Document'}`;
   const shareText = `View ${doc.title || 'this legislative document'} from the public portal.`;
 

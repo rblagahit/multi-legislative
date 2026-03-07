@@ -1,6 +1,8 @@
-import { lazy, Suspense, useEffect, useState, useMemo, useRef } from 'react';
+import { lazy, Suspense, useEffect, useState, useMemo } from 'react';
 import { normalizeText, normalizeTag } from '../../utils/helpers';
 import { buildPublicShareUrl } from '../../utils/share';
+import { useSeo } from '../../hooks/useSeo';
+import { buildAppPath, buildPublicEntityPath, parsePublicEntityLocation } from '../../utils/publicRoutes';
 import DocumentGrid         from './DocumentGrid';
 import MembersSection       from './MembersSection';
 import MemberProfileModal from '../modals/MemberProfileModal';
@@ -25,6 +27,7 @@ export default function PublicView({
   loadingMoreMembers,
   loadMoreMembers,
   settings,
+  platformSettings,
   tenantId,
   showToast,
 }) {
@@ -42,13 +45,35 @@ export default function PublicView({
   const [activeDoc, setActiveDoc] = useState(null);
   const [activeMember, setActiveMember] = useState(null);
   const [modal, setModal]         = useState(null);
-  const deepLinkHandledRef = useRef(false);
+  const [routeTarget, setRouteTarget] = useState(() => {
+    const pathTarget = parsePublicEntityLocation(window.location.pathname);
+    if (pathTarget.type) return pathTarget;
 
-  const openDetails = (doc) => { setActiveDoc(doc); setModal('details'); };
-  const openMemberProfile = (member) => { setActiveMember(member); setModal('member'); };
+    const params = new URLSearchParams(window.location.search);
+    return {
+      type: params.get('member') ? 'member' : params.get('doc') ? 'doc' : null,
+      id: params.get('member') || params.get('doc') || '',
+    };
+  });
+
+  const openDetails = (doc) => {
+    setActiveDoc(doc);
+    setModal('details');
+    setRouteTarget({ type: 'doc', id: doc.id });
+  };
+  const openMemberProfile = (member) => {
+    setActiveMember(member);
+    setModal('member');
+    setRouteTarget({ type: 'member', id: member.id });
+  };
   const openNotice  = ()    => setModal('notice');
   const openRequest = ()    => setModal('request');
-  const closeModals = ()    => { setModal(null); setActiveDoc(null); setActiveMember(null); };
+  const closeModals = ()    => {
+    setModal(null);
+    setActiveDoc(null);
+    setActiveMember(null);
+    setRouteTarget({ type: null, id: '' });
+  };
 
   const { orgName, municipality, province } = settings || {};
   const cityProvince = [municipality, province].filter(Boolean).join(', ') || 'Argao, Cebu';
@@ -86,50 +111,99 @@ export default function PublicView({
   );
 
   useEffect(() => {
-    if (deepLinkHandledRef.current) return;
+    const handlePopState = () => {
+      const pathTarget = parsePublicEntityLocation(window.location.pathname);
+      if (pathTarget.type) {
+        setRouteTarget(pathTarget);
+        return;
+      }
 
-    const params = new URLSearchParams(window.location.search);
-    const memberId = params.get('member');
-    const docId = params.get('doc');
+      const params = new URLSearchParams(window.location.search);
+      const nextRoute = {
+        type: params.get('member') ? 'member' : params.get('doc') ? 'doc' : null,
+        id: params.get('member') || params.get('doc') || '',
+      };
+      setRouteTarget(nextRoute);
+      if (!nextRoute.type) {
+        setModal(null);
+        setActiveDoc(null);
+        setActiveMember(null);
+      }
+    };
 
-    if (!memberId && !docId) {
-      deepLinkHandledRef.current = true;
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (!routeTarget.type || !routeTarget.id) return;
+
+    if (routeTarget.type === 'member') {
+      const targetMember = members.find((member) => member.id === routeTarget.id);
+      if (targetMember) {
+        setActiveMember(targetMember);
+        setModal('member');
+      }
       return;
     }
 
-    if (memberId && !activeMember) {
-      const targetMember = members.find((member) => member.id === memberId);
-      if (targetMember) {
-        deepLinkHandledRef.current = true;
-        openMemberProfile(targetMember);
-        return;
-      }
-    }
-
-    if (docId && !activeDoc) {
-      const targetDoc = documents.find((entry) => entry.id === docId);
+    if (routeTarget.type === 'doc') {
+      const targetDoc = documents.find((entry) => entry.id === routeTarget.id);
       if (targetDoc) {
-        deepLinkHandledRef.current = true;
-        openDetails(targetDoc);
+        setActiveDoc(targetDoc);
+        setModal('details');
       }
     }
-  }, [activeDoc, activeMember, documents, members]);
+  }, [documents, members, routeTarget]);
 
   useEffect(() => {
     if (modal === 'member' && activeMember) {
-      window.history.replaceState(null, '', buildPublicShareUrl('member', activeMember.id));
+      window.history.replaceState(null, '', buildPublicShareUrl('member', activeMember));
       return;
     }
     if ((modal === 'details' || modal === 'notice' || modal === 'request') && activeDoc) {
-      window.history.replaceState(null, '', buildPublicShareUrl('doc', activeDoc.id));
+      window.history.replaceState(null, '', buildPublicShareUrl('doc', activeDoc));
       return;
     }
 
-    const url = new URL(window.location.href);
-    url.searchParams.delete('member');
-    url.searchParams.delete('doc');
-    window.history.replaceState(null, '', url.toString());
+    window.history.replaceState(null, '', `${window.location.origin}${buildAppPath('public')}${window.location.hash || ''}`);
   }, [activeDoc, activeMember, modal]);
+
+  const entitySeo = useMemo(() => {
+    if (modal === 'member' && activeMember) {
+      const memberRole = activeMember.role || 'LGU Legislative Member';
+      const memberLocation = [municipality, province].filter(Boolean).join(', ');
+      return {
+        title: `${activeMember.name} | ${memberRole}`,
+        description: `View the public member profile for ${activeMember.name}, ${memberRole}${memberLocation ? ` in ${memberLocation}` : ''}. Browse committees, biography, and recent sponsored ordinances.`,
+        canonicalPath: buildPublicEntityPath('member', activeMember),
+        ogTitle: `${activeMember.name} | Member Profile`,
+        ogDescription: `Public legislative profile for ${activeMember.name}${memberRole ? `, ${memberRole}` : ''}.`,
+        image: activeMember.image || settings?.sealUrl || platformSettings?.logoUrl || '/argao-seal.png',
+        ogType: 'profile',
+      };
+    }
+
+    if ((modal === 'details' || modal === 'notice' || modal === 'request') && activeDoc) {
+      const docDate = activeDoc.timestamp?.toDate
+        ? activeDoc.timestamp.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        : '';
+      const tagText = (activeDoc.tags || []).slice(0, 4).join(', ');
+      return {
+        title: `${activeDoc.title || activeDoc.docId || 'Legislative Document'} | ${orgName || 'Legislative Portal'}`,
+        description: `${activeDoc.type || 'Document'} ${activeDoc.docId ? `${activeDoc.docId} · ` : ''}${activeDoc.title || 'Legislative document'}${activeDoc.authorName ? ` by ${activeDoc.authorName}` : ''}${docDate ? ` on ${docDate}` : ''}${tagText ? ` · Topics: ${tagText}` : ''}.`,
+        canonicalPath: buildPublicEntityPath('doc', activeDoc),
+        ogTitle: `${activeDoc.title || 'Legislative Document'}${activeDoc.docId ? ` | ${activeDoc.docId}` : ''}`,
+        ogDescription: `Public legislative record${activeDoc.authorName ? ` sponsored by ${activeDoc.authorName}` : ''}${docDate ? ` on ${docDate}` : ''}.`,
+        image: activeDoc.authorImage || settings?.sealUrl || platformSettings?.logoUrl || '/argao-seal.png',
+        ogType: 'article',
+      };
+    }
+
+    return null;
+  }, [activeDoc, activeMember, modal, municipality, orgName, platformSettings?.logoUrl, province, settings?.sealUrl]);
+
+  useSeo('public', settings, platformSettings, entitySeo);
 
   return (
     <div>
@@ -220,10 +294,7 @@ export default function PublicView({
           member={activeMember}
           documents={documents}
           onClose={closeModals}
-          onOpenDocument={(doc) => {
-            setActiveDoc(doc);
-            setModal('details');
-          }}
+          onOpenDocument={openDetails}
           showToast={showToast}
         />
       ) : null}

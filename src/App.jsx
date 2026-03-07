@@ -7,6 +7,7 @@ import { usePlatformSettings } from './hooks/usePlatformSettings';
 import { useSeo } from './hooks/useSeo';
 import { useTenant } from './hooks/useTenant';
 import { ADMIN_PANEL_ROLES, PLATFORM_PANEL_ROLES } from './utils/constants';
+import { buildAppPath, resolveAppLocation } from './utils/publicRoutes';
 
 import Navbar   from './components/layout/Navbar';
 import Footer   from './components/layout/Footer';
@@ -35,7 +36,7 @@ function ViewFallback() {
 }
 
 export default function App() {
-  const [view, setView]   = useState('public');
+  const [view, setView]   = useState(() => resolveAppLocation(window.location.pathname).view);
   const [toast, setToast] = useState(null); // { message, type }
   const deniedAccessRef   = useRef(false);
 
@@ -43,13 +44,25 @@ export default function App() {
   const { tenantId, publicPortalUrl } = useTenant(userLguId);
   const { platformSettings } = usePlatformSettings();
 
-  const navigateTo = useCallback((v) => {
-    if (VIEWS.includes(v)) setView(v);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const navigateTo = useCallback((v, options = {}) => {
+    if (!VIEWS.includes(v)) return;
+    const nextPath = buildAppPath(v);
+    const nextUrl = `${window.location.origin}${nextPath}${window.location.hash || ''}`;
+
+    if (options.replace) {
+      window.history.replaceState(null, '', nextUrl);
+    } else if (`${window.location.pathname}${window.location.hash}` !== `${nextPath}${window.location.hash || ''}`) {
+      window.history.pushState(null, '', nextUrl);
+    }
+
+    setView(v);
+    if (options.scroll !== false) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, []);
 
   const navigateToSection = useCallback((sectionId) => {
-    setView('public');
+    navigateTo('public', { scroll: false });
 
     let attempts = 0;
     const tryScroll = () => {
@@ -66,7 +79,7 @@ export default function App() {
     };
 
     window.setTimeout(tryScroll, 0);
-  }, []);
+  }, [navigateTo]);
 
   const showToast = useCallback((message, type = 'info') => {
     setToast({ message, type });
@@ -87,6 +100,15 @@ export default function App() {
   const members = isAdminMode ? adminMembersState.members : publicMembersState.members;
   const settings = isAdminMode ? adminSettingsState.settings : publicSettingsState.settings;
   useSeo(view, settings, platformSettings);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setView(resolveAppLocation(window.location.pathname).view);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
   const appLoading = authLoading
     || (isAdminMode ? adminDocsState.loading : publicDocsState.loading)
     || (isAdminMode ? adminMembersState.loading : publicMembersState.loading)
@@ -97,7 +119,7 @@ export default function App() {
 
     if (!user) {
       deniedAccessRef.current = false;
-      setView('public');
+      navigateTo('public', { replace: true, scroll: false });
       return;
     }
 
@@ -106,19 +128,19 @@ export default function App() {
         showToast('This account does not have dashboard access.', 'error');
         deniedAccessRef.current = true;
       }
-      setView('public');
+      navigateTo('public', { replace: true, scroll: false });
       return;
     }
 
     deniedAccessRef.current = false;
-  }, [authLoading, canAccessAdmin, showToast, user, view]);
+  }, [authLoading, canAccessAdmin, navigateTo, showToast, user, view]);
 
   useEffect(() => {
     if (authLoading || view !== 'platform') return;
 
     if (!user) {
       deniedAccessRef.current = false;
-      setView('public');
+      navigateTo('public', { replace: true, scroll: false });
       return;
     }
 
@@ -127,12 +149,12 @@ export default function App() {
         showToast('Platform access requires superadmin role.', 'error');
         deniedAccessRef.current = true;
       }
-      setView('public');
+      navigateTo('public', { replace: true, scroll: false });
       return;
     }
 
     deniedAccessRef.current = false;
-  }, [authLoading, canAccessPlatform, showToast, user, view]);
+  }, [authLoading, canAccessPlatform, navigateTo, showToast, user, view]);
 
   const sharedProps = {
     navigateTo,
@@ -151,6 +173,7 @@ export default function App() {
     loadingMoreMembers: !isAdminMode && publicMembersState.loadingMore,
     loadMoreMembers: publicMembersState.loadMore,
     settings,
+    platformSettings,
     loading: appLoading,
   };
 
