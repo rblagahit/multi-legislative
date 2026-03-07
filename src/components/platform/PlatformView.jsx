@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, doc, getDoc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
+import { collection, doc, getCountFromServer, getDoc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import PanelTabNav from '../layout/PanelTabNav';
 import PlatformAppAnalyticsTab from './PlatformAppAnalyticsTab';
@@ -62,18 +62,26 @@ const DEFAULT_PLATFORM_STATE = {
   loading: false,
   users: [],
   lguRegistry: [],
+  overviewUsers: [],
+  overviewLguRegistry: [],
+  overviewStats: {
+    usersTotal: 0,
+    lguTotal: 0,
+  },
   featureRequests: [],
   setupSettings: {},
   loaded: {
     users: false,
     lguRegistry: false,
+    overviewUsers: false,
+    overviewLguRegistry: false,
     featureRequests: false,
     setupSettings: false,
   },
 };
 
 const TAB_RESOURCE_MAP = {
-  overview: ['users', 'lguRegistry', 'featureRequests'],
+  overview: ['overviewUsers', 'overviewLguRegistry', 'featureRequests'],
   requests: ['featureRequests', 'lguRegistry'],
   priorities: ['featureRequests', 'lguRegistry'],
   'app-analytics': [],
@@ -88,6 +96,8 @@ const TAB_RESOURCE_MAP = {
 };
 
 const FEATURE_REQUEST_LIMIT = 200;
+const OVERVIEW_USERS_SAMPLE_LIMIT = 300;
+const OVERVIEW_LGU_SAMPLE_LIMIT = 200;
 
 function formatDate(value) {
   if (!value) return 'Not set';
@@ -196,8 +206,8 @@ export default function PlatformView({ user, navigateTo, showToast }) {
   );
 
   const pendingUsers = useMemo(
-    () => platformState.users.filter(isPendingUser),
-    [platformState.users],
+    () => platformState.overviewUsers.filter(isPendingUser),
+    [platformState.overviewUsers],
   );
 
   const pendingRequests = useMemo(
@@ -255,6 +265,28 @@ export default function PlatformView({ user, navigateTo, showToast }) {
     try {
       const results = await Promise.all(pendingResources.map(async (resource) => {
         switch (resource) {
+          case 'overviewUsers': {
+            const usersRef = collection(db, 'users');
+            const [sampleSnap, countSnap] = await Promise.all([
+              getDocs(query(usersRef, limit(OVERVIEW_USERS_SAMPLE_LIMIT))),
+              getCountFromServer(usersRef),
+            ]);
+            return [resource, {
+              rows: sampleSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
+              total: countSnap.data().count,
+            }];
+          }
+          case 'overviewLguRegistry': {
+            const lguRegistryRef = collection(db, 'lguRegistry');
+            const [sampleSnap, countSnap] = await Promise.all([
+              getDocs(query(lguRegistryRef, limit(OVERVIEW_LGU_SAMPLE_LIMIT))),
+              getCountFromServer(lguRegistryRef),
+            ]);
+            return [resource, {
+              rows: sampleSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
+              total: countSnap.data().count,
+            }];
+          }
           case 'users': {
             const snap = await getDocs(collection(db, 'users'));
             return [resource, snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))];
@@ -293,6 +325,12 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           nextState.loaded[resource] = true;
           if (resource === 'setupSettings') {
             nextState.setupSettings = value || {};
+          } else if (resource === 'overviewUsers') {
+            nextState.overviewUsers = value?.rows || [];
+            nextState.overviewStats.usersTotal = Number(value?.total || 0);
+          } else if (resource === 'overviewLguRegistry') {
+            nextState.overviewLguRegistry = value?.rows || [];
+            nextState.overviewStats.lguTotal = Number(value?.total || 0);
           } else {
             nextState[resource] = value || [];
           }
@@ -315,15 +353,15 @@ export default function PlatformView({ user, navigateTo, showToast }) {
   }, [activeTab]);
 
   const tierCounts = useMemo(() => (
-    platformState.lguRegistry.reduce((acc, entry) => {
+    platformState.overviewLguRegistry.reduce((acc, entry) => {
       const tier = normalizeText(entry.tier, 'starter').toLowerCase();
       acc[tier] = (acc[tier] || 0) + 1;
       return acc;
     }, { starter: 0, standard: 0, premium: 0 })
-  ), [platformState.lguRegistry]);
+  ), [platformState.overviewLguRegistry]);
 
   const expiringSoonCount = useMemo(() => (
-    platformState.lguRegistry.filter(entry => {
+    platformState.overviewLguRegistry.filter(entry => {
       const expiry = entry.subscriptionExpiry?.seconds
         ? entry.subscriptionExpiry.seconds * 1000
         : null;
@@ -331,7 +369,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
       const diffDays = Math.ceil((expiry - Date.now()) / (1000 * 60 * 60 * 24));
       return diffDays >= 0 && diffDays <= 30;
     }).length
-  ), [platformState.lguRegistry]);
+  ), [platformState.overviewLguRegistry]);
 
   const roleChartItems = useMemo(() => {
     const roleColors = {
@@ -341,7 +379,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
       barangay_portal: '#8b5cf6',
       pending: '#fb923c',
     };
-    const roleCounts = platformState.users.reduce((acc, entry) => {
+    const roleCounts = platformState.overviewUsers.reduce((acc, entry) => {
       const role = normalizeText(entry.role || entry.status, 'pending').toLowerCase();
       acc[role] = (acc[role] || 0) + 1;
       return acc;
@@ -355,7 +393,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         value,
         color: roleColors[role] || '#64748b',
       }));
-  }, [platformState.users]);
+  }, [platformState.overviewUsers]);
 
   const tierChartItems = useMemo(() => ([
     { label: 'Starter', shortLabel: 'starter', value: tierCounts.starter || 0, color: '#94a3b8' },
@@ -446,15 +484,15 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         <StatCard
           icon="fa-city"
           label="Registered LGUs"
-          value={platformState.loaded.lguRegistry ? platformState.lguRegistry.length : '...'}
-          helper={platformState.loaded.lguRegistry ? `${tierCounts.premium} premium / ${tierCounts.standard} standard` : 'Load LGU data to view totals'}
+          value={platformState.loaded.overviewLguRegistry ? platformState.overviewStats.lguTotal : '...'}
+          helper={platformState.loaded.overviewLguRegistry ? `${tierCounts.premium} premium / ${tierCounts.standard} standard in overview sample` : 'Load LGU data to view totals'}
           tone="blue"
         />
         <StatCard
           icon="fa-users"
           label="Total Users"
-          value={platformState.loaded.users ? platformState.users.length : '...'}
-          helper={platformState.loaded.users ? `${pendingUsers.length} pending approval` : 'Load user data to view totals'}
+          value={platformState.loaded.overviewUsers ? platformState.overviewStats.usersTotal : '...'}
+          helper={platformState.loaded.overviewUsers ? `${pendingUsers.length} pending approval in overview sample` : 'Load user data to view totals'}
           tone="emerald"
         />
         <StatCard
@@ -471,8 +509,8 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         <StatCard
           icon="fa-hourglass-half"
           label="Expiring Soon"
-          value={platformState.loaded.lguRegistry ? expiringSoonCount : '...'}
-          helper={platformState.loaded.lguRegistry ? 'Subscriptions due within 30 days' : 'Load LGU data to view totals'}
+          value={platformState.loaded.overviewLguRegistry ? expiringSoonCount : '...'}
+          helper={platformState.loaded.overviewLguRegistry ? `Within 30 days in ${OVERVIEW_LGU_SAMPLE_LIMIT}-LGU overview sample` : 'Load LGU data to view totals'}
           tone="violet"
         />
       </div>
@@ -501,7 +539,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <StatBarChart
               title="Tier Distribution"
-              subtitle="Current tenant mix from `lguRegistry`."
+              subtitle={`Distribution from the current ${OVERVIEW_LGU_SAMPLE_LIMIT}-LGU overview sample.`}
               items={tierChartItems}
             />
 

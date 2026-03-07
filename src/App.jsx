@@ -44,7 +44,8 @@ export default function App() {
 
   const { user, userRole, userLguId, loading: authLoading, logout, isAuthenticated } = useAuth(authEnabled);
   const { tenantId, publicPortalUrl, hashTenantId } = useTenant(userLguId);
-  const { platformSettings } = usePlatformSettings();
+  const shouldLoadPlatformSettings = ['public', 'insights', 'contact', 'platform'].includes(view);
+  const { platformSettings } = usePlatformSettings(shouldLoadPlatformSettings);
 
   const navigateTo = useCallback((v, options = {}) => {
     if (!VIEWS.includes(v)) return;
