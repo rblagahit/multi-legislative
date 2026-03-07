@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { initializeApp } from 'firebase/app';
@@ -8,6 +8,8 @@ import { buildAppPath, buildPublicEntityPath } from '../src/utils/publicRoutes.j
 const PROJECT_ROOT = resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const ENV_PATH = resolve(PROJECT_ROOT, '.env');
 const OUTPUT_PATH = resolve(PROJECT_ROOT, 'sitemap.xml');
+const GENERATED_DIR = resolve(PROJECT_ROOT, '.generated');
+const PLATFORM_BUILD_DATA_PATH = resolve(GENERATED_DIR, 'platform-build-data.json');
 
 function readEnvFile(filepath) {
   if (!existsSync(filepath)) return {};
@@ -27,6 +29,19 @@ function readEnvFile(filepath) {
 
 function trimSlash(value = '') {
   return String(value || '').replace(/\/+$/, '');
+}
+
+function extractAdsenseAccountId(...snippets) {
+  for (const snippet of snippets) {
+    const text = String(snippet || '');
+    const metaMatch = text.match(/google-adsense-account["']?\s+content=["'](ca-pub-[^"']+)["']/i);
+    if (metaMatch?.[1]) return metaMatch[1];
+
+    const scriptMatch = text.match(/client=(ca-pub-[a-z0-9-]+)/i);
+    if (scriptMatch?.[1]) return scriptMatch[1];
+  }
+
+  return '';
 }
 
 function xmlEscape(value = '') {
@@ -82,6 +97,10 @@ async function loadDynamicEntries(env) {
   const setupSnapshot = await getDoc(doc(db, 'setup', 'bootstrapped'));
   const platformSettings = setupSnapshot.exists() ? setupSnapshot.data()?.platformSettings || {} : {};
   const baseUrl = trimSlash(platformSettings?.seoCanonicalBaseUrl || env.VITE_SEO_CANONICAL_BASE_URL || 'https://multi-legislative.web.app');
+  const adsenseAccountId = extractAdsenseAccountId(
+    platformSettings?.adsenseHeadHtml,
+    platformSettings?.globalHeadHtml,
+  );
 
   const [documentsSnapshot, membersSnapshot] = await Promise.all([
     getDocs(query(collection(db, 'lgus', defaultLguId, 'legislations'), orderBy('timestamp', 'desc'), limit(200))),
@@ -118,6 +137,8 @@ async function loadDynamicEntries(env) {
 
   return {
     baseUrl,
+    platformSettings,
+    adsenseAccountId,
     entries: [
       { path: buildAppPath('public'), lastmod: toIsoDate(), changefreq: 'daily', priority: '1.0' },
       { path: buildAppPath('insights'), lastmod: toIsoDate(), changefreq: 'daily', priority: '0.7' },
@@ -140,14 +161,39 @@ async function main() {
     { path: buildAppPath('insights'), lastmod: toIsoDate(), changefreq: 'daily', priority: '0.7' },
     { path: buildAppPath('contact'), lastmod: toIsoDate(), changefreq: 'monthly', priority: '0.6' },
   ];
+  mkdirSync(GENERATED_DIR, { recursive: true });
 
   try {
-    const { baseUrl, entries } = await loadDynamicEntries(env);
+    const { baseUrl, entries, platformSettings, adsenseAccountId } = await loadDynamicEntries(env);
     writeFileSync(OUTPUT_PATH, renderSitemap(baseUrl, entries), 'utf8');
+    writeFileSync(
+      PLATFORM_BUILD_DATA_PATH,
+      JSON.stringify({
+        canonicalBaseUrl: baseUrl,
+        adsenseAccountId,
+        platformSettings: {
+          adsEnabled: Boolean(platformSettings?.adsEnabled),
+          adsenseHeadHtml: platformSettings?.adsenseHeadHtml || '',
+        },
+      }, null, 2),
+      'utf8',
+    );
     console.log(`[generate-sitemap] Wrote ${entries.length} URL(s) to sitemap.xml`);
   } catch (error) {
     console.warn(`[generate-sitemap] Falling back to static sitemap: ${error.message}`);
     writeFileSync(OUTPUT_PATH, renderSitemap(fallbackBaseUrl, fallbackEntries), 'utf8');
+    writeFileSync(
+      PLATFORM_BUILD_DATA_PATH,
+      JSON.stringify({
+        canonicalBaseUrl: fallbackBaseUrl,
+        adsenseAccountId: '',
+        platformSettings: {
+          adsEnabled: false,
+          adsenseHeadHtml: '',
+        },
+      }, null, 2),
+      'utf8',
+    );
   }
 }
 

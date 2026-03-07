@@ -26,3 +26,4 @@ Thumbs.db
 .firebase/logs/
 firebase-debug.log
 tmp-queue-backup-link
+.generated/
