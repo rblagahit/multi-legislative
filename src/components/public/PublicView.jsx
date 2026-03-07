@@ -84,13 +84,13 @@ export default function PublicView({
 
   const { orgName, municipality, province } = settings || {};
   const cityProvince = [municipality, province].filter(Boolean).join(', ') || 'Argao, Cebu';
-  const publicPortalLabel = municipalityFilter
-    ? municipalityById.get(municipalityFilter)?.label || cityProvince
-    : 'All Municipalities · Public Legislative Search';
   const municipalityById = useMemo(
     () => new Map((municipalities || []).map((entry) => [entry.id, entry])),
     [municipalities],
   );
+  const publicPortalLabel = municipalityFilter
+    ? municipalityById.get(municipalityFilter)?.label || cityProvince
+    : 'All Municipalities · Public Legislative Search';
   const scopedBarangays = useMemo(() => (
     municipalityFilter
       ? (barangays || []).filter((entry) => entry.lguId === municipalityFilter)

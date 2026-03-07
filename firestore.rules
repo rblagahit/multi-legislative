@@ -194,6 +194,11 @@ service cloud.firestore {
       allow read: if true;
     }
 
+    // Required for collectionGroup('members') queries from the public page.
+    match /{path=**}/members/{docId} {
+      allow read: if true;
+    }
+
     match /lgus/{lguId}/legislations/{docId} {
       allow read:  if true;
       allow create: if isAdmin(lguId)
