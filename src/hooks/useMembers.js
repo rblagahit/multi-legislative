@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  collection, collectionGroup, getDoc, getDocs, query, orderBy, limit,
+  collection, getDoc, getDocs, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, deleteDoc,
   doc, serverTimestamp, setDoc, startAfter,
 } from 'firebase/firestore';
@@ -9,7 +9,6 @@ import { sanitizeLguId } from '../utils/helpers';
 
 const colRef = (lguId) => collection(db, 'lgus', lguId, 'members');
 const settingsDocRef = (lguId) => doc(db, 'lgus', lguId, 'settings', 'general');
-const globalColRef = () => collectionGroup(db, 'members');
 const publicMembersColRef = () => collection(db, 'publicMembers');
 const publicMemberRef = (id) => doc(db, 'publicMembers', id);
 const ADMIN_MEMBER_LIMIT = 50;
@@ -19,13 +18,11 @@ const GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT = 300;
 const membersQuery = (lguId) => query(colRef(lguId), orderBy('name'), limit(ADMIN_MEMBER_LIMIT));
 const publicMembersIndexRecentQuery = () => query(publicMembersColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE));
 const publicMembersIndexSeedQuery = () => query(publicMembersColRef(), orderBy('timestamp', 'desc'), limit(GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT));
-const globalRecentMembersQuery = () => query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE));
 const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
   cursor
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
     : query(colRef(lguId), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE))
 );
-const globalPublicMembersSeedQuery = () => query(globalColRef(), limit(GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT));
 const toMillis = (value) => {
   if (!value) return 0;
   if (typeof value.toDate === 'function') return value.toDate().getTime();
@@ -132,27 +129,19 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options
     const loadMembers = async () => {
       setLoading(true);
       try {
-        const snap = await getDocs(globalScope ? publicMembersIndexRecentQuery() : scopedPublicMembersPageQuery(lguId));
+        const [snap, seedSnap] = globalScope
+          ? await Promise.all([
+            getDocs(publicMembersIndexRecentQuery()),
+            getDocs(publicMembersIndexSeedQuery()),
+          ])
+          : [await getDocs(scopedPublicMembersPageQuery(lguId)), null];
         if (!ignore) {
           let loadedMembers = mapMembers(snap);
           if (globalScope) {
-            if (loadedMembers.length) {
-              const seedSnap = await getDocs(publicMembersIndexSeedQuery());
-              loadedMembers = dedupeMembers([
-                ...loadedMembers,
-                ...mapMembers(seedSnap),
-              ]);
-            }
-
-            if (loadedMembers.length < PUBLIC_MEMBER_PAGE_SIZE) {
-              const fallbackRecentSnap = await getDocs(globalRecentMembersQuery());
-              const fallbackSeedSnap = await getDocs(globalPublicMembersSeedQuery());
-              loadedMembers = dedupeMembers([
-                ...loadedMembers,
-                ...mapMembers(fallbackRecentSnap),
-                ...mapMembers(fallbackSeedSnap),
-              ]);
-            }
+            loadedMembers = dedupeMembers([
+              ...loadedMembers,
+              ...mapMembers(seedSnap),
+            ]);
           }
           const nextMembers = globalScope
             ? sortMembersByRecency(loadedMembers).slice(0, PUBLIC_MEMBER_PAGE_SIZE)

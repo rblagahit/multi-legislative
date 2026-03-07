@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  collection, collectionGroup, count, getAggregateFromServer, getDoc, getDocs, query, orderBy, limit,
+  collection, count, getAggregateFromServer, getDoc, getDocs, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, deleteDoc,
   doc, increment, serverTimestamp, setDoc, startAfter, sum, where,
 } from 'firebase/firestore';
@@ -10,7 +10,6 @@ import { sanitizeLguId } from '../utils/helpers';
 const colRef = (lguId) => collection(db, 'lgus', lguId, 'legislations');
 const importsColRef = (lguId) => collection(db, 'lgus', lguId, 'legislationImports');
 const settingsDocRef = (lguId) => doc(db, 'lgus', lguId, 'settings', 'general');
-const globalColRef = () => collectionGroup(db, 'legislations');
 const publicDocumentsColRef = () => collection(db, 'publicDocuments');
 const publicDocumentRef = (docId) => doc(db, 'publicDocuments', docId);
 const ADMIN_DOCUMENT_LIMIT = 200;
@@ -28,13 +27,11 @@ const documentsQuery = (lguId) => query(colRef(lguId), orderBy('timestamp', 'des
 const documentImportsQuery = (lguId) => query(importsColRef(lguId), orderBy('createdAt', 'desc'), limit(IMPORTS_LIMIT));
 const publicDocumentsIndexRecentQuery = () => query(publicDocumentsColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE));
 const publicDocumentsIndexSeedQuery = () => query(publicDocumentsColRef(), orderBy('timestamp', 'desc'), limit(GLOBAL_PUBLIC_DOCUMENT_FETCH_LIMIT));
-const globalRecentDocumentsQuery = () => query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE));
 const scopedPublicDocumentsPageQuery = (lguId, cursor = null) => (
   cursor
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
     : query(colRef(lguId), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
 );
-const globalPublicDocumentsSeedQuery = () => query(globalColRef(), limit(GLOBAL_PUBLIC_DOCUMENT_FETCH_LIMIT));
 const toMillis = (value) => {
   if (!value) return 0;
   if (typeof value.toDate === 'function') return value.toDate().getTime();
@@ -171,7 +168,7 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
     const loadDocuments = async () => {
       setLoading(true);
       try {
-        const scopedDocumentsRef = globalScope ? globalColRef() : colRef(lguId);
+        const scopedDocumentsRef = colRef(lguId);
         const aggregatePromise = globalScope
           ? Promise.resolve([])
           : Promise.allSettled([
@@ -189,36 +186,26 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, optio
             ),
           ]);
 
-        const [pageSnap, aggregateResults] = globalScope
+        const [pageSnap, seedSnap, aggregateResults] = globalScope
           ? await Promise.all([
             getDocs(publicDocumentsIndexRecentQuery()),
+            getDocs(publicDocumentsIndexSeedQuery()),
             aggregatePromise,
           ])
           : await Promise.all([
             getDocs(scopedPublicDocumentsPageQuery(lguId)),
+            Promise.resolve(null),
             aggregatePromise,
           ]);
         if (!ignore) {
-          let loadedDocuments = mapDocuments(pageSnap);
+          const loadedDocuments = mapDocuments(pageSnap);
           let directoryRows = loadedDocuments;
 
           if (globalScope) {
-            if (loadedDocuments.length) {
-              const seedSnap = await getDocs(publicDocumentsIndexSeedQuery());
-              directoryRows = dedupeDocuments([
-                ...loadedDocuments,
-                ...mapDocuments(seedSnap),
-              ]);
-            } else {
-              const fallbackRecentSnap = await getDocs(globalRecentDocumentsQuery());
-              const fallbackRecentRows = mapDocuments(fallbackRecentSnap);
-              const fallbackSeedSnap = await getDocs(globalPublicDocumentsSeedQuery());
-              directoryRows = dedupeDocuments([
-                ...fallbackRecentRows,
-                ...mapDocuments(fallbackSeedSnap),
-              ]);
-              loadedDocuments = fallbackRecentRows.length ? fallbackRecentRows : directoryRows;
-            }
+            directoryRows = dedupeDocuments([
+              ...loadedDocuments,
+              ...mapDocuments(seedSnap),
+            ]);
           }
 
           const nextDocuments = globalScope

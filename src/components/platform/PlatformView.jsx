@@ -59,11 +59,32 @@ const ROLE_BADGES = {
 };
 
 const DEFAULT_PLATFORM_STATE = {
-  loading: true,
+  loading: false,
   users: [],
   lguRegistry: [],
   featureRequests: [],
   setupSettings: {},
+  loaded: {
+    users: false,
+    lguRegistry: false,
+    featureRequests: false,
+    setupSettings: false,
+  },
+};
+
+const TAB_RESOURCE_MAP = {
+  overview: ['users', 'lguRegistry', 'featureRequests'],
+  requests: ['featureRequests', 'lguRegistry'],
+  priorities: ['featureRequests', 'lguRegistry'],
+  'app-analytics': [],
+  lgus: ['lguRegistry'],
+  members: [],
+  barangays: [],
+  users: ['users', 'lguRegistry'],
+  subscriptions: ['lguRegistry', 'setupSettings'],
+  'sticky-profiles': [],
+  'premium-ops': [],
+  settings: ['setupSettings'],
 };
 
 function formatDate(value) {
@@ -167,43 +188,6 @@ export default function PlatformView({ user, navigateTo, showToast }) {
   const [search, setSearch] = useState({ requests: '' });
   const [platformState, setPlatformState] = useState(DEFAULT_PLATFORM_STATE);
 
-  useEffect(() => {
-    let ignore = false;
-
-    const loadPlatformData = async () => {
-      setPlatformState(current => ({ ...current, loading: true }));
-      try {
-        const [usersSnap, lguSnap, requestsSnap, setupSnap] = await Promise.all([
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'lguRegistry')),
-          getDocs(collection(db, 'featureRequests')),
-          getDoc(doc(db, 'setup', 'bootstrapped')),
-        ]);
-
-        if (ignore) return;
-
-        setPlatformState({
-          loading: false,
-          users: usersSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
-          lguRegistry: lguSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
-          featureRequests: requestsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
-          setupSettings: setupSnap.exists() ? (setupSnap.data() || {}) : {},
-        });
-      } catch (error) {
-        console.error('[PlatformView]', error);
-        if (!ignore) {
-          setPlatformState(current => ({ ...current, loading: false }));
-          showToast('Unable to load platform data.', 'error');
-        }
-      }
-    };
-
-    loadPlatformData();
-    return () => {
-      ignore = true;
-    };
-  }, [showToast]);
-
   const registryMap = useMemo(
     () => new Map(platformState.lguRegistry.map(entry => [entry.id, entry])),
     [platformState.lguRegistry],
@@ -248,6 +232,79 @@ export default function PlatformView({ user, navigateTo, showToast }) {
     const nextTab = TABS.find(tab => tab.group === activeGroup);
     if (nextTab) setActiveTab(nextTab.id);
   }, [activeGroup, activeTab]);
+
+  const activeTabResources = useMemo(
+    () => TAB_RESOURCE_MAP[activeTab] || [],
+    [activeTab],
+  );
+
+  const loadPlatformResources = async (resources, options = {}) => {
+    const { force = false, withToast = false } = options;
+    const requested = [...new Set(resources || [])];
+    const pendingResources = requested.filter((resource) => force || !platformState.loaded[resource]);
+
+    if (!pendingResources.length) {
+      if (withToast) showToast('Platform data refreshed.', 'success');
+      return;
+    }
+
+    setPlatformState((current) => ({ ...current, loading: true }));
+
+    try {
+      const results = await Promise.all(pendingResources.map(async (resource) => {
+        switch (resource) {
+          case 'users': {
+            const snap = await getDocs(collection(db, 'users'));
+            return [resource, snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))];
+          }
+          case 'lguRegistry': {
+            const snap = await getDocs(collection(db, 'lguRegistry'));
+            return [resource, snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))];
+          }
+          case 'featureRequests': {
+            const snap = await getDocs(collection(db, 'featureRequests'));
+            return [resource, snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))];
+          }
+          case 'setupSettings': {
+            const snap = await getDoc(doc(db, 'setup', 'bootstrapped'));
+            return [resource, snap.exists() ? (snap.data() || {}) : {}];
+          }
+          default:
+            return [resource, null];
+        }
+      }));
+
+      setPlatformState((current) => {
+        const nextState = {
+          ...current,
+          loading: false,
+          loaded: { ...current.loaded },
+        };
+
+        results.forEach(([resource, value]) => {
+          nextState.loaded[resource] = true;
+          if (resource === 'setupSettings') {
+            nextState.setupSettings = value || {};
+          } else {
+            nextState[resource] = value || [];
+          }
+        });
+
+        return nextState;
+      });
+
+      if (withToast) showToast('Platform data refreshed.', 'success');
+    } catch (error) {
+      console.error('[PlatformView.loadPlatformResources]', error);
+      setPlatformState((current) => ({ ...current, loading: false }));
+      showToast('Unable to load platform data.', 'error');
+    }
+  };
+
+  useEffect(() => {
+    loadPlatformResources(activeTabResources);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const tierCounts = useMemo(() => (
     platformState.lguRegistry.reduce((acc, entry) => {
@@ -337,29 +394,10 @@ export default function PlatformView({ user, navigateTo, showToast }) {
   };
 
   const refreshPlatformData = async (withToast = true) => {
-    setPlatformState(current => ({ ...current, loading: true }));
-    try {
-      const [usersSnap, lguSnap, requestsSnap, setupSnap] = await Promise.all([
-        getDocs(collection(db, 'users')),
-        getDocs(collection(db, 'lguRegistry')),
-        getDocs(collection(db, 'featureRequests')),
-        getDoc(doc(db, 'setup', 'bootstrapped')),
-      ]);
-
-      setPlatformState({
-        loading: false,
-        users: usersSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
-        lguRegistry: lguSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
-        featureRequests: requestsSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() })),
-        setupSettings: setupSnap.exists() ? (setupSnap.data() || {}) : {},
-      });
-      if (withToast) showToast('Platform data refreshed.', 'success');
-    } catch (error) {
-      console.error('[PlatformView.refresh]', error);
-      setPlatformState(current => ({ ...current, loading: false }));
-      showToast('Platform refresh failed.', 'error');
-    }
+    await loadPlatformResources(activeTabResources, { force: true, withToast });
   };
+
+  const isActiveTabReady = activeTabResources.every((resource) => platformState.loaded[resource]);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -400,29 +438,29 @@ export default function PlatformView({ user, navigateTo, showToast }) {
         <StatCard
           icon="fa-city"
           label="Registered LGUs"
-          value={platformState.lguRegistry.length}
-          helper={`${tierCounts.premium} premium / ${tierCounts.standard} standard`}
+          value={platformState.loaded.lguRegistry ? platformState.lguRegistry.length : '...'}
+          helper={platformState.loaded.lguRegistry ? `${tierCounts.premium} premium / ${tierCounts.standard} standard` : 'Load LGU data to view totals'}
           tone="blue"
         />
         <StatCard
           icon="fa-users"
           label="Total Users"
-          value={platformState.users.length}
-          helper={`${pendingUsers.length} pending approval`}
+          value={platformState.loaded.users ? platformState.users.length : '...'}
+          helper={platformState.loaded.users ? `${pendingUsers.length} pending approval` : 'Load user data to view totals'}
           tone="emerald"
         />
         <StatCard
           icon="fa-bell"
           label="Feature Requests"
-          value={pendingRequests.length}
-          helper="Pending superadmin review"
+          value={platformState.loaded.featureRequests ? pendingRequests.length : '...'}
+          helper={platformState.loaded.featureRequests ? 'Pending superadmin review' : 'Load request data to view totals'}
           tone="amber"
         />
         <StatCard
           icon="fa-hourglass-half"
           label="Expiring Soon"
-          value={expiringSoonCount}
-          helper="Subscriptions due within 30 days"
+          value={platformState.loaded.lguRegistry ? expiringSoonCount : '...'}
+          helper={platformState.loaded.lguRegistry ? 'Subscriptions due within 30 days' : 'Load LGU data to view totals'}
           tone="violet"
         />
       </div>
@@ -440,14 +478,14 @@ export default function PlatformView({ user, navigateTo, showToast }) {
       />
 
       <div className="mt-8">
-        {platformState.loading && !platformState.users.length && !platformState.lguRegistry.length ? (
+        {platformState.loading && !isActiveTabReady ? (
           <div className="rounded-3xl border border-slate-100 bg-white px-6 py-16 text-center shadow-sm">
             <i className="fas fa-spinner fa-spin text-3xl text-slate-400" />
             <p className="mt-4 text-sm font-semibold text-slate-500">Loading platform data…</p>
           </div>
         ) : null}
 
-        {!platformState.loading && activeTab === 'overview' ? (
+        {isActiveTabReady && activeTab === 'overview' ? (
           <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
             <StatBarChart
               title="Tier Distribution"
@@ -522,7 +560,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           </div>
         ) : null}
 
-        {!platformState.loading && activeTab === 'lgus' ? (
+        {isActiveTabReady && activeTab === 'lgus' ? (
           <PlatformLgusTab
             lguRegistry={platformState.lguRegistry}
             user={user}
@@ -539,7 +577,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           <PlatformBarangaysTab showToast={showToast} />
         ) : null}
 
-        {!platformState.loading && activeTab === 'users' ? (
+        {isActiveTabReady && activeTab === 'users' ? (
           <PlatformUsersTab
             users={platformState.users}
             registryMap={registryMap}
@@ -548,7 +586,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           />
         ) : null}
 
-        {!platformState.loading && activeTab === 'subscriptions' ? (
+        {isActiveTabReady && activeTab === 'subscriptions' ? (
           <PlatformSubscriptionsTab
             lguRegistry={platformState.lguRegistry}
             setupSettings={platformState.setupSettings}
@@ -562,7 +600,7 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           <PlatformAppAnalyticsTab showToast={showToast} />
         ) : null}
 
-        {!platformState.loading && activeTab === 'priorities' ? (
+        {isActiveTabReady && activeTab === 'priorities' ? (
           <PlatformPriorityRequestsTab
             requests={platformState.featureRequests}
             registryMap={registryMap}
@@ -579,11 +617,11 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           <PlatformPremiumOpsTab showToast={showToast} />
         ) : null}
 
-        {!platformState.loading && activeTab === 'settings' ? (
+        {isActiveTabReady && activeTab === 'settings' ? (
           <PlatformSettingsTab setupSettings={platformState.setupSettings} showToast={showToast} user={user} />
         ) : null}
 
-        {!platformState.loading && activeTab === 'requests' ? (
+        {isActiveTabReady && activeTab === 'requests' ? (
           <div className="space-y-5">
             <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
