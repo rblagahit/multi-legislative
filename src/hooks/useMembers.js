@@ -1,19 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  collection, collectionGroup, getDocs, query, orderBy, limit,
+  collection, collectionGroup, getDoc, getDocs, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, deleteDoc,
-  doc, serverTimestamp, startAfter,
+  doc, serverTimestamp, setDoc, startAfter,
 } from 'firebase/firestore';
 import { db, DEFAULT_LGU_ID } from '../firebase';
 import { sanitizeLguId } from '../utils/helpers';
 
 const colRef = (lguId) => collection(db, 'lgus', lguId, 'members');
+const settingsDocRef = (lguId) => doc(db, 'lgus', lguId, 'settings', 'general');
 const globalColRef = () => collectionGroup(db, 'members');
+const publicMembersColRef = () => collection(db, 'publicMembers');
+const publicMemberRef = (id) => doc(db, 'publicMembers', id);
 const ADMIN_MEMBER_LIMIT = 50;
 const PUBLIC_MEMBER_PAGE_SIZE = 24;
 const GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT = 300;
 
 const membersQuery = (lguId) => query(colRef(lguId), orderBy('name'), limit(ADMIN_MEMBER_LIMIT));
+const publicMembersIndexRecentQuery = () => query(publicMembersColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE));
+const publicMembersIndexSeedQuery = () => query(publicMembersColRef(), orderBy('timestamp', 'desc'), limit(GLOBAL_PUBLIC_MEMBER_FETCH_LIMIT));
 const globalRecentMembersQuery = () => query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE));
 const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
   cursor
@@ -40,11 +45,67 @@ const mapMembers = (snap) => snap.docs.map((entry) => ({
 const dedupeMembers = (rows) => {
   const seen = new Set();
   return rows.filter((entry) => {
-    if (seen.has(entry.id)) return false;
-    seen.add(entry.id);
+    const key = `${sanitizeLguId(entry.lguId || '')}:${entry.id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 };
+
+async function buildPublicMemberPayload(id, payload, lguId, existing = null) {
+  const settingsSnap = await getDoc(settingsDocRef(lguId)).catch(() => null);
+  const settings = settingsSnap?.exists() ? settingsSnap.data() : {};
+  const merged = { ...(existing || {}), ...(payload || {}) };
+
+  return {
+    name: merged.name || '',
+    role: merged.role || '',
+    image: merged.image || '',
+    termStart: merged.termStart || '',
+    termEnd: merged.termEnd || '',
+    committees: Array.isArray(merged.committees) ? merged.committees : [],
+    bio: merged.bio || '',
+    additionalInfo: merged.additionalInfo || '',
+    contactEmail: merged.contactEmail || '',
+    facebook: merged.facebook || '',
+    instagram: merged.instagram || '',
+    x: merged.x || '',
+    socialFacebook: merged.socialFacebook || '',
+    socialTwitter: merged.socialTwitter || '',
+    socialEmail: merged.socialEmail || '',
+    barangayId: merged.barangayId || '',
+    barangayName: merged.barangayName || merged._barangayName || '',
+    lguId,
+    municipality: merged.municipality || settings.municipality || '',
+    province: merged.province || settings.province || '',
+    orgName: merged.orgName || settings.orgName || '',
+    isArchived: Boolean(merged.isArchived),
+    stickyActive: Boolean(merged.stickyActive),
+    stickyMonths: Number(merged.stickyMonths || 0) || 0,
+    stickyRequestId: merged.stickyRequestId || '',
+    stickyExpiresAt: merged.stickyExpiresAt || null,
+    profileViews: Number.isFinite(Number(merged.profileViews)) ? Number(merged.profileViews) : 0,
+    timestamp: merged.timestamp || merged.updatedAt || merged.createdAt || serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    sourceMemberId: id,
+  };
+}
+
+async function resolveExistingMember(id, lguId, existing = null) {
+  if (existing) return existing;
+  const snapshot = await getDoc(doc(db, 'lgus', lguId, 'members', id)).catch(() => null);
+  return snapshot?.exists() ? snapshot.data() : null;
+}
+
+export async function syncPublicMemberIndex(id, payload, lguId, existing = null) {
+  const existingPayload = await resolveExistingMember(id, lguId, existing);
+  const publicPayload = await buildPublicMemberPayload(id, payload, lguId, existingPayload);
+  await setDoc(publicMemberRef(id), publicPayload, { merge: true });
+}
+
+export async function removePublicMemberIndex(id) {
+  await deleteDoc(publicMemberRef(id)).catch(() => {});
+}
 
 /**
  * One-time fetch for public member browsing.
@@ -71,15 +132,27 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options
     const loadMembers = async () => {
       setLoading(true);
       try {
-        const snap = await getDocs(globalScope ? globalRecentMembersQuery() : scopedPublicMembersPageQuery(lguId));
+        const snap = await getDocs(globalScope ? publicMembersIndexRecentQuery() : scopedPublicMembersPageQuery(lguId));
         if (!ignore) {
           let loadedMembers = mapMembers(snap);
-          if (globalScope && loadedMembers.length < PUBLIC_MEMBER_PAGE_SIZE) {
-            const seedSnap = await getDocs(globalPublicMembersSeedQuery());
-            loadedMembers = dedupeMembers([
-              ...loadedMembers,
-              ...mapMembers(seedSnap),
-            ]);
+          if (globalScope) {
+            if (loadedMembers.length) {
+              const seedSnap = await getDocs(publicMembersIndexSeedQuery());
+              loadedMembers = dedupeMembers([
+                ...loadedMembers,
+                ...mapMembers(seedSnap),
+              ]);
+            }
+
+            if (loadedMembers.length < PUBLIC_MEMBER_PAGE_SIZE) {
+              const fallbackRecentSnap = await getDocs(globalRecentMembersQuery());
+              const fallbackSeedSnap = await getDocs(globalPublicMembersSeedQuery());
+              loadedMembers = dedupeMembers([
+                ...loadedMembers,
+                ...mapMembers(fallbackRecentSnap),
+                ...mapMembers(fallbackSeedSnap),
+              ]);
+            }
           }
           const nextMembers = globalScope
             ? sortMembersByRecency(loadedMembers).slice(0, PUBLIC_MEMBER_PAGE_SIZE)
@@ -157,20 +230,38 @@ export const useMembers = useAdminMembers;
 
 // ─── Mutations ────────────────────────────────────────────────────────────────
 
-export const addMember = (payload, lguId = DEFAULT_LGU_ID) =>
-  addDoc(colRef(lguId), { ...payload, isArchived: false, timestamp: serverTimestamp() });
+export const addMember = async (payload, lguId = DEFAULT_LGU_ID) => {
+  const memberPayload = { ...payload, isArchived: false, timestamp: serverTimestamp() };
+  const createdRef = await addDoc(colRef(lguId), memberPayload);
+  await syncPublicMemberIndex(createdRef.id, memberPayload, lguId);
+  return createdRef;
+};
 
-export const updateMember = (id, payload, lguId = DEFAULT_LGU_ID) =>
-  updateDoc(doc(db, 'lgus', lguId, 'members', id), {
+export const updateMember = async (id, payload, lguId = DEFAULT_LGU_ID) => {
+  const targetRef = doc(db, 'lgus', lguId, 'members', id);
+  const existingSnap = await getDoc(targetRef).catch(() => null);
+  const existingPayload = existingSnap?.exists() ? existingSnap.data() : null;
+
+  await updateDoc(targetRef, {
     ...payload,
     updatedAt: serverTimestamp(),
   });
+  await syncPublicMemberIndex(id, payload, lguId, existingPayload);
+};
 
-export const deleteMember = (id, lguId = DEFAULT_LGU_ID) =>
-  deleteDoc(doc(db, 'lgus', lguId, 'members', id));
+export const deleteMember = async (id, lguId = DEFAULT_LGU_ID) => {
+  await deleteDoc(doc(db, 'lgus', lguId, 'members', id));
+  await removePublicMemberIndex(id);
+};
 
-export const archiveMember = (id, isArchived, lguId = DEFAULT_LGU_ID) =>
-  updateDoc(doc(db, 'lgus', lguId, 'members', id), {
+export const archiveMember = async (id, isArchived, lguId = DEFAULT_LGU_ID) => {
+  const targetRef = doc(db, 'lgus', lguId, 'members', id);
+  const existingSnap = await getDoc(targetRef).catch(() => null);
+  const existingPayload = existingSnap?.exists() ? existingSnap.data() : null;
+
+  await updateDoc(targetRef, {
     isArchived,
     updatedAt: serverTimestamp(),
   });
+  await syncPublicMemberIndex(id, { isArchived }, lguId, existingPayload);
+};

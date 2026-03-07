@@ -4,6 +4,9 @@
   "private": true,
   "type": "commonjs",
   "description": "One-time admin bootstrap scripts. Run from inside this directory.",
+  "scripts": {
+    "backfill:public-index": "node backfill-public-index.js"
+  },
   "dependencies": {
     "firebase-admin": "^12.0.0"
   }

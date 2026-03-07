@@ -207,6 +207,24 @@ service cloud.firestore {
                         && resource.data.barangayId == userBarangayId());
     }
 
+    match /publicMembers/{memberId} {
+      allow read: if true;
+      allow create: if isAdmin(request.resource.data.lguId)
+                    || isEditor(request.resource.data.lguId)
+                    || (isBarangayPortalUser(request.resource.data.lguId)
+                        && request.resource.data.barangayId == userBarangayId());
+      allow update: if isAdmin(resource.data.lguId)
+                    || isEditor(resource.data.lguId)
+                    || (isBarangayPortalUser(resource.data.lguId)
+                        && resource.data.barangayId == userBarangayId()
+                        && request.resource.data.barangayId == userBarangayId())
+                    || isPublicMemberViewIncrement();
+      allow delete: if isAdmin(resource.data.lguId)
+                    || isEditor(resource.data.lguId)
+                    || (isBarangayPortalUser(resource.data.lguId)
+                        && resource.data.barangayId == userBarangayId());
+    }
+
     // ── Municipal data ────────────────────────────────────────────────────────
     // Collection-group read support for public document discovery across LGUs.
     // Required for collectionGroup('legislations') queries from the public page.

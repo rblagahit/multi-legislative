@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collection, limit, onSnapshot, query, serverTimestamp, setDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { syncPublicMemberIndex } from '../../hooks/useMembers';
 
 function asDate(value) {
   if (!value) return null;
@@ -72,13 +73,15 @@ export default function PlatformStickyProfilesTab({ showToast }) {
       }, { merge: true });
 
       if (status === 'approved' && row.lguId && row.memberId) {
-        await setDoc(doc(db, 'lgus', row.lguId, 'members', row.memberId), {
+        const memberPayload = {
           stickyActive: true,
           stickyMonths: Number(row.months || 1),
           stickyRequestId: row.id,
           stickyApprovedAt: serverTimestamp(),
           stickyExpiresAt,
-        }, { merge: true });
+        };
+        await setDoc(doc(db, 'lgus', row.lguId, 'members', row.memberId), memberPayload, { merge: true });
+        await syncPublicMemberIndex(row.memberId, memberPayload, row.lguId);
       }
 
       showToast(`Sticky request ${status}.`, 'success');

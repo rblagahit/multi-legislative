@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { collectionGroup, deleteDoc, doc, getDocs, limit, query, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { removePublicMemberIndex, syncPublicMemberIndex } from '../../hooks/useMembers';
 import { parseTags } from '../../utils/helpers';
 
 function normalizeText(value, fallback = '') {
@@ -90,7 +91,7 @@ export default function PlatformMembersTab({ showToast }) {
   const saveMember = async (row) => {
     setSavingKey(row.pathKey);
     try {
-      await updateDoc(doc(db, 'lgus', row.lguId, 'members', row.id), {
+      const payload = {
         name: form.name.trim(),
         role: form.role.trim(),
         image: form.image.trim(),
@@ -99,7 +100,9 @@ export default function PlatformMembersTab({ showToast }) {
         committees: parseTags(form.committees),
         bio: form.bio.trim(),
         updatedAt: serverTimestamp(),
-      });
+      };
+      await updateDoc(doc(db, 'lgus', row.lguId, 'members', row.id), payload);
+      await syncPublicMemberIndex(row.id, payload, row.lguId, row);
       showToast('Member updated.', 'success');
       resetEdit();
       await loadMembers(false);
@@ -119,6 +122,7 @@ export default function PlatformMembersTab({ showToast }) {
     setSavingKey(row.pathKey);
     try {
       await deleteDoc(doc(db, 'lgus', row.lguId, 'members', row.id));
+      await removePublicMemberIndex(row.id);
       showToast('Member deleted.', 'success');
       resetEdit();
       await loadMembers(false);
