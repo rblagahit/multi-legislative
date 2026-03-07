@@ -253,10 +253,13 @@ service cloud.firestore {
     }
 
     // ── Feature Requests ─────────────────────────────────────────────────────
-    // LGU admins can create/read their own requests. Superadmin can read/update all.
+    // LGU admins can read the shared queue and create requests for their own LGU.
+    // Superadmin can review and update all requests.
     match /featureRequests/{reqId} {
-      allow read:   if request.auth != null && (isSuperAdmin() || isAdmin(resource.data.lguId));
-      allow create: if request.auth != null && isAdmin(request.resource.data.lguId);
+      allow read:   if request.auth != null && (isSuperAdmin() || userRole() == 'admin');
+      allow create: if request.auth != null
+                    && isAdmin(request.resource.data.lguId)
+                    && request.resource.data.status == 'pending';
       allow update: if isSuperAdmin();
       allow delete: if isSuperAdmin();
     }

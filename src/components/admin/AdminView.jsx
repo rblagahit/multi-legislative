@@ -11,6 +11,7 @@ const ProfileTab = lazy(() => import('./ProfileTab'));
 const UsersTab = lazy(() => import('./UsersTab'));
 const SubscriptionTab = lazy(() => import('./SubscriptionTab'));
 const ActivityLogTab = lazy(() => import('./ActivityLogTab'));
+const FeatureRequestsTab = lazy(() => import('./FeatureRequestsTab'));
 
 const TABS = [
   { id: 'docs', label: 'Documents', icon: 'fa-file-alt', group: 'records' },
@@ -21,6 +22,7 @@ const TABS = [
   { id: 'users', label: 'Users', icon: 'fa-users-cog', group: 'administration', roles: SETTINGS_PANEL_ROLES },
   { id: 'analytics', label: 'Advanced Analytics', icon: 'fa-chart-bar', group: 'insights', roles: SETTINGS_PANEL_ROLES },
   { id: 'subscription', label: 'Subscription', icon: 'fa-tags', group: 'insights', roles: SETTINGS_PANEL_ROLES },
+  { id: 'requests', label: 'Requests', icon: 'fa-bell', group: 'insights', roles: SETTINGS_PANEL_ROLES },
   { id: 'activity', label: 'Activity', icon: 'fa-history', group: 'insights', roles: SETTINGS_PANEL_ROLES },
 ];
 
@@ -140,6 +142,11 @@ export default function AdminView({ user, userRole, tenantId, documents, members
       {activeTab === 'subscription' && (
         <Suspense fallback={tabFallback}>
           <SubscriptionTab {...tabProps} />
+        </Suspense>
+      )}
+      {activeTab === 'requests' && (
+        <Suspense fallback={tabFallback}>
+          <FeatureRequestsTab {...tabProps} />
         </Suspense>
       )}
       {activeTab === 'analytics' && (

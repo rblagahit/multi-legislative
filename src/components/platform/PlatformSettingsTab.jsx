@@ -11,6 +11,15 @@ const DEFAULT_SETTINGS = {
   seoOgImage: '',
   seoCanonicalBaseUrl: '',
   globalHeadHtml: '',
+  adsEnabled: false,
+  adsenseHeadHtml: '',
+  adsDisableForAuthenticated: true,
+  adsExcludePublic: false,
+  adsExcludeInsights: true,
+  adsExcludeContact: true,
+  adsExcludeLogin: true,
+  adsExcludeAdmin: true,
+  adsExcludePlatform: true,
   stickyQrUrl: '',
   stickyFee1: 1500,
   stickyFee2: 2800,
@@ -29,7 +38,7 @@ export default function PlatformSettingsTab({ setupSettings, showToast, user }) 
   }, [setupSettings]);
 
   const setValue = (key) => (event) => {
-    const value = event.target.value;
+    const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     setForm((current) => ({
       ...current,
       [key]: key.startsWith('stickyFee') ? Number(value) : value,
@@ -111,6 +120,70 @@ export default function PlatformSettingsTab({ setupSettings, showToast, user }) 
             <p className="mt-2 text-xs text-slate-400">
               Injected into the global <code>&lt;head&gt;</code>. Intended for AdSense meta/script tags and other verified head snippets.
             </p>
+          </div>
+
+          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5">
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-700">AdSense Controls</p>
+                <h4 className="mt-2 text-lg font-black text-slate-900">Safe Ad Delivery Defaults</h4>
+                <p className="mt-1 max-w-3xl text-sm text-slate-600">
+                  These settings keep ads away from admin/superadmin sessions and non-revenue pages by default.
+                </p>
+              </div>
+              <label className="inline-flex items-center gap-3 rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 shadow-sm">
+                <input
+                  type="checkbox"
+                  checked={Boolean(form.adsEnabled)}
+                  onChange={setValue('adsEnabled')}
+                  className="h-4 w-4 accent-amber-600"
+                />
+                Enable AdSense
+              </label>
+            </div>
+
+            <div className="mt-5 space-y-5">
+              <div>
+                <label className="mb-2 block text-xs font-black uppercase tracking-wider text-slate-400">AdSense Head HTML</label>
+                <textarea
+                  value={form.adsenseHeadHtml}
+                  onChange={setValue('adsenseHeadHtml')}
+                  rows={5}
+                  placeholder={`<meta name="google-adsense-account" content="ca-pub-xxxxxxxxxxxxxxxx">\n<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-xxxxxxxxxxxxxxxx" crossorigin="anonymous"></script>`}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm outline-none transition-all focus:border-amber-400 focus:ring-4 focus:ring-amber-100"
+                />
+                <p className="mt-2 text-xs text-slate-500">
+                  Only loaded when AdSense is enabled and the current page is not excluded.
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                {[
+                  ['adsDisableForAuthenticated', 'Disable when signed in', 'Recommended to prevent accidental self-clicks while using admin or staff accounts.'],
+                  ['adsExcludePublic', 'Exclude landing page', 'Turn off ads on the public homepage and public document/member routes.'],
+                  ['adsExcludeInsights', 'Exclude insights', 'Keep analytics pages ad-free by default.'],
+                  ['adsExcludeContact', 'Exclude contact', 'Avoid ads on low-intent support/contact pages.'],
+                  ['adsExcludeLogin', 'Exclude login pages', 'Hide ads on admin and barangay sign-in pages.'],
+                  ['adsExcludeAdmin', 'Exclude admin views', 'Never load ads inside the LGU management panel.'],
+                  ['adsExcludePlatform', 'Exclude platform views', 'Never load ads inside the superadmin dashboard.'],
+                ].map(([key, label, help]) => (
+                  <label key={key} className="rounded-2xl border border-amber-100 bg-white p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(form[key])}
+                        onChange={setValue(key)}
+                        className="mt-1 h-4 w-4 accent-amber-600"
+                      />
+                      <div>
+                        <p className="text-sm font-black text-slate-900">{label}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-500">{help}</p>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="border-t border-slate-200 pt-5">

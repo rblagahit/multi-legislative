@@ -99,7 +99,7 @@ export default function App() {
   const documents = isAdminMode ? adminDocsState.documents : publicDocsState.documents;
   const members = isAdminMode ? adminMembersState.members : publicMembersState.members;
   const settings = isAdminMode ? adminSettingsState.settings : publicSettingsState.settings;
-  useSeo(view, settings, platformSettings);
+  useSeo(view, settings, platformSettings, null, { user, userRole });
 
   useEffect(() => {
     const handlePopState = () => {

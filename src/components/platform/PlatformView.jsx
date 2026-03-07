@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import PanelTabNav from '../layout/PanelTabNav';
 import PlatformAppAnalyticsTab from './PlatformAppAnalyticsTab';
@@ -7,15 +7,18 @@ import PlatformBarangaysTab from './PlatformBarangaysTab';
 import PlatformLgusTab from './PlatformLgusTab';
 import PlatformMembersTab from './PlatformMembersTab';
 import { StatBarChart } from './PlatformCharts';
+import PlatformPriorityRequestsTab from './PlatformPriorityRequestsTab';
 import PlatformPremiumOpsTab from './PlatformPremiumOpsTab';
 import PlatformSettingsTab from './PlatformSettingsTab';
 import PlatformStickyProfilesTab from './PlatformStickyProfilesTab';
 import PlatformSubscriptionsTab from './PlatformSubscriptionsTab';
 import PlatformUsersTab from './PlatformUsersTab';
+import { buildFeatureRequestKey, groupFeatureRequests } from '../../utils/featureRequests';
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: 'fa-chart-line', group: 'operations' },
   { id: 'requests', label: 'Requests', icon: 'fa-bell', group: 'operations' },
+  { id: 'priorities', label: 'Top Priorities', icon: 'fa-ranking-star', group: 'operations' },
   { id: 'app-analytics', label: 'App Analytics', icon: 'fa-magnifying-glass-chart', group: 'operations' },
   { id: 'lgus', label: 'LGUs', icon: 'fa-city', group: 'directory' },
   { id: 'members', label: 'Members', icon: 'fa-user-tie', group: 'directory' },
@@ -215,6 +218,14 @@ export default function PlatformView({ user, navigateTo, showToast }) {
     () => platformState.featureRequests.filter(request => normalizeText(request.status, 'pending').toLowerCase() === 'pending'),
     [platformState.featureRequests],
   );
+  const pendingRequestGroups = useMemo(
+    () => groupFeatureRequests(pendingRequests),
+    [pendingRequests],
+  );
+  const requestGroupMap = useMemo(
+    () => new Map(pendingRequestGroups.map((group) => [group.requestKey, group])),
+    [pendingRequestGroups],
+  );
   const visibleGroups = useMemo(
     () => TAB_GROUPS.filter(group => TABS.some(tab => tab.group === group.id)),
     [],
@@ -307,6 +318,23 @@ export default function PlatformView({ user, navigateTo, showToast }) {
       return haystack.includes(term);
     });
   }, [pendingRequests, search.requests]);
+
+  const updateFeatureRequestStatus = async (requestIds, status) => {
+    try {
+      await Promise.all(
+        requestIds.map((requestId) => updateDoc(doc(db, 'featureRequests', requestId), {
+          status,
+          updatedAt: serverTimestamp(),
+          [`${status}At`]: serverTimestamp(),
+        })),
+      );
+      showToast(`Request${requestIds.length === 1 ? '' : 's'} marked as ${status}.`, 'success');
+      await refreshPlatformData(false);
+    } catch (error) {
+      console.error('[PlatformView.updateFeatureRequestStatus]', error);
+      showToast(`Unable to mark request${requestIds.length === 1 ? '' : 's'} as ${status}.`, 'error');
+    }
+  };
 
   const refreshPlatformData = async (withToast = true) => {
     setPlatformState(current => ({ ...current, loading: true }));
@@ -467,20 +495,20 @@ export default function PlatformView({ user, navigateTo, showToast }) {
               <h3 className="text-lg font-black text-slate-900">Pending Feature Requests</h3>
               <p className="text-sm text-slate-500">Recent requests queued for platform review.</p>
               <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {pendingRequests.slice(0, 6).map(entry => (
-                  <div key={entry.id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                {pendingRequestGroups.slice(0, 6).map(group => (
+                  <div key={group.requestKey} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <TierBadge tier={registryMap.get(entry.lguId)?.tier || 'starter'} />
+                      <TierBadge tier={registryMap.get(group.supporterIds[0])?.tier || 'starter'} />
                       <span className="text-xs font-black uppercase tracking-widest text-slate-400">
-                        {formatDate(entry.createdAt)}
+                        {formatDate(group.latestAt)}
                       </span>
                     </div>
-                    <h4 className="mt-3 font-black text-slate-900">{normalizeText(entry.feature || entry.requestType, 'Feature request')}</h4>
-                    <p className="mt-2 text-sm text-slate-500">{buildLguLabel(entry.lguId, registryMap.get(entry.lguId))}</p>
-                    <p className="mt-3 text-sm text-slate-600">{normalizeText(entry.notes, 'No notes attached.')}</p>
+                    <h4 className="mt-3 font-black text-slate-900">{normalizeText(group.title, 'Feature request')}</h4>
+                    <p className="mt-2 text-sm text-slate-500">{group.supportCount} LGU support{group.supportCount === 1 ? '' : 's'}</p>
+                    <p className="mt-3 text-sm text-slate-600">{normalizeText(group.notes, 'No notes attached.')}</p>
                   </div>
                 ))}
-                {!pendingRequests.length ? (
+                {!pendingRequestGroups.length ? (
                   <div className="md:col-span-2 xl:col-span-3">
                     <EmptyState
                       icon="fa-inbox"
@@ -534,6 +562,15 @@ export default function PlatformView({ user, navigateTo, showToast }) {
           <PlatformAppAnalyticsTab showToast={showToast} />
         ) : null}
 
+        {!platformState.loading && activeTab === 'priorities' ? (
+          <PlatformPriorityRequestsTab
+            requests={platformState.featureRequests}
+            registryMap={registryMap}
+            refreshPlatformData={refreshPlatformData}
+            showToast={showToast}
+          />
+        ) : null}
+
         {!platformState.loading && activeTab === 'sticky-profiles' ? (
           <PlatformStickyProfilesTab showToast={showToast} />
         ) : null}
@@ -575,6 +612,10 @@ export default function PlatformView({ user, navigateTo, showToast }) {
                       </span>
                     </div>
                     <p className="mt-2 text-sm text-slate-500">{buildLguLabel(entry.lguId, registryMap.get(entry.lguId))}</p>
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                      {(requestGroupMap.get(normalizeText(entry.requestKey, buildFeatureRequestKey(entry.requestType, entry.title || entry.feature || entry.requestType)))?.supportCount) || 1}
+                      {' '}LGU support
+                    </p>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-2xl bg-slate-50 p-4">
                         <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Requested By</p>
@@ -588,6 +629,24 @@ export default function PlatformView({ user, navigateTo, showToast }) {
                     <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-4">
                       <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Notes</p>
                       <p className="mt-2 text-sm text-slate-600">{normalizeText(entry.notes, 'No notes attached.')}</p>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateFeatureRequestStatus([entry.id], 'approved')}
+                        className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition-all hover:bg-emerald-700"
+                      >
+                        <i className="fas fa-check text-xs" />
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => updateFeatureRequestStatus([entry.id], 'denied')}
+                        className="inline-flex items-center gap-2 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-black text-rose-700 transition-all hover:bg-rose-100"
+                      >
+                        <i className="fas fa-ban text-xs" />
+                        Deny
+                      </button>
                     </div>
                   </article>
                 ))}

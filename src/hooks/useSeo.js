@@ -21,8 +21,9 @@ function ensureLink(rel) {
   return element;
 }
 
-function applyManagedHeadHtml(rawHtml = '') {
-  const existingManagedNodes = document.head.querySelectorAll('[data-managed-head-html="true"]');
+function applyManagedHeadHtml(rawHtml = '', scope = 'default') {
+  const selector = `[data-managed-head-html="${scope}"]`;
+  const existingManagedNodes = document.head.querySelectorAll(selector);
   existingManagedNodes.forEach((node) => node.remove());
 
   const html = String(rawHtml || '').trim();
@@ -45,9 +46,27 @@ function applyManagedHeadHtml(rawHtml = '') {
       nextNode.textContent = sourceNode.textContent;
     }
 
-    nextNode.setAttribute('data-managed-head-html', 'true');
+    nextNode.setAttribute('data-managed-head-html', scope);
     document.head.appendChild(nextNode);
   });
+}
+
+function shouldInjectAdsenseHtml(view, platformSettings, session = {}) {
+  if (!platformSettings?.adsEnabled) return false;
+  if (!String(platformSettings?.adsenseHeadHtml || '').trim()) return false;
+  if (platformSettings?.adsDisableForAuthenticated && session?.user) return false;
+
+  const excludedByView = {
+    public: Boolean(platformSettings?.adsExcludePublic),
+    insights: Boolean(platformSettings?.adsExcludeInsights),
+    contact: Boolean(platformSettings?.adsExcludeContact),
+    login: Boolean(platformSettings?.adsExcludeLogin),
+    'barangay-login': Boolean(platformSettings?.adsExcludeLogin),
+    admin: Boolean(platformSettings?.adsExcludeAdmin),
+    platform: Boolean(platformSettings?.adsExcludePlatform),
+  };
+
+  return !excludedByView[view];
 }
 
 function trimSlash(value = '') {
@@ -138,11 +157,12 @@ function buildSeoState(view, settings, platformSettings, entitySeo = null) {
   };
 }
 
-export function useSeo(view, settings, platformSettings, entitySeo = null) {
+export function useSeo(view, settings, platformSettings, entitySeo = null, session = {}) {
   const seo = useMemo(
     () => buildSeoState(view, settings, platformSettings, entitySeo),
     [entitySeo, platformSettings, settings, view],
   );
+  const shouldInjectAdsense = shouldInjectAdsenseHtml(view, platformSettings, session);
 
   useEffect(() => {
     document.title = seo.title;
@@ -167,6 +187,26 @@ export function useSeo(view, settings, platformSettings, entitySeo = null) {
     const favicon = ensureLink('icon');
     favicon.setAttribute('href', seo.favicon);
 
-    applyManagedHeadHtml(platformSettings?.globalHeadHtml);
-  }, [platformSettings?.globalHeadHtml, seo]);
+    applyManagedHeadHtml(platformSettings?.globalHeadHtml, 'global');
+    applyManagedHeadHtml(
+      shouldInjectAdsense
+        ? platformSettings?.adsenseHeadHtml
+        : '',
+      'adsense',
+    );
+  }, [
+    platformSettings?.adsDisableForAuthenticated,
+    platformSettings?.adsEnabled,
+    platformSettings?.adsExcludeAdmin,
+    platformSettings?.adsExcludeContact,
+    platformSettings?.adsExcludeInsights,
+    platformSettings?.adsExcludeLogin,
+    platformSettings?.adsExcludePlatform,
+    platformSettings?.adsExcludePublic,
+    platformSettings?.adsenseHeadHtml,
+    platformSettings?.globalHeadHtml,
+    seo,
+    session?.user,
+    shouldInjectAdsense,
+  ]);
 }

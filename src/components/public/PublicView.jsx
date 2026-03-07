@@ -30,6 +30,8 @@ export default function PublicView({
   platformSettings,
   tenantId,
   showToast,
+  user,
+  userRole,
 }) {
   const [search, setSearch]   = useState('');
   const [typeFilter, setType] = useState('All');
@@ -203,7 +205,7 @@ export default function PublicView({
     return null;
   }, [activeDoc, activeMember, modal, municipality, orgName, platformSettings?.logoUrl, province, settings?.sealUrl]);
 
-  useSeo('public', settings, platformSettings, entitySeo);
+  useSeo('public', settings, platformSettings, entitySeo, { user, userRole });
 
   return (
     <div>
