@@ -53,7 +53,10 @@ export default function MemberProfileModal({
         <div className="relative border-b border-slate-100 px-8 pb-8 pt-10 text-center">
           <button
             type="button"
-            onClick={onClose}
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+            }}
             className="absolute right-5 top-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition-all hover:bg-slate-200 hover:text-slate-700"
           >
             <i className="fas fa-times text-sm" />
@@ -62,7 +65,7 @@ export default function MemberProfileModal({
           <img
             src={avatar}
             alt={member.name}
-            className="mx-auto h-32 w-32 rounded-[2rem] border-4 border-white object-cover shadow-xl"
+            className="mx-auto h-40 w-40 rounded-[2.25rem] border-4 border-white object-cover shadow-xl sm:h-44 sm:w-44"
             onError={(event) => {
               event.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(member.name || 'SB')}&background=1d4ed8&color=fff&bold=true&size=256`;
             }}

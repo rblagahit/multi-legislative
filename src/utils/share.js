@@ -36,7 +36,13 @@ export async function sharePublicEntity({
       return;
     }
     if (channel === 'messenger') {
-      window.open(`fb-messenger://share/?link=${encodedUrl}`, '_blank', 'noopener');
+      if (navigator.share) {
+        await navigator.share({ title, text, url });
+        onSuccess?.('Opened the share sheet. Select Messenger to continue.');
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      onSuccess?.('Messenger direct share is not supported here. Link copied so you can paste it into Messenger.');
       return;
     }
     if (channel === 'native' && navigator.share) {

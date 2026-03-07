@@ -50,7 +50,11 @@ export default function DocumentDetailsModal({ doc, onClose, onDownload, onReque
               <p className="text-white/70 text-sm mt-1">{doc.docId}{date && ` · ${date}`}</p>
             </div>
             <button
-              onClick={onClose}
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onClose();
+              }}
               className="w-9 h-9 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center text-white shrink-0 transition-colors"
             >
               <i className="fas fa-times text-sm" />
@@ -67,12 +71,12 @@ export default function DocumentDetailsModal({ doc, onClose, onDownload, onReque
               <img
                 src={doc.authorImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.authorName || 'SB')}&background=2563eb&color=fff&bold=true`}
                 alt={doc.authorName}
-                className="w-10 h-10 rounded-xl object-cover bg-slate-100"
+                className="h-16 w-16 rounded-2xl object-cover bg-slate-100 shadow-sm"
                 onError={e => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.authorName || 'SB')}&background=2563eb&color=fff&bold=true`; }}
               />
               <div>
-                <p className="font-bold text-slate-800 text-sm">{doc.authorName || '—'}</p>
-                <p className="text-xs text-slate-400">{doc.authorRole || ''}</p>
+                <p className="font-bold text-slate-800 text-base">{doc.authorName || '—'}</p>
+                <p className="text-sm text-slate-400">{doc.authorRole || ''}</p>
               </div>
             </div>
           </div>

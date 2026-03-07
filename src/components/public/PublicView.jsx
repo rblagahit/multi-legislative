@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useState, useMemo, useRef } from 'react';
 import { normalizeText, normalizeTag } from '../../utils/helpers';
 import { buildPublicShareUrl } from '../../utils/share';
 import DocumentGrid         from './DocumentGrid';
@@ -42,6 +42,7 @@ export default function PublicView({
   const [activeDoc, setActiveDoc] = useState(null);
   const [activeMember, setActiveMember] = useState(null);
   const [modal, setModal]         = useState(null);
+  const deepLinkHandledRef = useRef(false);
 
   const openDetails = (doc) => { setActiveDoc(doc); setModal('details'); };
   const openMemberProfile = (member) => { setActiveMember(member); setModal('member'); };
@@ -85,18 +86,32 @@ export default function PublicView({
   );
 
   useEffect(() => {
+    if (deepLinkHandledRef.current) return;
+
     const params = new URLSearchParams(window.location.search);
     const memberId = params.get('member');
     const docId = params.get('doc');
 
+    if (!memberId && !docId) {
+      deepLinkHandledRef.current = true;
+      return;
+    }
+
     if (memberId && !activeMember) {
       const targetMember = members.find((member) => member.id === memberId);
-      if (targetMember) openMemberProfile(targetMember);
+      if (targetMember) {
+        deepLinkHandledRef.current = true;
+        openMemberProfile(targetMember);
+        return;
+      }
     }
 
     if (docId && !activeDoc) {
       const targetDoc = documents.find((entry) => entry.id === docId);
-      if (targetDoc) openDetails(targetDoc);
+      if (targetDoc) {
+        deepLinkHandledRef.current = true;
+        openDetails(targetDoc);
+      }
     }
   }, [activeDoc, activeMember, documents, members]);
 

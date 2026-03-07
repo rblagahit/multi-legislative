@@ -15,11 +15,11 @@ export default function MemberCard({ member, relatedCount, onViewProfile }) {
       onClick={() => onViewProfile(member)}
     >
       {/* Photo */}
-      <div className="relative h-44 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+      <div className="relative flex h-52 items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
         <img
           src={member.image || avatarFb}
           alt={member.name}
-          className="w-28 h-28 rounded-[1.75rem] object-cover shadow-xl ring-4 ring-white"
+          className="h-36 w-36 rounded-[2rem] object-cover shadow-xl ring-4 ring-white"
           onError={e => { e.target.src = avatarFb; }}
         />
         {expired && (
