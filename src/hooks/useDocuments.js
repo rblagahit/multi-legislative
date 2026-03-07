@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  collection, count, getAggregateFromServer, getDocs, query, orderBy, limit,
+  collection, collectionGroup, count, getAggregateFromServer, getDocs, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, deleteDoc,
   doc, increment, serverTimestamp, startAfter, sum, where,
 } from 'firebase/firestore';
 import { db, DEFAULT_LGU_ID } from '../firebase';
+import { sanitizeLguId } from '../utils/helpers';
 
 const colRef = (lguId) => collection(db, 'lgus', lguId, 'legislations');
 const importsColRef = (lguId) => collection(db, 'lgus', lguId, 'legislationImports');
+const globalColRef = () => collectionGroup(db, 'legislations');
 const ADMIN_DOCUMENT_LIMIT = 200;
 const IMPORTS_LIMIT = 100;
 const PUBLIC_DOCUMENT_PAGE_SIZE = 24;
@@ -20,28 +22,38 @@ const EMPTY_DOC_STATS = {
 
 const documentsQuery = (lguId) => query(colRef(lguId), orderBy('timestamp', 'desc'), limit(ADMIN_DOCUMENT_LIMIT));
 const documentImportsQuery = (lguId) => query(importsColRef(lguId), orderBy('createdAt', 'desc'), limit(IMPORTS_LIMIT));
-const publicDocumentsPageQuery = (lguId, cursor = null) => (
+const scopedPublicDocumentsPageQuery = (lguId, cursor = null) => (
   cursor
     ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
     : query(colRef(lguId), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
 );
-const mapDocuments = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
+const globalPublicDocumentsPageQuery = (cursor = null) => (
+  cursor
+    ? query(globalColRef(), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
+    : query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_DOCUMENT_PAGE_SIZE))
+);
+const mapDocuments = (snap) => snap.docs.map((entry) => ({
+  id: entry.id,
+  ...entry.data(),
+  lguId: sanitizeLguId(entry.ref.parent?.parent?.id || entry.data()?.lguId || ''),
+}));
 const mapImports = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
 /**
  * One-time fetch for public document browsing.
  * Public users do not need a live Firestore subscription.
  */
-export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true) {
+export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true, options = {}) {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading]     = useState(Boolean(enabled));
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [lastVisible, setLastVisible] = useState(null);
   const [stats, setStats] = useState(EMPTY_DOC_STATS);
+  const globalScope = Boolean(options.global);
 
   useEffect(() => {
-    if (!enabled || !lguId) {
+    if (!enabled || (!globalScope && !lguId)) {
       setDocuments([]);
       setStats(EMPTY_DOC_STATS);
       setHasMore(false);
@@ -55,19 +67,23 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true) {
     const loadDocuments = async () => {
       setLoading(true);
       try {
+        const scopedDocumentsRef = globalScope ? globalColRef() : colRef(lguId);
+        const firstPageQuery = globalScope
+          ? globalPublicDocumentsPageQuery()
+          : scopedPublicDocumentsPageQuery(lguId);
         const [pageSnap, aggregateResults] = await Promise.all([
-          getDocs(publicDocumentsPageQuery(lguId)),
+          getDocs(firstPageQuery),
           Promise.allSettled([
-            getAggregateFromServer(colRef(lguId), {
+            getAggregateFromServer(scopedDocumentsRef, {
               totalDocs: count(),
               totalViews: sum('views'),
             }),
             getAggregateFromServer(
-              query(colRef(lguId), where('type', '==', 'Ordinance')),
+              query(scopedDocumentsRef, where('type', '==', 'Ordinance')),
               { total: count() },
             ),
             getAggregateFromServer(
-              query(colRef(lguId), where('type', '==', 'Resolution')),
+              query(scopedDocumentsRef, where('type', '==', 'Resolution')),
               { total: count() },
             ),
           ]),
@@ -112,14 +128,17 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true) {
     return () => {
       ignore = true;
     };
-  }, [enabled, lguId]);
+  }, [enabled, globalScope, lguId]);
 
   const loadMore = useCallback(async () => {
-    if (!enabled || !lguId || !lastVisible || loading || loadingMore || !hasMore) return;
+    if (!enabled || (!globalScope && !lguId) || !lastVisible || loading || loadingMore || !hasMore) return;
 
     setLoadingMore(true);
     try {
-      const snap = await getDocs(publicDocumentsPageQuery(lguId, lastVisible));
+      const nextPageQuery = globalScope
+        ? globalPublicDocumentsPageQuery(lastVisible)
+        : scopedPublicDocumentsPageQuery(lguId, lastVisible);
+      const snap = await getDocs(nextPageQuery);
       const nextDocs = mapDocuments(snap);
       setDocuments(current => [...current, ...nextDocs]);
       setHasMore(snap.docs.length === PUBLIC_DOCUMENT_PAGE_SIZE);
@@ -129,7 +148,7 @@ export function usePublicDocuments(lguId = DEFAULT_LGU_ID, enabled = true) {
     } finally {
       setLoadingMore(false);
     }
-  }, [enabled, hasMore, lastVisible, lguId, loading, loadingMore]);
+  }, [enabled, globalScope, hasMore, lastVisible, lguId, loading, loadingMore]);
 
   return { documents, loading, loadingMore, hasMore, loadMore, stats };
 }

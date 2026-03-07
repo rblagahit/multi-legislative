@@ -29,6 +29,12 @@ export default function DocumentCard({ doc, memberById, onViewDetails }) {
           {doc.title}
         </h3>
         <p className="text-xs text-slate-400 font-bold mb-4">{doc.docId} · {date}</p>
+        {doc.lguLabel || doc.barangayLabel ? (
+          <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold text-slate-500">
+            <i className="fas fa-location-dot text-[10px] text-blue-500" />
+            <span className="truncate">{[doc.lguLabel, doc.barangayLabel].filter(Boolean).join(' · ')}</span>
+          </p>
+        ) : null}
 
         {/* Tags */}
         {(doc.tags || []).length > 0 && (

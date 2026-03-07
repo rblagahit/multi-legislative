@@ -1,35 +1,47 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  collection, getDocs, query, orderBy, limit,
+  collection, collectionGroup, getDocs, query, orderBy, limit,
   onSnapshot, addDoc, updateDoc, deleteDoc,
   doc, serverTimestamp, startAfter,
 } from 'firebase/firestore';
 import { db, DEFAULT_LGU_ID } from '../firebase';
+import { sanitizeLguId } from '../utils/helpers';
 
 const colRef = (lguId) => collection(db, 'lgus', lguId, 'members');
+const globalColRef = () => collectionGroup(db, 'members');
 const ADMIN_MEMBER_LIMIT = 50;
 const PUBLIC_MEMBER_PAGE_SIZE = 24;
 
 const membersQuery = (lguId) => query(colRef(lguId), orderBy('name'), limit(ADMIN_MEMBER_LIMIT));
-const publicMembersPageQuery = (lguId, cursor = null) => (
+const scopedPublicMembersPageQuery = (lguId, cursor = null) => (
   cursor
-    ? query(colRef(lguId), orderBy('name'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
-    : query(colRef(lguId), orderBy('name'), limit(PUBLIC_MEMBER_PAGE_SIZE))
+    ? query(colRef(lguId), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
+    : query(colRef(lguId), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE))
 );
-const mapMembers = (snap) => snap.docs.map(d => ({ id: d.id, ...d.data() }));
+const globalPublicMembersPageQuery = (cursor = null) => (
+  cursor
+    ? query(globalColRef(), orderBy('timestamp', 'desc'), startAfter(cursor), limit(PUBLIC_MEMBER_PAGE_SIZE))
+    : query(globalColRef(), orderBy('timestamp', 'desc'), limit(PUBLIC_MEMBER_PAGE_SIZE))
+);
+const mapMembers = (snap) => snap.docs.map((entry) => ({
+  id: entry.id,
+  ...entry.data(),
+  lguId: sanitizeLguId(entry.ref.parent?.parent?.id || entry.data()?.lguId || ''),
+}));
 
 /**
  * One-time fetch for public member browsing.
  */
-export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true) {
+export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true, options = {}) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(Boolean(enabled));
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [lastVisible, setLastVisible] = useState(null);
+  const globalScope = Boolean(options.global);
 
   useEffect(() => {
-    if (!enabled || !lguId) {
+    if (!enabled || (!globalScope && !lguId)) {
       setMembers([]);
       setHasMore(false);
       setLastVisible(null);
@@ -42,7 +54,10 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true) {
     const loadMembers = async () => {
       setLoading(true);
       try {
-        const snap = await getDocs(publicMembersPageQuery(lguId));
+        const firstPageQuery = globalScope
+          ? globalPublicMembersPageQuery()
+          : scopedPublicMembersPageQuery(lguId);
+        const snap = await getDocs(firstPageQuery);
         if (!ignore) {
           setMembers(mapMembers(snap));
           setHasMore(snap.docs.length === PUBLIC_MEMBER_PAGE_SIZE);
@@ -60,14 +75,17 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true) {
     return () => {
       ignore = true;
     };
-  }, [enabled, lguId]);
+  }, [enabled, globalScope, lguId]);
 
   const loadMore = useCallback(async () => {
-    if (!enabled || !lguId || !lastVisible || loading || loadingMore || !hasMore) return;
+    if (!enabled || (!globalScope && !lguId) || !lastVisible || loading || loadingMore || !hasMore) return;
 
     setLoadingMore(true);
     try {
-      const snap = await getDocs(publicMembersPageQuery(lguId, lastVisible));
+      const nextPageQuery = globalScope
+        ? globalPublicMembersPageQuery(lastVisible)
+        : scopedPublicMembersPageQuery(lguId, lastVisible);
+      const snap = await getDocs(nextPageQuery);
       const nextMembers = mapMembers(snap);
       setMembers(current => [...current, ...nextMembers]);
       setHasMore(snap.docs.length === PUBLIC_MEMBER_PAGE_SIZE);
@@ -77,7 +95,7 @@ export function usePublicMembers(lguId = DEFAULT_LGU_ID, enabled = true) {
     } finally {
       setLoadingMore(false);
     }
-  }, [enabled, hasMore, lastVisible, lguId, loading, loadingMore]);
+  }, [enabled, globalScope, hasMore, lastVisible, lguId, loading, loadingMore]);
 
   return { members, loading, loadingMore, hasMore, loadMore };
 }

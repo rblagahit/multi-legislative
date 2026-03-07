@@ -26,6 +26,8 @@ export function useTenant(userLguId) {
 
   return {
     tenantId,
+    hashTenantId,
+    accountTenantId,
     isAccountScoped: Boolean(accountTenantId),
     publicPortalUrl: typeof window === 'undefined'
       ? ''

@@ -6,6 +6,7 @@ import { useAdminSettings, usePublicSettings } from './hooks/useSettings';
 import { usePlatformSettings } from './hooks/usePlatformSettings';
 import { useSeo } from './hooks/useSeo';
 import { useTenant } from './hooks/useTenant';
+import { usePublicDirectory } from './hooks/usePublicDirectory';
 import { ADMIN_PANEL_ROLES, PLATFORM_PANEL_ROLES } from './utils/constants';
 import { buildAppPath, resolveAppLocation } from './utils/publicRoutes';
 
@@ -41,7 +42,7 @@ export default function App() {
   const deniedAccessRef   = useRef(false);
 
   const { user, userRole, userLguId, loading: authLoading, logout } = useAuth();
-  const { tenantId, publicPortalUrl } = useTenant(userLguId);
+  const { tenantId, publicPortalUrl, hashTenantId } = useTenant(userLguId);
   const { platformSettings } = usePlatformSettings();
 
   const navigateTo = useCallback((v, options = {}) => {
@@ -88,13 +89,15 @@ export default function App() {
   const canAccessAdmin = Boolean(user && userRole && ADMIN_PANEL_ROLES.includes(userRole));
   const canAccessPlatform = Boolean(user && userRole && PLATFORM_PANEL_ROLES.includes(userRole));
   const isAdminMode = view === 'admin' && canAccessAdmin;
+  const isGlobalPublicView = view === 'public';
   const shouldLoadPublicData = !isAdminMode;
-  const publicDocsState = usePublicDocuments(tenantId, shouldLoadPublicData);
+  const publicDocsState = usePublicDocuments(tenantId, shouldLoadPublicData, { global: isGlobalPublicView });
   const adminDocsState = useAdminDocuments(tenantId, isAdminMode);
-  const publicMembersState = usePublicMembers(tenantId, shouldLoadPublicData);
+  const publicMembersState = usePublicMembers(tenantId, shouldLoadPublicData, { global: isGlobalPublicView });
   const adminMembersState = useAdminMembers(tenantId, isAdminMode);
   const publicSettingsState = usePublicSettings(tenantId, shouldLoadPublicData);
   const adminSettingsState = useAdminSettings(tenantId, isAdminMode);
+  const publicDirectoryState = usePublicDirectory(shouldLoadPublicData && isGlobalPublicView);
 
   const documents = isAdminMode ? adminDocsState.documents : publicDocsState.documents;
   const members = isAdminMode ? adminMembersState.members : publicMembersState.members;
@@ -174,6 +177,9 @@ export default function App() {
     loadMoreMembers: publicMembersState.loadMore,
     settings,
     platformSettings,
+    municipalities: publicDirectoryState.municipalities,
+    barangays: publicDirectoryState.barangays,
+    defaultMunicipalityId: hashTenantId || '',
     loading: appLoading,
   };
 

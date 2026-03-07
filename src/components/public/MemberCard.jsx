@@ -33,6 +33,11 @@ export default function MemberCard({ member, relatedCount, onViewProfile }) {
       <div className="p-5">
         <h3 className="font-black text-slate-900 text-sm leading-snug">{member.name}</h3>
         <p className="text-xs text-blue-600 font-bold mt-1">{member.role}</p>
+        {member.lguLabel || member.barangayLabel ? (
+          <p className="mt-2 text-[11px] font-semibold text-slate-500">
+            {[member.lguLabel, member.barangayLabel].filter(Boolean).join(' · ')}
+          </p>
+        ) : null}
 
         {(member.committees || []).length > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">

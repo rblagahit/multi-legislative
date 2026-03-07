@@ -29,12 +29,17 @@ export default function PublicView({
   settings,
   platformSettings,
   tenantId,
+  municipalities,
+  barangays,
+  defaultMunicipalityId,
   showToast,
   user,
   userRole,
 }) {
   const [search, setSearch]   = useState('');
   const [typeFilter, setType] = useState('All');
+  const [municipalityFilter, setMunicipalityFilter] = useState(defaultMunicipalityId || '');
+  const [barangayFilter, setBarangayFilter] = useState('');
 
   const focusDocumentResults = () => {
     const target = document.getElementById('documents');
@@ -79,29 +84,88 @@ export default function PublicView({
 
   const { orgName, municipality, province } = settings || {};
   const cityProvince = [municipality, province].filter(Boolean).join(', ') || 'Argao, Cebu';
+  const publicPortalLabel = municipalityFilter
+    ? municipalityById.get(municipalityFilter)?.label || cityProvince
+    : 'All Municipalities · Public Legislative Search';
+  const municipalityById = useMemo(
+    () => new Map((municipalities || []).map((entry) => [entry.id, entry])),
+    [municipalities],
+  );
+  const scopedBarangays = useMemo(() => (
+    municipalityFilter
+      ? (barangays || []).filter((entry) => entry.lguId === municipalityFilter)
+      : barangays || []
+  ), [barangays, municipalityFilter]);
+
+  const enrichedDocuments = useMemo(() => documents.map((entry) => {
+    const location = municipalityById.get(entry.lguId);
+    return {
+      ...entry,
+      municipality: entry.municipality || location?.municipality || '',
+      province: entry.province || location?.province || '',
+      lguLabel: location?.label || entry.lguId || '',
+      barangayLabel: entry.barangayName || entry._barangayName || entry.barangayId || '',
+    };
+  }), [documents, municipalityById]);
+
+  const enrichedMembers = useMemo(() => members.map((entry) => {
+    const location = municipalityById.get(entry.lguId);
+    return {
+      ...entry,
+      municipality: entry.municipality || location?.municipality || '',
+      province: entry.province || location?.province || '',
+      lguLabel: location?.label || entry.lguId || '',
+      barangayLabel: entry.barangayName || entry.barangayId || '',
+    };
+  }), [members, municipalityById]);
+
   const memberById = useMemo(
-    () => new Map(members.map(member => [member.id, member])),
-    [members],
+    () => new Map(enrichedMembers.map(member => [member.id, member])),
+    [enrichedMembers],
   );
 
+  useEffect(() => {
+    if (!defaultMunicipalityId) return;
+    setMunicipalityFilter((current) => current || defaultMunicipalityId);
+  }, [defaultMunicipalityId]);
+
+  useEffect(() => {
+    if (!barangayFilter) return;
+    const existsInScope = scopedBarangays.some((entry) => entry.id === barangayFilter);
+    if (!existsInScope) {
+      setBarangayFilter('');
+    }
+  }, [barangayFilter, scopedBarangays]);
+
   // ─── Derived stats ──────────────────────────────────────────────────────────
-  const totalDocs      = documentStats?.totalDocs ?? documents.length;
-  const ordinanceCount = documentStats?.ordinanceCount ?? documents.filter(d => d.type === 'Ordinance').length;
-  const resCount       = documentStats?.resolutionCount ?? documents.filter(d => d.type === 'Resolution').length;
-  const totalViews     = documentStats?.totalViews ?? documents.reduce((acc, d) => acc + (d.views || 0), 0);
+  const totalDocs      = documentStats?.totalDocs ?? enrichedDocuments.length;
+  const ordinanceCount = documentStats?.ordinanceCount ?? enrichedDocuments.filter(d => d.type === 'Ordinance').length;
+  const resCount       = documentStats?.resolutionCount ?? enrichedDocuments.filter(d => d.type === 'Resolution').length;
+  const totalViews     = documentStats?.totalViews ?? enrichedDocuments.reduce((acc, d) => acc + (d.views || 0), 0);
 
   // ─── Filtered documents ─────────────────────────────────────────────────────
-  const filtered = useMemo(() => {
+  const filteredDocuments = useMemo(() => {
     const q = normalizeText(search);
-    return documents.filter(d => {
+    return enrichedDocuments.filter((d) => {
       const matchType = typeFilter === 'All' || d.type === typeFilter;
+      const matchMunicipality = !municipalityFilter || d.lguId === municipalityFilter;
+      const matchBarangay = !barangayFilter || `${d.lguId}:${d.barangayId || ''}` === barangayFilter;
       const matchSearch = !q
         || normalizeText(d.title).includes(q)
         || normalizeText(d.docId).includes(q)
+        || normalizeText(d.authorName).includes(q)
+        || normalizeText(d.municipality).includes(q)
+        || normalizeText(d.barangayLabel).includes(q)
         || (d.tags || []).some(t => normalizeTag(t).includes(q));
-      return matchType && matchSearch;
+      return matchType && matchMunicipality && matchBarangay && matchSearch;
     });
-  }, [documents, search, typeFilter]);
+  }, [barangayFilter, enrichedDocuments, municipalityFilter, search, typeFilter]);
+
+  const filteredMembers = useMemo(() => enrichedMembers.filter((member) => {
+    const matchMunicipality = !municipalityFilter || member.lguId === municipalityFilter;
+    const matchBarangay = !barangayFilter || `${member.lguId}:${member.barangayId || ''}` === barangayFilter;
+    return matchMunicipality && matchBarangay;
+  }), [barangayFilter, enrichedMembers, municipalityFilter]);
 
   const modalFallback = (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 text-white">
@@ -141,7 +205,7 @@ export default function PublicView({
     if (!routeTarget.type || !routeTarget.id) return;
 
     if (routeTarget.type === 'member') {
-      const targetMember = members.find((member) => member.id === routeTarget.id);
+      const targetMember = enrichedMembers.find((member) => member.id === routeTarget.id);
       if (targetMember) {
         setActiveMember(targetMember);
         setModal('member');
@@ -150,13 +214,13 @@ export default function PublicView({
     }
 
     if (routeTarget.type === 'doc') {
-      const targetDoc = documents.find((entry) => entry.id === routeTarget.id);
+      const targetDoc = enrichedDocuments.find((entry) => entry.id === routeTarget.id);
       if (targetDoc) {
         setActiveDoc(targetDoc);
         setModal('details');
       }
     }
-  }, [documents, members, routeTarget]);
+  }, [enrichedDocuments, enrichedMembers, routeTarget]);
 
   useEffect(() => {
     if (modal === 'member' && activeMember) {
@@ -174,7 +238,7 @@ export default function PublicView({
   const entitySeo = useMemo(() => {
     if (modal === 'member' && activeMember) {
       const memberRole = activeMember.role || 'LGU Legislative Member';
-      const memberLocation = [municipality, province].filter(Boolean).join(', ');
+      const memberLocation = [activeMember.municipality || municipality, activeMember.province || province].filter(Boolean).join(', ');
       return {
         title: `${activeMember.name} | ${memberRole}`,
         description: `View the public member profile for ${activeMember.name}, ${memberRole}${memberLocation ? ` in ${memberLocation}` : ''}. Browse committees, biography, and recent sponsored ordinances.`,
@@ -191,8 +255,9 @@ export default function PublicView({
         ? activeDoc.timestamp.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
         : '';
       const tagText = (activeDoc.tags || []).slice(0, 4).join(', ');
+      const docOwner = activeDoc.municipality || orgName || 'Legislative Portal';
       return {
-        title: `${activeDoc.title || activeDoc.docId || 'Legislative Document'} | ${orgName || 'Legislative Portal'}`,
+        title: `${activeDoc.title || activeDoc.docId || 'Legislative Document'} | ${docOwner}`,
         description: `${activeDoc.type || 'Document'} ${activeDoc.docId ? `${activeDoc.docId} · ` : ''}${activeDoc.title || 'Legislative document'}${activeDoc.authorName ? ` by ${activeDoc.authorName}` : ''}${docDate ? ` on ${docDate}` : ''}${tagText ? ` · Topics: ${tagText}` : ''}.`,
         canonicalPath: buildPublicEntityPath('doc', activeDoc),
         ogTitle: `${activeDoc.title || 'Legislative Document'}${activeDoc.docId ? ` | ${activeDoc.docId}` : ''}`,
@@ -215,23 +280,23 @@ export default function PublicView({
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-600 px-4 py-2 rounded-full text-sm font-bold mb-8">
               <i className="fas fa-landmark text-xs" />
-              {cityProvince} · Official Legislative Portal
+              {publicPortalLabel}
             </div>
             <h1 className="text-5xl lg:text-[3.6rem] font-black text-slate-900 leading-[1.08] mb-5">
               Find Legislative <span className="text-blue-600">Documents</span><br />in Seconds
             </h1>
             <p className="text-slate-500 text-lg leading-relaxed mb-10 max-w-2xl mx-auto">
-              Browse all ordinances and resolutions passed by the {orgName || 'Sangguniang Bayan of Argao'}.
+              Browse the latest public ordinances, resolutions, and member profiles across municipalities, or drill into one LGU and barangay.
             </p>
 
             {/* Search bar */}
-            <div className="hero-search mb-10 max-w-4xl mx-auto">
+            <div className="hero-search mb-4 max-w-4xl mx-auto">
               <div className="flex-1 flex items-center gap-3 pl-6">
                 <i className="fas fa-search text-slate-400 text-xl flex-shrink-0" />
                 <input
                   type="text" value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Search by title, ID, or tag…"
+                  placeholder="Search by title, ID, sponsor, municipality, or tag…"
                   className="flex-1 py-5 bg-transparent outline-none font-medium text-slate-800 placeholder-slate-400 text-lg min-w-0"
                 />
               </div>
@@ -250,6 +315,44 @@ export default function PublicView({
               >
                 <i className="fas fa-search text-xs" /> Search
               </button>
+            </div>
+            <div className="mx-auto mb-10 grid max-w-4xl grid-cols-1 gap-3 text-left sm:grid-cols-3">
+              <label className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <span className="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">Municipality</span>
+                <select
+                  value={municipalityFilter}
+                  onChange={(event) => setMunicipalityFilter(event.target.value)}
+                  className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none"
+                >
+                  <option value="">All municipalities</option>
+                  {(municipalities || []).map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <span className="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">Barangay</span>
+                <select
+                  value={barangayFilter}
+                  onChange={(event) => setBarangayFilter(event.target.value)}
+                  className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none"
+                >
+                  <option value="">All barangays</option>
+                  {scopedBarangays.map((entry) => (
+                    <option key={entry.id} value={entry.id}>{entry.label}</option>
+                  ))}
+                </select>
+              </label>
+              <div className="flex items-center rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-700 shadow-sm">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-blue-400">Discovery Scope</p>
+                  <p className="mt-2">
+                    {municipalityFilter
+                      ? `Showing ${municipalityById.get(municipalityFilter)?.label || municipalityFilter}`
+                      : 'Showing all municipalities'}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Stats */}
@@ -272,19 +375,24 @@ export default function PublicView({
 
       {/* ── Document grid ─────────────────────────────────────────────────── */}
       <DocumentGrid
-        documents={filtered}
+        documents={filteredDocuments}
         memberById={memberById}
         hasMore={hasMoreDocuments}
         loadingMore={loadingMoreDocuments}
         onLoadMore={loadMoreDocuments}
-        onClear={() => { setSearch(''); setType('All'); }}
+        onClear={() => {
+          setSearch('');
+          setType('All');
+          setMunicipalityFilter(defaultMunicipalityId || '');
+          setBarangayFilter('');
+        }}
         onViewDetails={openDetails}
       />
 
       {/* ── Members section ───────────────────────────────────────────────── */}
       <MembersSection
-        members={members}
-        documents={documents}
+        members={filteredMembers}
+        documents={filteredDocuments}
         hasMore={hasMoreMembers}
         loadingMore={loadingMoreMembers}
         onLoadMore={loadMoreMembers}
@@ -294,7 +402,7 @@ export default function PublicView({
       {modal === 'member' && activeMember ? (
         <MemberProfileModal
           member={activeMember}
-          documents={documents}
+          documents={enrichedDocuments}
           onClose={closeModals}
           onOpenDocument={openDetails}
           showToast={showToast}
